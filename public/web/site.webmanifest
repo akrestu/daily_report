@@ -1,0 +1,14 @@
+{
+    "name": "Daily Job Report System",
+    "short_name": "Daily Report",
+    "icons": [
+        {
+            "src": "/favicon.ico",
+            "sizes": "32x32 16x16",
+            "type": "image/x-icon"
+        }
+    ],
+    "theme_color": "#0d6efd",
+    "background_color": "#ffffff",
+    "display": "standalone"
+} 
