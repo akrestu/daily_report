@@ -115,19 +115,6 @@
                 </a>
             </li>
 
-            <li class="nav-item mb-3">
-                <span class="sidebar-heading px-3 py-2 text-uppercase fw-bold text-white-50 small d-block">Application</span>
-            </li>
-
-            <li class="nav-item mb-2">
-                <a class="nav-link rounded-pill {{ request()->routeIs('pwa.install') ? 'active bg-white text-primary' : 'text-white' }}"
-                   href="{{ route('pwa.install') }}">
-                    <i class="fas fa-download me-2"></i>
-                    <span>Install App</span>
-                    <span class="badge bg-success ms-auto">PWA</span>
-                </a>
-            </li>
-
             @if(auth()->check() && auth()->user()->isAdmin())
             <li class="nav-item mb-3">
                 <span class="sidebar-heading px-3 py-2 text-uppercase fw-bold text-white-50 small d-block">Administration</span>
@@ -281,13 +268,22 @@
         right: 24px;
         z-index: 1040;
     }
-    
+
     .mobile-nav-toggle .btn {
-        width: 48px;
-        height: 48px;
+        width: 60px;
+        height: 60px;
         display: flex;
         align-items: center;
         justify-content: center;
+        font-size: 1.25rem;
+        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.4);
+        transition: all 0.3s ease;
+    }
+
+    .mobile-nav-toggle .btn:hover,
+    .mobile-nav-toggle .btn:active {
+        transform: scale(1.1);
+        box-shadow: 0 6px 16px rgba(13, 110, 253, 0.6);
     }
     
     /* Responsive styles */
