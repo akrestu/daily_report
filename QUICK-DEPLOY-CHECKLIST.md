@@ -22,8 +22,10 @@ Via FTP atau File Manager Plesk:
 
 **Files penting di migrations:**
 ```
+✅ 2025_01_20_000002a_update_daily_reports_table.php (restructure daily_reports)
 ✅ 2025_01_20_000003_create_job_comments_table.php
 ✅ 2025_01_20_000005_create_notifications_table.php
+✅ 2025_04_21_090550_add_department_id_to_daily_reports_table.php.disabled (SKIP)
 ```
 
 ---

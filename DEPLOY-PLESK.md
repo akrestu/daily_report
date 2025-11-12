@@ -18,6 +18,7 @@ Upload file migrasi berikut ke folder `database/migrations/` di server:
 ```
 2025_01_20_000001_add_profile_picture_to_users_table.php
 2025_01_20_000002_add_notification_preferences_to_users_table.php
+2025_01_20_000002a_update_daily_reports_table.php       ← RENAMED (dulu: 2025_04_21_131028)
 2025_01_20_000003_create_job_comments_table.php         ← RENAMED (dulu: 2025_04_24_004702)
 2025_01_20_000004_update_job_comments_visibility_to_public.php  ← RENAMED (dulu: 2025_04_24_042409)
 2025_01_20_000005_create_notifications_table.php        ← RENAMED (dulu: 2025_01_20_000003)
