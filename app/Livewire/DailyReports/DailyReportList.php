@@ -27,25 +27,22 @@ class DailyReportList extends Component
     // Listeners
     protected $listeners = ['refreshReports' => '$refresh'];
     
-    // Helper methods for user role checking
-    private function userHasRole($user, $roleName)
-    {
-        return $user->role && $user->role->slug === $roleName;
-    }
-    
+    // Helper methods for user role checking (delegate to User model)
     private function isAdmin($user)
     {
-        return $this->userHasRole($user, 'admin');
+        return $user->isAdmin();
     }
-    
-    private function isDepartmentHead($user)
+
+    private function canApproveReports($user)
     {
-        return $this->userHasRole($user, 'department_head');
+        // Users with Level 2 and above (or Admin) can approve
+        return $user->isAdmin() || $user->getRoleLevel() >= 2;
     }
-    
-    private function isLeader($user)
+
+    private function canDeleteReports($user)
     {
-        return $this->userHasRole($user, 'leader');
+        // Only Admin and Level 5 can batch delete
+        return $user->isAdmin() || $user->isLevel5();
     }
     
     // Reset pagination when filters change
@@ -135,42 +132,44 @@ class DailyReportList extends Component
             ]);
             return;
         }
-        
+
+        /** @var \App\Models\User $user */
         $user = Auth::user();
         $approvedCount = 0;
-        
+
         // Check if user has permission to approve
-        if (!$this->isAdmin($user) && !$this->isDepartmentHead($user) && !$this->isLeader($user)) {
+        if (!$this->canApproveReports($user)) {
             $this->dispatch('showAlert', [
                 'type' => 'error',
                 'message' => 'You do not have permission to approve reports'
             ]);
             return;
         }
-        
+
         foreach ($this->selected as $id) {
-            $report = DailyReport::find($id);
-            
+            $report = DailyReport::with('user')->find($id);
+
             // Skip if not found or already approved
-            if (!$report || $report->status === 'approved') {
+            if (!$report || $report->approval_status === 'approved') {
                 continue;
             }
-            
-            // Check if user can approve this report (must be from same department)
-            if (!$this->isAdmin($user) && $user->department_id !== $report->department_id) {
+
+            // Check if user can approve this specific report based on role hierarchy
+            if (!$report->user || !$user->canApprove($report->user)) {
                 continue;
             }
-            
-            $report->status = 'approved';
+
+            $report->approval_status = 'approved';
             $report->approved_by = $user->id;
+            $report->rejection_reason = null;
             $report->save();
             $approvedCount++;
         }
-        
+
         // Reset selections
         $this->selected = [];
         $this->selectAll = false;
-        
+
         $this->dispatch('showAlert', [
             'type' => 'success',
             'message' => "Successfully approved {$approvedCount} reports"
@@ -187,43 +186,57 @@ class DailyReportList extends Component
             ]);
             return;
         }
-        
+
+        /** @var \App\Models\User $user */
         $user = Auth::user();
         $deletedCount = 0;
-        
+
         foreach ($this->selected as $id) {
             $report = DailyReport::find($id);
-            
+
             if (!$report) {
                 continue;
             }
-            
+
             // Check if user can delete this report
             $canDelete = false;
-            
-            if ($this->isAdmin($user)) {
-                $canDelete = true;
-            } else if ($report->user_id === $user->id && $report->status === 'pending') {
+
+            // Admin and Level 5 can delete any report
+            if ($this->canDeleteReports($user)) {
                 $canDelete = true;
             }
-            
+            // Owner can delete their own pending reports
+            else if ($report->user_id === $user->id && $report->approval_status === 'pending') {
+                $canDelete = true;
+            }
+
             if ($canDelete) {
-                // Delete attachment if exists
+                // Delete all attachments if they exist
                 if ($report->attachment_path) {
                     if (Storage::disk('public')->exists($report->attachment_path)) {
                         Storage::disk('public')->delete($report->attachment_path);
                     }
                 }
-                
+                if ($report->attachment_path_2) {
+                    if (Storage::disk('public')->exists($report->attachment_path_2)) {
+                        Storage::disk('public')->delete($report->attachment_path_2);
+                    }
+                }
+                if ($report->attachment_path_3) {
+                    if (Storage::disk('public')->exists($report->attachment_path_3)) {
+                        Storage::disk('public')->delete($report->attachment_path_3);
+                    }
+                }
+
                 $report->delete();
                 $deletedCount++;
             }
         }
-        
+
         // Reset selections
         $this->selected = [];
         $this->selectAll = false;
-        
+
         $this->dispatch('showAlert', [
             'type' => 'success',
             'message' => "Successfully deleted {$deletedCount} reports"

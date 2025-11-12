@@ -30,6 +30,8 @@ class DailyReportController extends Controller
      */
     private function getValidationRules()
     {
+        $attachmentRules = 'nullable|file|max:5120|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx|mimetypes:image/jpeg,image/png,image/gif,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
         return [
             'job_name' => 'required|string|max:255',
             'department_id' => 'required|exists:departments,id',
@@ -39,31 +41,43 @@ class DailyReportController extends Controller
             'description' => 'required|string|max:2000',
             'remark' => 'nullable|string|max:1000',
             'status' => ['required', Rule::in(['pending', 'in_progress', 'completed'])],
-            'attachment' => 'nullable|file|max:5120|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx|mimetypes:image/jpeg,image/png,image/gif,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'attachment' => $attachmentRules,
+            'attachment_2' => $attachmentRules,
+            'attachment_3' => $attachmentRules,
         ];
     }
 
     /**
-     * Get eligible PICs for reports (leaders and department heads from user's department)
-     * 
-     * @param int $departmentId
+     * Get eligible PICs for reports based on user's role and department
+     *
+     * @param \App\Models\User $user The user creating/editing the report
      * @param int|null $currentPicId Include current PIC for existing reports
-     * @return array
+     * @return array Array of eligible user IDs
      */
-    private function getEligiblePics($departmentId, $currentPicId = null)
+    private function getEligiblePics(User $user, $currentPicId = null)
     {
-        $eligibleRoles = Role::whereIn('slug', ['leader', 'department_head'])->pluck('id')->toArray();
-        
-        $query = User::whereIn('role_id', $eligibleRoles)
-            ->where('department_id', $departmentId)
+        // Get eligible role slugs based on user's role
+        $eligibleRoleSlugs = $user->getEligiblePicRoles();
+
+        if (empty($eligibleRoleSlugs)) {
+            return $currentPicId ? [$currentPicId] : [];
+        }
+
+        // Get role IDs for eligible slugs
+        $eligibleRoleIds = Role::whereIn('slug', $eligibleRoleSlugs)->pluck('id')->toArray();
+
+        // Get users with eligible roles from the SAME DEPARTMENT, excluding self (no self-PIC)
+        $query = User::whereIn('role_id', $eligibleRoleIds)
+            ->where('id', '!=', $user->id) // Exclude self
+            ->where('department_id', $user->department_id) // Filter by same department
             ->pluck('id')
             ->toArray();
-            
-        // Include the current PIC for existing reports
+
+        // Include the current PIC for existing reports if not already in the list
         if ($currentPicId && !in_array($currentPicId, $query)) {
             $query[] = $currentPicId;
         }
-        
+
         return $query;
     }
 
@@ -144,7 +158,7 @@ class DailyReportController extends Controller
     
     /**
      * Check if user can view/edit/delete the report
-     * 
+     *
      * @param \App\Models\User $user
      * @param \App\Models\DailyReport $report
      * @param string $action view|edit|delete
@@ -152,46 +166,56 @@ class DailyReportController extends Controller
      */
     private function userCanAccessReport($user, $report, $action = 'view')
     {
-        // Admin and Department Head can access any report
-        if ($user->isAdmin() || $user->isDepartmentHead()) {
+        // Admin can access any report
+        if ($user->isAdmin()) {
             return true;
         }
-        
+
+        // Level 5 can view all reports (monitoring role)
+        if ($user->isLevel5() && $action === 'view') {
+            return true;
+        }
+
         switch ($action) {
             case 'view':
                 // User can view if they are the creator
                 if ($user->id === $report->user_id) {
                     return true;
                 }
-                
-                // Leaders can view reports from their department
-                if ($user->isLeader() && $user->department_id === $report->department_id) {
+
+                // PIC can view reports assigned to them
+                if ($user->id === $report->job_pic) {
                     return true;
                 }
-                
-                // Staff can view reports from their department
-                if ($user->isStaff() && $user->department_id === $report->department_id) {
+
+                // Users can view reports from their department
+                if ($user->department_id === $report->department_id) {
                     return true;
                 }
-                
+
+                // Legacy role support
+                if ($user->isDepartmentHead() || $user->isLeader()) {
+                    return true;
+                }
+
                 return false;
-                
+
             case 'edit':
                 // Creator can edit their own reports if not yet approved
                 if ($user->id === $report->user_id && $report->approval_status === 'pending') {
                     return true;
                 }
-                
+
                 return false;
-                
+
             case 'delete':
                 // Creator can delete their own pending reports
                 if ($user->id === $report->user_id && $report->approval_status === 'pending') {
                     return true;
                 }
-                
+
                 return false;
-                
+
             default:
                 return false;
         }
@@ -208,21 +232,25 @@ class DailyReportController extends Controller
         // Build the query
         $query = DailyReport::with(['user', 'department', 'pic', 'approver'])
             ->whereNotNull('approved_by');
-            
+
         // Filter by report type
         if ($reportType === 'approved') {
             $query->where('approval_status', 'approved');
         } elseif ($reportType === 'rejected') {
             $query->where('approval_status', 'rejected');
         }
-        
+
         // Filter by user's department unless they're an admin
+        // Show only reports from users in the same department
         $user = Auth::user();
         if ($user && $user->role_id) {
             // Check if user is not an admin and has a department
             $adminRole = Role::where('slug', 'admin')->first();
             if ($user->role_id !== $adminRole->id && $user->department_id) {
-                $query->where('department_id', $user->department_id);
+                // Join with users table to filter by user's department
+                $query->whereHas('user', function($q) use ($user) {
+                    $q->where('department_id', $user->department_id);
+                });
             }
         }
         
@@ -255,21 +283,17 @@ class DailyReportController extends Controller
     {
         // Fetch departments for dropdown
         $departments = \App\Models\Department::pluck('name', 'id');
-        
-        // For PIC dropdown, get leaders and department heads
+
+        // For PIC dropdown, get eligible users based on current user's role
+        /** @var User $user */
         $user = Auth::user();
-        $departmentId = old('department_id', $user->department_id);
-        
-        // Get eligible role IDs
-        $eligibleRoles = \App\Models\Role::whereIn('slug', ['leader', 'department_head'])->pluck('id')->toArray();
-        
-        // Get eligible PICs for the user's department
-        $eligibleUsers = \App\Models\User::whereIn('role_id', $eligibleRoles)
-            ->where('department_id', $departmentId)
-            ->get();
-          
-        $eligiblePics = $eligibleUsers->pluck('name', 'id')->toArray();
-        
+
+        // Get eligible PIC IDs
+        $eligiblePicIds = $this->getEligiblePics($user);
+
+        // Get eligible PICs with their names
+        $eligiblePics = User::whereIn('id', $eligiblePicIds)->pluck('name', 'id')->toArray();
+
         return view('daily-reports.create', compact('departments', 'eligiblePics'));
     }
 
@@ -277,33 +301,58 @@ class DailyReportController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        
-        // Get eligible PICs
-        $eligiblePics = $this->getEligiblePics($user->department_id);
-        
+
         // Validate request data
         $validated = $request->validate($this->getValidationRules());
-        
+
+        // Get eligible PICs
+        $eligiblePics = $this->getEligiblePics($user);
+
         // Validate PIC belongs to eligible PICs
         if (!in_array($validated['job_pic'], $eligiblePics)) {
             return redirect()->back()
-                ->with('error', 'The selected PIC is not valid. Must be a leader or department head from your department.')
+                ->with('error', 'The selected PIC is not valid based on your role level.')
+                ->withInput();
+        }
+
+        // Validate no self-PIC
+        if ($validated['job_pic'] == $user->id) {
+            return redirect()->back()
+                ->with('error', 'You cannot assign yourself as PIC.')
                 ->withInput();
         }
         
         $attachmentPath = null;
         $originalName = null;
-        
-        // Process the file attachment if provided
+        $attachmentPath2 = null;
+        $originalName2 = null;
+        $attachmentPath3 = null;
+        $originalName3 = null;
+
+        // Process the first attachment if provided
         if ($request->hasFile('attachment')) {
             $attachmentData = $this->processAttachment($request->file('attachment'));
             $attachmentPath = $attachmentData['path'];
             $originalName = $attachmentData['originalName'];
         }
 
+        // Process the second attachment if provided
+        if ($request->hasFile('attachment_2')) {
+            $attachmentData2 = $this->processAttachment($request->file('attachment_2'));
+            $attachmentPath2 = $attachmentData2['path'];
+            $originalName2 = $attachmentData2['originalName'];
+        }
+
+        // Process the third attachment if provided
+        if ($request->hasFile('attachment_3')) {
+            $attachmentData3 = $this->processAttachment($request->file('attachment_3'));
+            $attachmentPath3 = $attachmentData3['path'];
+            $originalName3 = $attachmentData3['originalName'];
+        }
+
         // Use transaction to ensure data integrity
         DB::beginTransaction();
-        
+
         try {
             // Create the report
             $report = DailyReport::create([
@@ -318,6 +367,10 @@ class DailyReportController extends Controller
                 'status' => $validated['status'],
                 'attachment_path' => $attachmentPath,
                 'attachment_original_name' => $originalName,
+                'attachment_path_2' => $attachmentPath2,
+                'attachment_original_name_2' => $originalName2,
+                'attachment_path_3' => $attachmentPath3,
+                'attachment_original_name_3' => $originalName3,
             ]);
             
             DB::commit();
@@ -327,12 +380,18 @@ class DailyReportController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Failed to create daily report: ' . $e->getMessage());
-            
-            // Delete uploaded file if exists
+
+            // Delete uploaded files if they exist
             if ($attachmentPath) {
                 Storage::disk('public')->delete($attachmentPath);
             }
-            
+            if ($attachmentPath2) {
+                Storage::disk('public')->delete($attachmentPath2);
+            }
+            if ($attachmentPath3) {
+                Storage::disk('public')->delete($attachmentPath3);
+            }
+
             return redirect()->back()
                 ->with('error', 'Failed to create report. Please try again.')
                 ->withInput();
@@ -372,13 +431,21 @@ class DailyReportController extends Controller
             foreach ($reports as $index => $reportData) {
                 $attachmentPath = null;
                 $originalName = null;
-                
-                Log::info('Processing report data for index: ' . $index, ['has_attachment' => isset($reportData['attachment'])]);
-                
-                // Process the file attachment if provided
+                $attachmentPath2 = null;
+                $originalName2 = null;
+                $attachmentPath3 = null;
+                $originalName3 = null;
+
+                Log::info('Processing report data for index: ' . $index, [
+                    'has_attachment' => isset($reportData['attachment']),
+                    'has_attachment_2' => isset($reportData['attachment_2']),
+                    'has_attachment_3' => isset($reportData['attachment_3'])
+                ]);
+
+                // Process the first attachment if provided
                 if (isset($reportData['attachment']) && $reportData['attachment'] instanceof \Illuminate\Http\UploadedFile) {
                     $file = $reportData['attachment'];
-                    
+
                     // Check if the file is valid
                     if ($file->isValid()) {
                         try {
@@ -386,21 +453,71 @@ class DailyReportController extends Controller
                             $attachmentPath = $attachmentData['path'];
                             $originalName = $attachmentData['originalName'];
                             $createdAttachments[] = $attachmentPath;
-                            
-                            Log::info('Processed attachment', [
+
+                            Log::info('Processed attachment 1', [
                                 'index' => $index,
                                 'path' => $attachmentPath,
                                 'original_name' => $originalName
                             ]);
                         } catch (\Exception $e) {
-                            Log::error('Failed to process attachment for report index ' . $index . ': ' . $e->getMessage());
+                            Log::error('Failed to process attachment 1 for report index ' . $index . ': ' . $e->getMessage());
                             throw $e;
                         }
                     } else {
-                        Log::warning('Invalid file for report index ' . $index);
+                        Log::warning('Invalid file for attachment 1 report index ' . $index);
                     }
                 }
-                
+
+                // Process the second attachment if provided
+                if (isset($reportData['attachment_2']) && $reportData['attachment_2'] instanceof \Illuminate\Http\UploadedFile) {
+                    $file = $reportData['attachment_2'];
+
+                    if ($file->isValid()) {
+                        try {
+                            $attachmentData2 = $this->processAttachment($file);
+                            $attachmentPath2 = $attachmentData2['path'];
+                            $originalName2 = $attachmentData2['originalName'];
+                            $createdAttachments[] = $attachmentPath2;
+
+                            Log::info('Processed attachment 2', [
+                                'index' => $index,
+                                'path' => $attachmentPath2,
+                                'original_name' => $originalName2
+                            ]);
+                        } catch (\Exception $e) {
+                            Log::error('Failed to process attachment 2 for report index ' . $index . ': ' . $e->getMessage());
+                            throw $e;
+                        }
+                    } else {
+                        Log::warning('Invalid file for attachment 2 report index ' . $index);
+                    }
+                }
+
+                // Process the third attachment if provided
+                if (isset($reportData['attachment_3']) && $reportData['attachment_3'] instanceof \Illuminate\Http\UploadedFile) {
+                    $file = $reportData['attachment_3'];
+
+                    if ($file->isValid()) {
+                        try {
+                            $attachmentData3 = $this->processAttachment($file);
+                            $attachmentPath3 = $attachmentData3['path'];
+                            $originalName3 = $attachmentData3['originalName'];
+                            $createdAttachments[] = $attachmentPath3;
+
+                            Log::info('Processed attachment 3', [
+                                'index' => $index,
+                                'path' => $attachmentPath3,
+                                'original_name' => $originalName3
+                            ]);
+                        } catch (\Exception $e) {
+                            Log::error('Failed to process attachment 3 for report index ' . $index . ': ' . $e->getMessage());
+                            throw $e;
+                        }
+                    } else {
+                        Log::warning('Invalid file for attachment 3 report index ' . $index);
+                    }
+                }
+
                 // Create the report
                 DailyReport::create([
                     'user_id' => $user->id,
@@ -414,6 +531,10 @@ class DailyReportController extends Controller
                     'status' => $reportData['status'],
                     'attachment_path' => $attachmentPath,
                     'attachment_original_name' => $originalName,
+                    'attachment_path_2' => $attachmentPath2,
+                    'attachment_original_name_2' => $originalName2,
+                    'attachment_path_3' => $attachmentPath3,
+                    'attachment_original_name_3' => $originalName3,
                 ]);
                 
                 $createdCount++;
@@ -458,37 +579,30 @@ class DailyReportController extends Controller
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
-        
+
         // Check if user can edit this report
         if (!$this->userCanAccessReport($user, $dailyReport, 'edit')) {
             return redirect()->route('daily-reports.user-jobs')
                 ->with('error', 'You do not have permission to edit this report.');
         }
-        
+
         // Fetch departments for dropdown
         $departments = \App\Models\Department::pluck('name', 'id');
-        
-        // Get eligible PICs
-        $eligiblePics = [];
-        
-        // Get eligible role IDs
-        $eligibleRoles = \App\Models\Role::whereIn('slug', ['leader', 'department_head'])->pluck('id')->toArray();
-        
-        // Get eligible PICs for the department
-        $eligibleUsers = \App\Models\User::whereIn('role_id', $eligibleRoles)
-            ->where('department_id', $dailyReport->department_id)
-            ->get();
-          
-        $eligiblePics = $eligibleUsers->pluck('name', 'id')->toArray();
-        
-        // Add current PIC if not in the list
+
+        // Get eligible PIC IDs including current PIC
+        $eligiblePicIds = $this->getEligiblePics($user, $dailyReport->job_pic);
+
+        // Get eligible PICs with their names
+        $eligiblePics = User::whereIn('id', $eligiblePicIds)->pluck('name', 'id')->toArray();
+
+        // Ensure current PIC is in the list (for display purposes)
         if (!array_key_exists($dailyReport->job_pic, $eligiblePics)) {
-            $picUser = \App\Models\User::find($dailyReport->job_pic);
+            $picUser = User::find($dailyReport->job_pic);
             if ($picUser) {
                 $eligiblePics[$picUser->id] = $picUser->name;
             }
         }
-        
+
         $report = $dailyReport; // Assign to $report variable to match view expectation
         return view('daily-reports.edit', compact('report', 'departments', 'eligiblePics'));
     }
@@ -497,45 +611,74 @@ class DailyReportController extends Controller
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
-        
+
         // Check if user can edit the report
         if (!$this->userCanAccessReport($user, $dailyReport, 'edit')) {
             if ($dailyReport->approved_by) {
                 return redirect()->route('daily-reports.show', $dailyReport)
                     ->with('error', 'You cannot edit a report that has already been approved or rejected.');
             }
-            
+
             abort(403, 'Unauthorized action.');
         }
-        
-        // Get eligible PICs
-        $eligiblePics = $this->getEligiblePics($user->department_id, $dailyReport->job_pic);
-        
+
         // Validate input data
         $validated = $request->validate($this->getValidationRules());
-        
+
+        // Get eligible PICs
+        $eligiblePics = $this->getEligiblePics($user, $dailyReport->job_pic);
+
         // Check if PIC is in eligible list
         if (!in_array($validated['job_pic'], $eligiblePics)) {
             return redirect()->back()
-                ->with('error', 'The selected PIC is not valid. Must be a leader or department head from your department, or the originally assigned PIC.')
+                ->with('error', 'The selected PIC is not valid based on your role level.')
+                ->withInput();
+        }
+
+        // Validate no self-PIC
+        if ($validated['job_pic'] == $user->id) {
+            return redirect()->back()
+                ->with('error', 'You cannot assign yourself as PIC.')
                 ->withInput();
         }
         
         // Use transaction for data integrity
         DB::beginTransaction();
-        
+
         try {
-            // Handle file upload if present
+            // Handle first attachment if present
             if ($request->hasFile('attachment')) {
                 $attachmentData = $this->processAttachment(
-                    $request->file('attachment'), 
+                    $request->file('attachment'),
                     $dailyReport->attachment_path
                 );
-                
+
                 $validated['attachment_path'] = $attachmentData['path'];
                 $validated['attachment_original_name'] = $attachmentData['originalName'];
             }
-            
+
+            // Handle second attachment if present
+            if ($request->hasFile('attachment_2')) {
+                $attachmentData2 = $this->processAttachment(
+                    $request->file('attachment_2'),
+                    $dailyReport->attachment_path_2
+                );
+
+                $validated['attachment_path_2'] = $attachmentData2['path'];
+                $validated['attachment_original_name_2'] = $attachmentData2['originalName'];
+            }
+
+            // Handle third attachment if present
+            if ($request->hasFile('attachment_3')) {
+                $attachmentData3 = $this->processAttachment(
+                    $request->file('attachment_3'),
+                    $dailyReport->attachment_path_3
+                );
+
+                $validated['attachment_path_3'] = $attachmentData3['path'];
+                $validated['attachment_original_name_3'] = $attachmentData3['originalName'];
+            }
+
             $dailyReport->update($validated);
             
             DB::commit();
@@ -570,11 +713,17 @@ class DailyReportController extends Controller
         DB::beginTransaction();
         
         try {
-            // Delete attachment if exists
+            // Delete all attachments if they exist
             if ($dailyReport->attachment_path) {
                 Storage::disk('public')->delete($dailyReport->attachment_path);
             }
-            
+            if ($dailyReport->attachment_path_2) {
+                Storage::disk('public')->delete($dailyReport->attachment_path_2);
+            }
+            if ($dailyReport->attachment_path_3) {
+                Storage::disk('public')->delete($dailyReport->attachment_path_3);
+            }
+
             $dailyReport->delete();
             
             DB::commit();
@@ -595,9 +744,9 @@ class DailyReportController extends Controller
         /** @var User $user */
         $user = Auth::user();
         $reportOwner = User::find($dailyReport->user_id);
-        
+
         // Check if user can approve/reject reports using the canApprove method
-        if (!$reportOwner || !($user->canApprove($reportOwner) || $user->isAdmin() || $user->isDepartmentHead())) {
+        if (!$reportOwner || !$user->canApprove($reportOwner)) {
             abort(403, 'Unauthorized action. You cannot approve reports for this user.');
         }
         
@@ -683,16 +832,15 @@ class DailyReportController extends Controller
         /** @var User $user */
         $user = Auth::user();
         $view = request()->get('view', 'approval');
-        
+
         // Base query - all reports that need approval (not approved or rejected yet)
         $reportsQuery = DailyReport::where('approval_status', 'pending')
             ->with(['user', 'approver', 'department', 'pic'])
             ->whereNull('approved_by');
 
-        if ($view === 'monitoring' && $user->isDepartmentHead()) {
-            // For monitoring view, show all pending reports in the department
-            $monitoringReports = DailyReport::where('department_id', $user->department_id)
-                ->where('approval_status', 'pending')
+        // For monitoring view - Level 5 and Admin can monitor all pending reports
+        if ($view === 'monitoring' && ($user->isLevel5() || $user->isAdmin())) {
+            $monitoringReports = DailyReport::where('approval_status', 'pending')
                 ->whereNull('approved_by')
                 ->with(['user', 'approver', 'department', 'pic'])
                 ->latest()
@@ -700,21 +848,20 @@ class DailyReportController extends Controller
 
             return view('daily-reports.pending', compact('monitoringReports'));
         }
-        
+
         // For approval view (default)
         // Admin can see all pending reports that need approval
         if ($user->isAdmin()) {
             $reports = $reportsQuery->latest()->paginate(10);
         }
-        // Department heads and leaders can only see reports from their department where they are PIC
-        else if ($user->isDepartmentHead() || $user->isLeader()) {
+        // Level 2-5 can see reports where they are PIC
+        else if ($user->getRoleLevel() >= 2) {
             $reports = $reportsQuery
-                ->where('department_id', $user->department_id)
                 ->where('job_pic', $user->id)
                 ->latest()
                 ->paginate(10);
         }
-        // Regular users can only see reports where they are PIC
+        // Level 1 users cannot approve, but can see reports where they are somehow PIC (edge case)
         else {
             $reports = $reportsQuery
                 ->where('job_pic', $user->id)
@@ -807,8 +954,9 @@ class DailyReportController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        
-        if (!($user->isAdmin() || $user->isDepartmentHead() || $user->isLeader())) {
+
+        // Only users with approval authority can batch approve
+        if (!$user->isAdmin() && $user->getRoleLevel() < 2) {
             return redirect()->back()->with('error', 'Unauthorized action.');
         }
 
@@ -827,33 +975,38 @@ class DailyReportController extends Controller
             }
 
             // Build query for reports to approve
-            $query = DailyReport::whereIn('id', $ids)
+            $query = DailyReport::with('user')
+                ->whereIn('id', $ids)
                 ->where('approval_status', '!=', 'approved'); // Allow approving any non-approved reports
-                
-            // Department heads and leaders can only approve reports from their department
-            if (!$user->isAdmin()) {
-                $query->where('department_id', $user->department_id);
-            }
-            
+
             $reports = $query->get();
-                
+
             if ($reports->isEmpty()) {
-                return redirect()->back()->with('error', 'No valid reports found to approve.');
+                return redirect()->back()->with('error', 'No reports selected for approval.');
+            }
+
+            // Filter reports that user can approve
+            $approvableReports = $reports->filter(function ($report) use ($user) {
+                return $report->user && $user->canApprove($report->user);
+            });
+
+            if ($approvableReports->isEmpty()) {
+                return redirect()->back()->with('error', 'No valid reports found to approve. You may not have permission to approve the selected reports.');
             }
 
             DB::beginTransaction();
             try {
                 // Use bulk update for better performance
-                $reportIds = $reports->pluck('id')->toArray();
+                $reportIds = $approvableReports->pluck('id')->toArray();
                 DailyReport::whereIn('id', $reportIds)
                     ->update([
                         'approval_status' => 'approved',
                         'approved_by' => $user->id,
                         'rejection_reason' => null // Clear any rejection reason
                     ]);
-                
+
                 // Create notifications for each report owner
-                foreach ($reports as $report) {
+                foreach ($approvableReports as $report) {
                     if ($report->user_id) {
                         Notification::create([
                             'user_id' => $report->user_id,
@@ -864,10 +1017,10 @@ class DailyReportController extends Controller
                         ]);
                     }
                 }
-                
+
                 DB::commit();
 
-                return redirect()->back()->with('success', count($reports) . ' reports have been approved successfully.');
+                return redirect()->back()->with('success', count($approvableReports) . ' reports have been approved successfully.');
             } catch (\Exception $e) {
                 DB::rollBack();
                 Log::error('Error during batch approval transaction', [
@@ -894,8 +1047,9 @@ class DailyReportController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        
-        if (!($user->isAdmin() || $user->isDepartmentHead() || $user->isLeader())) {
+
+        // Only users with approval authority can batch reject
+        if (!$user->isAdmin() && $user->getRoleLevel() < 2) {
             return redirect()->back()->with('error', 'Unauthorized action.');
         }
 
@@ -909,35 +1063,40 @@ class DailyReportController extends Controller
 
             $ids = $validated['selected_reports'];
             $rejectionReason = $validated['rejection_reason'];
-            
+
             // Build query for reports to reject
-            $query = DailyReport::whereIn('id', $ids)
+            $query = DailyReport::with('user')
+                ->whereIn('id', $ids)
                 ->where('approval_status', '!=', 'rejected'); // Allow rejecting any non-rejected reports
-                
-            // Department heads and leaders can only reject reports from their department
-            if (!$user->isAdmin()) {
-                $query->where('department_id', $user->department_id);
-            }
-            
+
             $reports = $query->get();
-                
+
             if ($reports->isEmpty()) {
-                return redirect()->back()->with('error', 'No valid reports found to reject.');
+                return redirect()->back()->with('error', 'No reports selected for rejection.');
+            }
+
+            // Filter reports that user can reject (same as approve permission)
+            $rejectableReports = $reports->filter(function ($report) use ($user) {
+                return $report->user && $user->canApprove($report->user);
+            });
+
+            if ($rejectableReports->isEmpty()) {
+                return redirect()->back()->with('error', 'No valid reports found to reject. You may not have permission to reject the selected reports.');
             }
 
             DB::beginTransaction();
             try {
                 // Use bulk update for better performance
-                $reportIds = $reports->pluck('id')->toArray();
+                $reportIds = $rejectableReports->pluck('id')->toArray();
                 DailyReport::whereIn('id', $reportIds)
                     ->update([
                         'approval_status' => 'rejected',
                         'approved_by' => $user->id,
                         'rejection_reason' => $rejectionReason
                     ]);
-                
+
                 // Create notifications for each report owner
-                foreach ($reports as $report) {
+                foreach ($rejectableReports as $report) {
                     if ($report->user_id) {
                         Notification::create([
                             'user_id' => $report->user_id,
@@ -948,10 +1107,10 @@ class DailyReportController extends Controller
                         ]);
                     }
                 }
-                
+
                 DB::commit();
 
-                return redirect()->back()->with('success', count($reports) . ' reports have been rejected successfully.');
+                return redirect()->back()->with('success', count($rejectableReports) . ' reports have been rejected successfully.');
             } catch (\Exception $e) {
                 DB::rollBack();
                 Log::error('Error during batch rejection transaction', [
@@ -975,8 +1134,9 @@ class DailyReportController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        
-        if (!($user->isAdmin() || $user->isDepartmentHead() || $user->isLeader())) {
+
+        // Only Admin and Level 5 can batch delete
+        if (!$user->isAdmin() && !$user->isLevel5()) {
             return redirect()->back()->with('error', 'Unauthorized action.');
         }
 
@@ -996,17 +1156,27 @@ class DailyReportController extends Controller
 
             // Get reports with attachments to delete
             $query = DailyReport::whereIn('id', $ids);
-            
+
             // Department heads and leaders can only delete reports from their department
             if (!$user->isAdmin()) {
                 $query->where('department_id', $user->department_id);
             }
-            
+
             $reports = $query->get();
-            
-            $attachmentPaths = $reports->whereNotNull('attachment_path')
-                ->pluck('attachment_path')
-                ->toArray();
+
+            // Collect all attachment paths
+            $attachmentPaths = [];
+            foreach ($reports as $report) {
+                if ($report->attachment_path) {
+                    $attachmentPaths[] = $report->attachment_path;
+                }
+                if ($report->attachment_path_2) {
+                    $attachmentPaths[] = $report->attachment_path_2;
+                }
+                if ($report->attachment_path_3) {
+                    $attachmentPaths[] = $report->attachment_path_3;
+                }
+            }
                 
             if ($reports->isEmpty()) {
                 return redirect()->back()->with('error', 'No valid reports found to delete.');

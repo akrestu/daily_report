@@ -173,7 +173,277 @@ class DashboardController extends Controller
             $data['reportTrendsData'] = $this->getReportTrendsChartData();
         }
         
-        // Department Head data
+        // Level 5 data (monitoring + approval)
+        if ($user->isLevel5()) {
+            // Level 5 can see all reports like Admin
+            $data['reportTrend'] = $this->getReportTrendData();
+            $data['departmentPerformance'] = $this->getDepartmentPerformanceData();
+            $data['userActivityMetrics'] = $this->getUserActivityMetrics();
+            $data['reportTrendsData'] = $this->getReportTrendsChartData();
+
+            // Total users
+            $data['totalUsers'] = User::count();
+
+            // Total departments
+            $data['totalDepartments'] = Department::count();
+
+            // Recent users
+            $data['recentUsers'] = User::orderBy('created_at', 'desc')->limit(5)->get();
+
+            // Recent reports
+            $data['recentReports'] = DailyReport::with(['user', 'department'])->orderBy('created_at', 'desc')->limit(5)->get();
+
+            // User stats by role
+            $data['adminsCount'] = User::whereHas('role', function($query) {
+                $query->where('slug', 'admin');
+            })->count();
+
+            $data['level5Count'] = User::whereHas('role', function($query) {
+                $query->where('slug', 'level5');
+            })->count();
+
+            $data['level4Count'] = User::whereHas('role', function($query) {
+                $query->where('slug', 'level4');
+            })->count();
+
+            $data['level3Count'] = User::whereHas('role', function($query) {
+                $query->where('slug', 'level3');
+            })->count();
+
+            $data['level2Count'] = User::whereHas('role', function($query) {
+                $query->where('slug', 'level2');
+            })->count();
+
+            $data['level1Count'] = User::whereHas('role', function($query) {
+                $query->where('slug', 'level1');
+            })->count();
+
+            // Active users today
+            $data['activeUsersToday'] = DailyReport::whereDate('created_at', $today)->distinct('user_id')->count('user_id');
+
+            // Top departments
+            $data['topDepartments'] = Department::withCount('dailyReports')
+                ->orderBy('daily_reports_count', 'desc')
+                ->limit(5)
+                ->get();
+
+            // Reports needing approval (all pending reports since Level 5 can approve Level 1-4)
+            $data['needsApproval'] = DailyReport::with(['department', 'pic', 'user'])
+                ->where('approval_status', 'pending')
+                ->whereHas('user', function($query) {
+                    // Level 5 can approve Level 1-4
+                    $query->whereHas('role', function($q) {
+                        $q->whereIn('slug', ['level1', 'level2', 'level3', 'level4']);
+                    });
+                })
+                ->orderBy('created_at', 'desc')
+                ->limit(5)
+                ->get();
+        }
+
+        // Level 2, 3, 4 data (can approve based on hierarchy)
+        if ($user->getRoleLevel() >= 2 && $user->getRoleLevel() <= 4) {
+            // Reports needing approval (reports from one level below)
+            $approverLevel = $user->getRoleLevel();
+            $targetLevel = $approverLevel - 1;
+
+            $data['needsApproval'] = DailyReport::with(['department', 'pic', 'user'])
+                ->where('approval_status', 'pending')
+                ->where('job_pic', $user->id) // Only reports assigned to them
+                ->whereHas('user', function($query) use ($targetLevel) {
+                    $query->whereHas('role', function($q) use ($targetLevel) {
+                        $q->where('slug', 'level' . $targetLevel);
+                    });
+                })
+                ->orderBy('created_at', 'desc')
+                ->limit(5)
+                ->get();
+
+            // Team reports status
+            $data['pendingReports'] = DailyReport::where('status', 'pending')
+                ->where('approval_status', '!=', 'rejected')
+                ->where('job_pic', $user->id)->count();
+            $data['inProgressReports'] = DailyReport::where('status', 'in_progress')
+                ->where('approval_status', '!=', 'rejected')
+                ->where('job_pic', $user->id)->count();
+            $data['completedReports'] = DailyReport::where('status', 'completed')
+                ->where('approval_status', '!=', 'rejected')
+                ->where('job_pic', $user->id)->count();
+            $data['rejectedReports'] = DailyReport::where('approval_status', 'rejected')
+                ->where('job_pic', $user->id)->count();
+
+            // Personal report status
+            $data['myPendingReports'] = DailyReport::where('status', 'pending')
+                ->where('approval_status', '!=', 'rejected')
+                ->where(function($query) use ($user) {
+                    $query->where('job_pic', $user->id)
+                          ->orWhere('user_id', $user->id);
+                })->count();
+            $data['myInProgressReports'] = DailyReport::where('status', 'in_progress')
+                ->where('approval_status', '!=', 'rejected')
+                ->where(function($query) use ($user) {
+                    $query->where('job_pic', $user->id)
+                          ->orWhere('user_id', $user->id);
+                })->count();
+            $data['myCompletedReports'] = DailyReport::where('status', 'completed')
+                ->where('approval_status', '!=', 'rejected')
+                ->where(function($query) use ($user) {
+                    $query->where('job_pic', $user->id)
+                          ->orWhere('user_id', $user->id);
+                })->count();
+            $data['myRejectedReports'] = DailyReport::where('approval_status', 'rejected')
+                ->where(function($query) use ($user) {
+                    $query->where('job_pic', $user->id)
+                          ->orWhere('user_id', $user->id);
+                })->count();
+
+            // Personal report history
+            $data['myRecentReports'] = DailyReport::where(function($query) use ($user) {
+                    $query->where('job_pic', $user->id)
+                          ->orWhere('user_id', $user->id);
+                })
+                ->orderBy('created_at', 'desc')
+                ->limit(5)
+                ->get();
+
+            // Deadline reminders
+            $data['urgentReports'] = DailyReport::with(['department', 'pic'])
+                ->where('status', '!=', 'completed')
+                ->where(function($query) use ($user) {
+                    $query->where('job_pic', $user->id)
+                        ->orWhere('user_id', $user->id);
+                })
+                ->whereDate('due_date', '>=', Carbon::today())
+                ->whereDate('due_date', '<=', Carbon::today()->addDays(3))
+                ->orderBy('due_date')
+                ->limit(5)
+                ->get();
+
+            // Report trend
+            $data['reportTrend'] = $this->getPersonalReportTrendData($user->id);
+        }
+
+        // Level 1 data (cannot approve, can only create)
+        if ($user->isLevel1()) {
+            // Personal report status
+            $data['myPendingReports'] = DailyReport::where(function($query) use ($user) {
+                    $query->where('job_pic', $user->id)
+                        ->orWhere('user_id', $user->id);
+                })
+                ->where('status', 'pending')
+                ->where('approval_status', '!=', 'rejected')
+                ->count();
+
+            $data['myInProgressReports'] = DailyReport::where(function($query) use ($user) {
+                    $query->where('job_pic', $user->id)
+                        ->orWhere('user_id', $user->id);
+                })
+                ->where('status', 'in_progress')
+                ->where('approval_status', '!=', 'rejected')
+                ->count();
+
+            $data['myCompletedReports'] = DailyReport::where(function($query) use ($user) {
+                    $query->where('job_pic', $user->id)
+                        ->orWhere('user_id', $user->id);
+                })
+                ->where('status', 'completed')
+                ->where('approval_status', '!=', 'rejected')
+                ->count();
+
+            $data['myRejectedReports'] = DailyReport::where(function($query) use ($user) {
+                    $query->where('job_pic', $user->id)
+                        ->orWhere('user_id', $user->id);
+                })
+                ->where('approval_status', 'rejected')
+                ->count();
+
+            // Personal report history
+            $data['myRecentReports'] = DailyReport::where(function($query) use ($user) {
+                    $query->where('job_pic', $user->id)
+                          ->orWhere('user_id', $user->id);
+                })
+                ->orderBy('created_at', 'desc')
+                ->limit(5)
+                ->get();
+
+            // Deadline reminders
+            $data['urgentReports'] = DailyReport::with(['department', 'pic'])
+                ->where('status', '!=', 'completed')
+                ->where(function($query) use ($user) {
+                    $query->where('job_pic', $user->id)
+                        ->orWhere('user_id', $user->id);
+                })
+                ->whereDate('due_date', '>=', Carbon::today())
+                ->whereDate('due_date', '<=', Carbon::today()->addDays(3))
+                ->orderBy('due_date')
+                ->limit(5)
+                ->get();
+
+            // Personal trend
+            $data['myReportTrend'] = $this->getPersonalReportTrendData($user->id);
+
+            // Calculate completion rate
+            $totalUserReports = DailyReport::where(function($query) use ($user) {
+                    $query->where('job_pic', $user->id)
+                        ->orWhere('user_id', $user->id);
+                })
+                ->where('approval_status', '!=', 'rejected')
+                ->count();
+            $data['totalUserReports'] = $totalUserReports;
+            $data['completionRate'] = $totalUserReports > 0
+                ? round(($data['myCompletedReports'] / $totalUserReports) * 100, 1)
+                : 0;
+
+            // Calculate on-time delivery rate
+            $completedReports = DailyReport::where(function($query) use ($user) {
+                    $query->where('job_pic', $user->id)
+                        ->orWhere('user_id', $user->id);
+                })
+                ->where('status', 'completed')
+                ->count();
+
+            $onTimeReports = DailyReport::where(function($query) use ($user) {
+                    $query->where('job_pic', $user->id)
+                        ->orWhere('user_id', $user->id);
+                })
+                ->where('status', 'completed')
+                ->where(function($query) {
+                    $query->whereNull('due_date')
+                        ->orWhereRaw('DATE(updated_at) <= DATE(due_date)');
+                })
+                ->count();
+
+            $data['onTimeRate'] = $completedReports > 0
+                ? round(($onTimeReports / $completedReports) * 100, 1)
+                : 0;
+
+            // Reports this month and percentage change
+            $data['reportsThisMonth'] = DailyReport::where(function($query) use ($user) {
+                    $query->where('job_pic', $user->id)
+                        ->orWhere('user_id', $user->id);
+                })
+                ->whereDate('created_at', '>=', $startOfMonth)
+                ->count();
+
+            $lastMonthStart = Carbon::now()->subMonth()->startOfMonth();
+            $lastMonthEnd = Carbon::now()->subMonth()->endOfMonth();
+            $reportsLastMonth = DailyReport::where(function($query) use ($user) {
+                    $query->where('job_pic', $user->id)
+                        ->orWhere('user_id', $user->id);
+                })
+                ->whereDate('created_at', '>=', $lastMonthStart)
+                ->whereDate('created_at', '<=', $lastMonthEnd)
+                ->count();
+
+            $data['reportsChangePercentage'] = $reportsLastMonth > 0
+                ? round((($data['reportsThisMonth'] - $reportsLastMonth) / $reportsLastMonth) * 100, 1)
+                : ($data['reportsThisMonth'] > 0 ? 100 : 0);
+
+            // Performance data for chart
+            $data['performanceData'] = $this->getPersonalPerformanceData($user->id);
+        }
+
+        // Legacy: Department Head data
         if ($user->hasRole('department_head') && $user->department_id) {
             // Department's performance
             $data['departmentPerformance'] = $this->getDepartmentPerformanceData($user->department_id);
@@ -724,6 +994,112 @@ class DashboardController extends Controller
     }
     
     /**
+     * Get personal performance data for charts (for Level 1 and other staff)
+     */
+    private function getPersonalPerformanceData($userId)
+    {
+        $startDate = Carbon::now()->subDays(13)->startOfDay();
+        $endDate = Carbon::now()->endOfDay();
+        $labels = [];
+        $totalData = [];
+        $completedData = [];
+        $pendingData = [];
+        $inProgressData = [];
+
+        // Get all job reports created by the user (excluding rejected)
+        $totalReports = DailyReport::select(
+                DB::raw('DATE(created_at) as date'),
+                DB::raw('COUNT(*) as count')
+            )
+            ->where('user_id', $userId)
+            ->where('approval_status', '!=', 'rejected')
+            ->where('created_at', '>=', $startDate)
+            ->where('created_at', '<=', $endDate)
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get();
+
+        // Get completed job reports
+        $completedReports = DailyReport::select(
+                DB::raw('DATE(created_at) as date'),
+                DB::raw('COUNT(*) as count')
+            )
+            ->where('user_id', $userId)
+            ->where('status', 'completed')
+            ->where('created_at', '>=', $startDate)
+            ->where('created_at', '<=', $endDate)
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get();
+
+        // Get pending job reports (excluding rejected)
+        $pendingReports = DailyReport::select(
+                DB::raw('DATE(created_at) as date'),
+                DB::raw('COUNT(*) as count')
+            )
+            ->where('user_id', $userId)
+            ->where('status', 'pending')
+            ->where('approval_status', '!=', 'rejected')
+            ->where('created_at', '>=', $startDate)
+            ->where('created_at', '<=', $endDate)
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get();
+
+        // Get in-progress job reports
+        $inProgressReports = DailyReport::select(
+                DB::raw('DATE(created_at) as date'),
+                DB::raw('COUNT(*) as count')
+            )
+            ->where('user_id', $userId)
+            ->where('status', 'in_progress')
+            ->where('created_at', '>=', $startDate)
+            ->where('created_at', '<=', $endDate)
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get();
+
+        // Create lookup arrays for easy access
+        $totalsByDate = [];
+        foreach ($totalReports as $report) {
+            $totalsByDate[$report->date] = $report->count;
+        }
+
+        $completedByDate = [];
+        foreach ($completedReports as $report) {
+            $completedByDate[$report->date] = $report->count;
+        }
+
+        $pendingByDate = [];
+        foreach ($pendingReports as $report) {
+            $pendingByDate[$report->date] = $report->count;
+        }
+
+        $inProgressByDate = [];
+        foreach ($inProgressReports as $report) {
+            $inProgressByDate[$report->date] = $report->count;
+        }
+
+        // Generate data for each day in the range
+        for ($date = $startDate->copy(); $date <= $endDate; $date->addDay()) {
+            $dateString = $date->format('Y-m-d');
+            $labels[] = $date->format('M d, Y');
+            $totalData[] = isset($totalsByDate[$dateString]) ? $totalsByDate[$dateString] : 0;
+            $completedData[] = isset($completedByDate[$dateString]) ? $completedByDate[$dateString] : 0;
+            $pendingData[] = isset($pendingByDate[$dateString]) ? $pendingByDate[$dateString] : 0;
+            $inProgressData[] = isset($inProgressByDate[$dateString]) ? $inProgressByDate[$dateString] : 0;
+        }
+
+        return [
+            'labels' => $labels,
+            'completed' => $completedData,
+            'pending' => $pendingData,
+            'in_progress' => $inProgressData,
+            'total' => $totalData
+        ];
+    }
+
+    /**
      * Toggle sidebar collapsed state
      *
      * @param  \Illuminate\Http\Request  $request
@@ -733,7 +1109,7 @@ class DashboardController extends Controller
     {
         $collapsed = $request->input('collapsed', false);
         session(['sidebarCollapsed' => $collapsed]);
-        
+
         return response()->json(['success' => true]);
     }
 }

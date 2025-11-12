@@ -52,7 +52,7 @@ class UsersImport implements ToModel, WithHeadingRow, WithValidation, SkipsEmpty
     {
         return [
             'name' => 'required',
-            'email' => 'required|email|unique:users,email',
+            'email' => 'nullable|email|unique:users,email',
             'user_id' => 'nullable|unique:users,user_id',
         ];
     }

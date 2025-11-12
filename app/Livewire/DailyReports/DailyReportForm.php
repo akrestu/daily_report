@@ -29,10 +29,16 @@ class DailyReportForm extends Component
     public $remark;
     public $status = 'pending';
     public $attachment;
-    
+    public $attachment_2;
+    public $attachment_3;
+
     // For editing
     public $existingAttachment;
     public $existingAttachmentName;
+    public $existingAttachment2;
+    public $existingAttachmentName2;
+    public $existingAttachment3;
+    public $existingAttachmentName3;
     public $isEditMode = false;
     
     // For multiple reports form
@@ -48,6 +54,8 @@ class DailyReportForm extends Component
     // Validation rules
     protected function rules()
     {
+        $attachmentRules = 'nullable|file|max:5120|mimes:jpeg,png,jpg,gif,svg,pdf,doc,docx,xls,xlsx';
+
         return [
             'jobName' => 'required|string|max:255',
             'departmentId' => 'required|exists:departments,id',
@@ -57,9 +65,9 @@ class DailyReportForm extends Component
             'description' => 'required|string',
             'remark' => 'nullable|string',
             'status' => 'required|in:pending,in_progress,completed',
-            'attachment' => $this->isEditMode 
-                ? 'nullable|file|max:5120|mimes:jpeg,png,jpg,gif,svg,pdf,doc,docx,xls,xlsx' 
-                : 'nullable|file|max:5120|mimes:jpeg,png,jpg,gif,svg,pdf,doc,docx,xls,xlsx',
+            'attachment' => $attachmentRules,
+            'attachment_2' => $attachmentRules,
+            'attachment_3' => $attachmentRules,
         ];
     }
     
@@ -98,6 +106,14 @@ class DailyReportForm extends Component
                 $this->existingAttachment = $dailyReport->attachment_path;
                 $this->existingAttachmentName = $dailyReport->attachment_original_name;
             }
+            if ($dailyReport->attachment_path_2) {
+                $this->existingAttachment2 = $dailyReport->attachment_path_2;
+                $this->existingAttachmentName2 = $dailyReport->attachment_original_name_2;
+            }
+            if ($dailyReport->attachment_path_3) {
+                $this->existingAttachment3 = $dailyReport->attachment_path_3;
+                $this->existingAttachmentName3 = $dailyReport->attachment_original_name_3;
+            }
             
             // Load eligible PICs including current PIC
             $this->loadEligiblePics($this->jobPic);
@@ -112,16 +128,28 @@ class DailyReportForm extends Component
     
     private function loadEligiblePics($currentPicId = null)
     {
-        // Get leader and department head roles
-        $leaderRoles = Role::whereIn('slug', ['leader', 'department_head'])->pluck('id');
-        
-        // Get users with those roles in the selected department
-        $query = User::whereIn('role_id', $leaderRoles)
-            ->where('department_id', $this->departmentId)
+        /** @var User $user */
+        $user = Auth::user();
+
+        // Get eligible role slugs based on current user's role
+        $eligibleRoleSlugs = $user->getEligiblePicRoles();
+
+        if (empty($eligibleRoleSlugs)) {
+            $this->eligiblePics = collect([]);
+            return;
+        }
+
+        // Get role IDs for eligible slugs
+        $eligibleRoleIds = Role::whereIn('slug', $eligibleRoleSlugs)->pluck('id');
+
+        // Get users with eligible roles from the SAME DEPARTMENT, excluding self (no self-PIC)
+        $query = User::whereIn('role_id', $eligibleRoleIds)
+            ->where('id', '!=', $user->id)
+            ->where('department_id', $user->department_id) // Filter by same department
             ->get();
-            
+
         $this->eligiblePics = $query;
-        
+
         // If we have a current PIC and they're not in the eligible list, add them
         if ($currentPicId) {
             $currentPic = User::find($currentPicId);
@@ -190,21 +218,53 @@ class DailyReportForm extends Component
     public function save()
     {
         $this->isSubmitting = true;
-        
+
         // Validate the form data
         $this->validate();
-        
+
+        // Validate no self-PIC
+        if ($this->jobPic == Auth::id()) {
+            session()->flash('error', 'You cannot assign yourself as PIC.');
+            $this->isSubmitting = false;
+            return;
+        }
+
+        // Validate PIC is in eligible list
+        if (!$this->eligiblePics->contains('id', $this->jobPic)) {
+            session()->flash('error', 'The selected PIC is not valid based on your role level.');
+            $this->isSubmitting = false;
+            return;
+        }
+
         try {
             $attachmentPath = $this->existingAttachment;
             $originalName = $this->existingAttachmentName;
-            
-            // Process the file attachment if provided
+            $attachmentPath2 = $this->existingAttachment2;
+            $originalName2 = $this->existingAttachmentName2;
+            $attachmentPath3 = $this->existingAttachment3;
+            $originalName3 = $this->existingAttachmentName3;
+
+            // Process the first attachment if provided
             if ($this->attachment) {
                 $attachmentData = $this->processAttachment($this->attachment, $this->existingAttachment);
                 $attachmentPath = $attachmentData['path'];
                 $originalName = $attachmentData['originalName'];
             }
-            
+
+            // Process the second attachment if provided
+            if ($this->attachment_2) {
+                $attachmentData2 = $this->processAttachment($this->attachment_2, $this->existingAttachment2);
+                $attachmentPath2 = $attachmentData2['path'];
+                $originalName2 = $attachmentData2['originalName'];
+            }
+
+            // Process the third attachment if provided
+            if ($this->attachment_3) {
+                $attachmentData3 = $this->processAttachment($this->attachment_3, $this->existingAttachment3);
+                $attachmentPath3 = $attachmentData3['path'];
+                $originalName3 = $attachmentData3['originalName'];
+            }
+
             $data = [
                 'user_id' => Auth::id(),
                 'job_name' => $this->jobName,
@@ -217,6 +277,10 @@ class DailyReportForm extends Component
                 'status' => $this->status,
                 'attachment_path' => $attachmentPath,
                 'attachment_original_name' => $originalName,
+                'attachment_path_2' => $attachmentPath2,
+                'attachment_original_name_2' => $originalName2,
+                'attachment_path_3' => $attachmentPath3,
+                'attachment_original_name_3' => $originalName3,
             ];
             
             if ($this->isEditMode) {

@@ -15,6 +15,12 @@
                     <p class="mb-4 opacity-75">
                         @if($user->hasRole('admin'))
                             Here's an overview of the system activity.
+                        @elseif($user->isLevel5())
+                            Here's an overview of the system activity and approvals.
+                        @elseif($user->getRoleLevel() >= 2 && $user->getRoleLevel() <= 4)
+                            Here's an overview of your team's reports and approvals.
+                        @elseif($user->isLevel1())
+                            Here's an overview of your reports.
                         @elseif($user->hasRole('department_head'))
                             Here's an overview of your department's performance.
                         @elseif($user->hasRole('leader'))
@@ -39,17 +45,32 @@
         @include('dashboard.admin')
     @endif
 
-    <!-- Department Head Dashboard -->
+    <!-- Level 5 Dashboard (similar to admin - monitoring + approval) -->
+    @if($user->isLevel5())
+        @include('dashboard.admin')
+    @endif
+
+    <!-- Level 2, 3, 4 Dashboard (similar to leader - approval + personal) -->
+    @if($user->getRoleLevel() >= 2 && $user->getRoleLevel() <= 4)
+        @include('dashboard.leader')
+    @endif
+
+    <!-- Level 1 Dashboard (similar to staff - personal only) -->
+    @if($user->isLevel1())
+        @include('dashboard.staff')
+    @endif
+
+    <!-- Legacy: Department Head Dashboard -->
     @if($user->hasRole('department_head'))
         @include('dashboard.department-head')
     @endif
 
-    <!-- Leader Dashboard -->
+    <!-- Legacy: Leader Dashboard -->
     @if($user->hasRole('leader'))
         @include('dashboard.leader')
     @endif
 
-    <!-- Staff Dashboard -->
+    <!-- Legacy: Staff Dashboard -->
     @if($user->hasRole('staff'))
         @include('dashboard.staff')
     @endif

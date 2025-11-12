@@ -1,7 +1,7 @@
 <x-guest-layout>
     <div class="text-center mb-4">
         <div class="auth-logo mx-auto mb-3">
-            <i class="fas fa-clipboard-list text-primary" style="font-size: 24px;"></i>
+            <img src="{{ asset('Sigap.png') }}" alt="SiGAP Logo" style="width: 100%; height: 100%; object-fit: contain;">
         </div>
         <h4 class="fw-bold mb-1">SiGAP</h4>
         <p class="text-muted small">Sign in to your account</p>

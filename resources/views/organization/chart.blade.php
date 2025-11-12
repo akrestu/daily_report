@@ -32,64 +32,47 @@
                         <div class="col-12 text-center mb-5">
                             <!-- Organization Tree Visualization -->
                             <div class="org-chart">
-                                <!-- Department Head -->
-                                @if($organizationTree['head'])
+                                <!-- Admin (if exists) -->
+                                @if($organizationTree['admin'])
                                 <div class="org-chart-level-1 mb-4 mb-md-5">
-                                    <div class="org-chart-node head-node mx-auto">
-                                        <div class="avatar bg-primary mx-auto mb-2">
-                                            @if($organizationTree['head']->profile_picture)
-                                                <img src="{{ $organizationTree['head']->profile_picture_url }}" alt="{{ $organizationTree['head']->name }}" class="rounded-circle w-100 h-100" style="object-fit: cover;">
+                                    <div class="org-chart-node admin-node mx-auto">
+                                        <div class="avatar bg-danger mx-auto mb-2">
+                                            @if($organizationTree['admin']->profile_picture)
+                                                <img src="{{ $organizationTree['admin']->profile_picture_url }}" alt="{{ $organizationTree['admin']->name }}" class="rounded-circle w-100 h-100" style="object-fit: cover;">
                                             @else
-                                                <span>{{ strtoupper(substr($organizationTree['head']->name, 0, 1)) }}</span>
+                                                <span>{{ strtoupper(substr($organizationTree['admin']->name, 0, 1)) }}</span>
                                             @endif
                                         </div>
                                         <div class="node-content">
-                                            <h5 class="mb-0 node-name">{{ $organizationTree['head']->name }}</h5>
-                                            <p class="role-badge department-head mb-0">Department Head</p>
+                                            <h5 class="mb-0 node-name">{{ $organizationTree['admin']->name }}</h5>
+                                            <p class="role-badge admin mb-0">Administrator</p>
                                         </div>
                                     </div>
-                                </div>
-                                @else
-                                <div class="org-chart-level-1 mb-4 mb-md-5">
-                                    <div class="org-chart-node empty-node mx-auto">
-                                        <div class="avatar bg-secondary mx-auto mb-2">
-                                            <i class="fas fa-user-tie"></i>
-                                        </div>
-                                        <div class="node-content">
-                                            <h5 class="mb-0 node-name">Not Assigned</h5>
-                                            <p class="role-badge department-head mb-0">Department Head</p>
-                                        </div>
-                                    </div>
+                                    <div class="vertical-line"></div>
                                 </div>
                                 @endif
-                                
-                                <!-- Vertical Line -->
-                                @if($organizationTree['leaders']->count() > 0)
-                                <div class="vertical-line"></div>
-                                @endif
-                                
-                                <!-- Leaders Level -->
-                                @if($organizationTree['leaders']->count() > 0)
+
+                                <!-- Level 5 (Highest below Admin) -->
+                                @if($organizationTree['level5']->count() > 0)
                                 <div class="org-chart-level-2 mb-4 mb-md-5">
                                     <div class="horizontal-line"></div>
                                     <div class="row justify-content-center">
-                                        @foreach($organizationTree['leaders'] as $leader)
+                                        @foreach($organizationTree['level5'] as $user)
                                         <div class="col-6 col-sm-4 col-md-4 col-lg-3 mb-3">
-                                            <div class="org-chart-node leader-node">
-                                                <div class="avatar bg-info mx-auto mb-2">
-                                                    @if($leader->profile_picture)
-                                                        <img src="{{ $leader->profile_picture_url }}" alt="{{ $leader->name }}" class="rounded-circle w-100 h-100" style="object-fit: cover;">
+                                            <div class="org-chart-node level5-node">
+                                                <div class="avatar bg-primary mx-auto mb-2">
+                                                    @if($user->profile_picture)
+                                                        <img src="{{ $user->profile_picture_url }}" alt="{{ $user->name }}" class="rounded-circle w-100 h-100" style="object-fit: cover;">
                                                     @else
-                                                        <span>{{ strtoupper(substr($leader->name, 0, 1)) }}</span>
+                                                        <span>{{ strtoupper(substr($user->name, 0, 1)) }}</span>
                                                     @endif
                                                 </div>
                                                 <div class="node-content">
-                                                    <h5 class="mb-0 node-name">{{ $leader->name }}</h5>
-                                                    <p class="role-badge leader mb-0">Team Leader</p>
+                                                    <h5 class="mb-0 node-name">{{ $user->name }}</h5>
+                                                    <p class="role-badge level5 mb-0">Level 5</p>
                                                 </div>
                                             </div>
-                                            <!-- Vertical Lines to Staff -->
-                                            @if($organizationTree['staff']->count() > 0)
+                                            @if($organizationTree['level4']->count() > 0)
                                             <div class="vertical-line small"></div>
                                             @endif
                                         </div>
@@ -97,28 +80,112 @@
                                     </div>
                                 </div>
                                 @endif
-                                
-                                <!-- Staff Level -->
-                                @if($organizationTree['staff']->count() > 0)
-                                <div class="org-chart-level-3">
-                                    @if($organizationTree['leaders']->count() == 0)
-                                    <div class="vertical-line"></div>
-                                    @endif
+
+                                <!-- Level 4 -->
+                                @if($organizationTree['level4']->count() > 0)
+                                <div class="org-chart-level-3 mb-4 mb-md-5">
                                     <div class="horizontal-line"></div>
                                     <div class="row justify-content-center">
-                                        @foreach($organizationTree['staff'] as $staffMember)
+                                        @foreach($organizationTree['level4'] as $user)
                                         <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-3">
-                                            <div class="org-chart-node staff-node">
-                                                <div class="avatar bg-success mx-auto mb-2">
-                                                    @if($staffMember->profile_picture)
-                                                        <img src="{{ $staffMember->profile_picture_url }}" alt="{{ $staffMember->name }}" class="rounded-circle w-100 h-100" style="object-fit: cover;">
+                                            <div class="org-chart-node level4-node">
+                                                <div class="avatar bg-info mx-auto mb-2">
+                                                    @if($user->profile_picture)
+                                                        <img src="{{ $user->profile_picture_url }}" alt="{{ $user->name }}" class="rounded-circle w-100 h-100" style="object-fit: cover;">
                                                     @else
-                                                        <span>{{ strtoupper(substr($staffMember->name, 0, 1)) }}</span>
+                                                        <span>{{ strtoupper(substr($user->name, 0, 1)) }}</span>
                                                     @endif
                                                 </div>
                                                 <div class="node-content">
-                                                    <h6 class="mb-0 node-name">{{ $staffMember->name }}</h6>
-                                                    <p class="role-badge staff mb-0">Staff</p>
+                                                    <h6 class="mb-0 node-name">{{ $user->name }}</h6>
+                                                    <p class="role-badge level4 mb-0">Level 4</p>
+                                                </div>
+                                            </div>
+                                            @if($organizationTree['level3']->count() > 0)
+                                            <div class="vertical-line small"></div>
+                                            @endif
+                                        </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                @endif
+
+                                <!-- Level 3 -->
+                                @if($organizationTree['level3']->count() > 0)
+                                <div class="org-chart-level-4 mb-4 mb-md-5">
+                                    <div class="horizontal-line"></div>
+                                    <div class="row justify-content-center">
+                                        @foreach($organizationTree['level3'] as $user)
+                                        <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-3">
+                                            <div class="org-chart-node level3-node">
+                                                <div class="avatar bg-warning mx-auto mb-2">
+                                                    @if($user->profile_picture)
+                                                        <img src="{{ $user->profile_picture_url }}" alt="{{ $user->name }}" class="rounded-circle w-100 h-100" style="object-fit: cover;">
+                                                    @else
+                                                        <span>{{ strtoupper(substr($user->name, 0, 1)) }}</span>
+                                                    @endif
+                                                </div>
+                                                <div class="node-content">
+                                                    <h6 class="mb-0 node-name">{{ $user->name }}</h6>
+                                                    <p class="role-badge level3 mb-0">Level 3</p>
+                                                </div>
+                                            </div>
+                                            @if($organizationTree['level2']->count() > 0)
+                                            <div class="vertical-line small"></div>
+                                            @endif
+                                        </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                @endif
+
+                                <!-- Level 2 -->
+                                @if($organizationTree['level2']->count() > 0)
+                                <div class="org-chart-level-5 mb-4 mb-md-5">
+                                    <div class="horizontal-line"></div>
+                                    <div class="row justify-content-center">
+                                        @foreach($organizationTree['level2'] as $user)
+                                        <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-3">
+                                            <div class="org-chart-node level2-node">
+                                                <div class="avatar bg-success mx-auto mb-2">
+                                                    @if($user->profile_picture)
+                                                        <img src="{{ $user->profile_picture_url }}" alt="{{ $user->name }}" class="rounded-circle w-100 h-100" style="object-fit: cover;">
+                                                    @else
+                                                        <span>{{ strtoupper(substr($user->name, 0, 1)) }}</span>
+                                                    @endif
+                                                </div>
+                                                <div class="node-content">
+                                                    <h6 class="mb-0 node-name">{{ $user->name }}</h6>
+                                                    <p class="role-badge level2 mb-0">Level 2</p>
+                                                </div>
+                                            </div>
+                                            @if($organizationTree['level1']->count() > 0)
+                                            <div class="vertical-line small"></div>
+                                            @endif
+                                        </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                @endif
+
+                                <!-- Level 1 (Lowest) -->
+                                @if($organizationTree['level1']->count() > 0)
+                                <div class="org-chart-level-6">
+                                    <div class="horizontal-line"></div>
+                                    <div class="row justify-content-center">
+                                        @foreach($organizationTree['level1'] as $user)
+                                        <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-3">
+                                            <div class="org-chart-node level1-node">
+                                                <div class="avatar bg-secondary mx-auto mb-2">
+                                                    @if($user->profile_picture)
+                                                        <img src="{{ $user->profile_picture_url }}" alt="{{ $user->name }}" class="rounded-circle w-100 h-100" style="object-fit: cover;">
+                                                    @else
+                                                        <span>{{ strtoupper(substr($user->name, 0, 1)) }}</span>
+                                                    @endif
+                                                </div>
+                                                <div class="node-content">
+                                                    <h6 class="mb-0 node-name">{{ $user->name }}</h6>
+                                                    <p class="role-badge level1 mb-0">Level 1</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -140,16 +207,24 @@
                                 <div class="card-body">
                                     <div class="d-flex flex-wrap">
                                         <div class="me-4 mb-2">
-                                            <span class="badge bg-primary me-2">DH</span>
-                                            <span>Department Head</span>
+                                            <span class="badge bg-primary me-2">L5</span>
+                                            <span>Level 5 (Highest Approval)</span>
                                         </div>
                                         <div class="me-4 mb-2">
-                                            <span class="badge bg-info me-2">TL</span>
-                                            <span>Team Leader</span>
+                                            <span class="badge bg-info me-2">L4</span>
+                                            <span>Level 4</span>
+                                        </div>
+                                        <div class="me-4 mb-2">
+                                            <span class="badge bg-warning me-2">L3</span>
+                                            <span>Level 3</span>
+                                        </div>
+                                        <div class="me-4 mb-2">
+                                            <span class="badge bg-success me-2">L2</span>
+                                            <span>Level 2</span>
                                         </div>
                                         <div class="mb-2">
-                                            <span class="badge bg-success me-2">S</span>
-                                            <span>Staff</span>
+                                            <span class="badge bg-secondary me-2">L1</span>
+                                            <span>Level 1 (Entry Level)</span>
                                         </div>
                                     </div>
                                 </div>
@@ -185,23 +260,53 @@
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
         
+        .admin-node {
+            border-color: #dc3545;
+            border-width: 2px;
+        }
+
+        .level5-node {
+            border-color: #0d6efd;
+            border-width: 2px;
+        }
+
+        .level4-node {
+            border-color: #0dcaf0;
+            border-width: 1px;
+        }
+
+        .level3-node {
+            border-color: #ffc107;
+            border-width: 1px;
+        }
+
+        .level2-node {
+            border-color: #20c997;
+            border-width: 1px;
+        }
+
+        .level1-node {
+            border-color: #6c757d;
+        }
+
+        .empty-node {
+            background-color: #f8f9fa;
+            border-style: dashed;
+        }
+
+        /* Legacy nodes */
         .head-node {
             border-color: #0d6efd;
             border-width: 2px;
         }
-        
+
         .leader-node {
             border-color: #0dcaf0;
             border-width: 1px;
         }
-        
+
         .staff-node {
             border-color: #20c997;
-        }
-        
-        .empty-node {
-            background-color: #f8f9fa;
-            border-style: dashed;
         }
         
         .avatar {
@@ -224,16 +329,47 @@
             margin-top: 5px;
         }
         
+        .admin {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+        }
+
+        .level5 {
+            background-color: rgba(13, 110, 253, 0.1);
+            color: #0d6efd;
+        }
+
+        .level4 {
+            background-color: rgba(13, 202, 240, 0.1);
+            color: #0dcaf0;
+        }
+
+        .level3 {
+            background-color: rgba(255, 193, 7, 0.1);
+            color: #ffc107;
+        }
+
+        .level2 {
+            background-color: rgba(32, 201, 151, 0.1);
+            color: #20c997;
+        }
+
+        .level1 {
+            background-color: rgba(108, 117, 125, 0.1);
+            color: #6c757d;
+        }
+
+        /* Legacy badges */
         .department-head {
             background-color: rgba(13, 110, 253, 0.1);
             color: #0d6efd;
         }
-        
+
         .leader {
             background-color: rgba(13, 202, 240, 0.1);
             color: #0dcaf0;
         }
-        
+
         .staff {
             background-color: rgba(32, 201, 151, 0.1);
             color: #20c997;

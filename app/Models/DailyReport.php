@@ -25,6 +25,10 @@ class DailyReport extends Model
         'rejection_reason',
         'attachment_path',
         'attachment_original_name',
+        'attachment_path_2',
+        'attachment_original_name_2',
+        'attachment_path_3',
+        'attachment_original_name_3',
     ];
 
     protected function casts(): array

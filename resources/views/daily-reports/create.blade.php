@@ -236,26 +236,65 @@
                             @enderror
                         </div>
                         
-                        <!-- Attachment -->
+                        <!-- Attachment 1 -->
                         <div class="mb-3">
                             <label for="attachment_0" class="form-label fw-medium">
-                                <i class="fas fa-paperclip me-1 text-primary"></i> Attachment
+                                <i class="fas fa-paperclip me-1 text-primary"></i> Attachment 1
                             </label>
                             <div class="input-group">
                                 <span class="input-group-text bg-white"><i class="fas fa-file"></i></span>
-                                <input 
-                                    type="file" 
-                                    class="form-control @error('reports.0.attachment') is-invalid @enderror" 
-                                    id="attachment_0" 
+                                <input
+                                    type="file"
+                                    class="form-control @error('reports.0.attachment') is-invalid @enderror"
+                                    id="attachment_0"
                                     name="reports[0][attachment]"
                                 >
-                            </div>
-                            <div class="form-text small mt-1">
-                                <i class="fas fa-info-circle me-1"></i> Supported formats: JPG, PNG, PDF, DOC, DOCX, XLS, XLSX. Max size: 5MB
                             </div>
                             @error('reports.0.attachment')
                             <div class="text-danger small mt-1">{{ $message }}</div>
                             @enderror
+                        </div>
+
+                        <!-- Attachment 2 -->
+                        <div class="mb-3">
+                            <label for="attachment_2_0" class="form-label fw-medium">
+                                <i class="fas fa-paperclip me-1 text-primary"></i> Attachment 2
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white"><i class="fas fa-file"></i></span>
+                                <input
+                                    type="file"
+                                    class="form-control @error('reports.0.attachment_2') is-invalid @enderror"
+                                    id="attachment_2_0"
+                                    name="reports[0][attachment_2]"
+                                >
+                            </div>
+                            @error('reports.0.attachment_2')
+                            <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <!-- Attachment 3 -->
+                        <div class="mb-3">
+                            <label for="attachment_3_0" class="form-label fw-medium">
+                                <i class="fas fa-paperclip me-1 text-primary"></i> Attachment 3
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white"><i class="fas fa-file"></i></span>
+                                <input
+                                    type="file"
+                                    class="form-control @error('reports.0.attachment_3') is-invalid @enderror"
+                                    id="attachment_3_0"
+                                    name="reports[0][attachment_3]"
+                                >
+                            </div>
+                            @error('reports.0.attachment_3')
+                            <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="form-text small mt-2 mb-3">
+                            <i class="fas fa-info-circle me-1"></i> Supported formats: JPG, PNG, PDF, DOC, DOCX, XLS, XLSX. Max size: 5MB per file. Maximum 3 attachments.
                         </div>
                     </div>
                 </div>

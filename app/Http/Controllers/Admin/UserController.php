@@ -60,7 +60,7 @@ class UserController extends Controller
             
             $request->validate([
                 'name' => ['required', 'string', 'max:255'],
-                'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+                'email' => ['nullable', 'string', 'email', 'max:255', 'unique:users'],
                 'password' => ['required', Rules\Password::defaults()],
                 'role_id' => ['required', 'exists:roles,id'],
                 'department_id' => ['nullable', 'exists:departments,id'],
@@ -150,7 +150,7 @@ class UserController extends Controller
         
         $rules = [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $id],
+            'email' => ['nullable', 'string', 'email', 'max:255', 'unique:users,email,' . $id],
             'role_id' => ['required', 'exists:roles,id'],
             'department_id' => ['nullable', 'exists:departments,id'],
             'user_id' => ['nullable', 'string', 'max:255', 'unique:users,user_id,' . $id],

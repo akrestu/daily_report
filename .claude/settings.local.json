@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(claude mcp add:*)",
-      "Bash(claude mcp remove:*)"
+      "Bash(claude mcp remove:*)",
+      "Bash(php artisan:*)"
     ],
     "deny": [],
     "ask": []

@@ -32,12 +32,11 @@
                         />
                     </div>
                     <div class="col-md-6">
-                        <x-input 
-                            label="Email" 
+                        <x-input
+                            label="Email"
                             name="email"
                             type="email"
-                            required="true"
-                            placeholder="Enter email address"
+                            placeholder="Enter email address (optional)"
                             :value="old('email', $user->email)"
                         />
                     </div>

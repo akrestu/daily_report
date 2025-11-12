@@ -15,24 +15,34 @@ class RolesSeeder extends Seeder
     {
         $roles = [
             [
-                'name' => 'Admin',
+                'name' => 'Administrator',
                 'slug' => 'admin',
-                'description' => 'Highest level role with full access to the system',
+                'description' => 'Administrator has full access to all functionalities',
             ],
             [
-                'name' => 'Department Head',
-                'slug' => 'department_head',
-                'description' => 'Can approve work for all roles below them within their department',
+                'name' => 'Level 1',
+                'slug' => 'level1',
+                'description' => 'Level 1 - Lowest approval level, cannot be PIC, can only assign to Level 2',
             ],
             [
-                'name' => 'Leader',
-                'slug' => 'leader',
-                'description' => 'Can approve work for staff within their department',
+                'name' => 'Level 2',
+                'slug' => 'level2',
+                'description' => 'Level 2 - Can approve Level 1 reports, can only assign to Level 3',
             ],
             [
-                'name' => 'Staff',
-                'slug' => 'staff',
-                'description' => 'Regular staff member that reports to leader and department head',
+                'name' => 'Level 3',
+                'slug' => 'level3',
+                'description' => 'Level 3 - Can approve Level 2 reports, can only assign to Level 4',
+            ],
+            [
+                'name' => 'Level 4',
+                'slug' => 'level4',
+                'description' => 'Level 4 - Can approve Level 3 reports, can only assign to Level 5',
+            ],
+            [
+                'name' => 'Level 5',
+                'slug' => 'level5',
+                'description' => 'Level 5 - Highest approval level below Admin, can approve Level 1-4 reports, cannot assign to Admin',
             ],
         ];
 

@@ -40,6 +40,18 @@ After logging in, you'll be taken to the dashboard, which provides:
 2. Use filters to narrow down results by date, status, etc.
 3. Click on a report to view its details
 
+### Viewing Report Details
+When you open a report, you'll see:
+- **Report Header**: Job name, department, dates, and status badges
+- **Report Information**: PIC, creator, dates, and action buttons
+- **Tabbed Content** (in order):
+  1. **Desc**: Full description of the work activity
+  2. **Remarks**: Additional notes or remarks about the report
+  3. **Comments**: Discussion thread where users can post and view comments
+  4. **Reject** (if applicable): Rejection reason when a report has been rejected
+- **Attachments**: Download section for any uploaded files (up to 3 files)
+- **Approval Actions**: Approve/reject buttons (visible only to authorized users)
+
 ### Editing a Report
 1. Open the report you wish to edit
 2. Click the "Edit" button (only available for pending reports)
@@ -68,14 +80,35 @@ Reports are automatically submitted for approval upon creation.
 3. Click "Batch Approve" or "Batch Reject"
 4. Confirm your action
 
+## Organization Chart
+
+### Viewing Team Structure
+1. Click on "Organization" → "Team Structure" in the navigation menu
+2. View your department's organizational hierarchy
+3. The chart displays:
+   - User names and profile pictures
+   - Hierarchical levels (Level 5 down to Level 1)
+   - Visual connections showing reporting lines
+   - Color-coded role indicators
+
+### Understanding Role Levels
+The organization chart uses a color-coded legend:
+- **Level 5 (Blue)**: Highest approval authority in the department
+- **Level 4 (Cyan)**: Mid-high management level
+- **Level 3 (Yellow)**: Mid-level management
+- **Level 2 (Green)**: Team leaders
+- **Level 1 (Gray)**: Entry-level staff
+
+**Note**: System administrators are not shown in the organizational hierarchy as they manage the system rather than operational workflows.
+
 ## Comments
 
 ### Adding Comments to Reports
 1. Open the report
-2. Scroll to the comments section
+2. Click on the "Comments" tab
 3. Type your comment in the text box
-4. Select visibility (Public or Private)
-5. Click "Post Comment"
+4. Click "Post Comment"
+5. Your comment will appear immediately in the comments section
 
 ### Deleting Comments
 1. Find your comment in the comments section

@@ -170,21 +170,70 @@
                                         @endif
                                     </div>
                                     
-                                    <!-- Attachment Card (if exists) -->
-                        @if($report->attachment_path)
-                                        <div class="attachment-card border rounded-3 p-3 bg-light mt-4">
-                                <div class="d-flex align-items-center">
-                                    <div class="attachment-icon me-3">
-                                        <i class="fas fa-file-alt fa-2x text-primary"></i>
-                                    </div>
-                                    <div class="flex-grow-1 overflow-hidden">
-                                        <h6 class="mb-1 text-truncate">{{ $report->attachment_original_name ?? 'Document' }}</h6>
-                                                    <p class="mb-0 text-muted small">Added {{ \Carbon\Carbon::parse($report->created_at)->diffForHumans() }}</p>
-                                    </div>
-                                        <a href="{{ route('attachments.show', basename($report->attachment_path)) }}" target="_blank" class="btn btn-sm btn-primary">
-                                            <i class="fas fa-download"></i>
-                                        </a>
-                                    </div>
+                                    <!-- Attachments (if exists) -->
+                        @if($report->attachment_path || $report->attachment_path_2 || $report->attachment_path_3)
+                                        <div class="mt-4">
+                                            <h6 class="mb-3 text-muted">
+                                                <i class="fas fa-paperclip me-2"></i>Attachments
+                                            </h6>
+                                            <div class="row g-3">
+                                                @if($report->attachment_path)
+                                                <div class="col-12">
+                                                    <div class="attachment-card border rounded-3 p-3 bg-light">
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="attachment-icon me-3">
+                                                                <i class="fas fa-file-alt fa-2x text-primary"></i>
+                                                            </div>
+                                                            <div class="flex-grow-1 overflow-hidden">
+                                                                <h6 class="mb-1 text-truncate">{{ $report->attachment_original_name ?? 'Document' }}</h6>
+                                                                <p class="mb-0 text-muted small">Attachment 1</p>
+                                                            </div>
+                                                            <a href="{{ route('attachments.show', basename($report->attachment_path)) }}" target="_blank" class="btn btn-sm btn-primary">
+                                                                <i class="fas fa-download"></i>
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                @endif
+
+                                                @if($report->attachment_path_2)
+                                                <div class="col-12">
+                                                    <div class="attachment-card border rounded-3 p-3 bg-light">
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="attachment-icon me-3">
+                                                                <i class="fas fa-file-alt fa-2x text-primary"></i>
+                                                            </div>
+                                                            <div class="flex-grow-1 overflow-hidden">
+                                                                <h6 class="mb-1 text-truncate">{{ $report->attachment_original_name_2 ?? 'Document' }}</h6>
+                                                                <p class="mb-0 text-muted small">Attachment 2</p>
+                                                            </div>
+                                                            <a href="{{ route('attachments.show', basename($report->attachment_path_2)) }}" target="_blank" class="btn btn-sm btn-primary">
+                                                                <i class="fas fa-download"></i>
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                @endif
+
+                                                @if($report->attachment_path_3)
+                                                <div class="col-12">
+                                                    <div class="attachment-card border rounded-3 p-3 bg-light">
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="attachment-icon me-3">
+                                                                <i class="fas fa-file-alt fa-2x text-primary"></i>
+                                                            </div>
+                                                            <div class="flex-grow-1 overflow-hidden">
+                                                                <h6 class="mb-1 text-truncate">{{ $report->attachment_original_name_3 ?? 'Document' }}</h6>
+                                                                <p class="mb-0 text-muted small">Attachment 3</p>
+                                                            </div>
+                                                            <a href="{{ route('attachments.show', basename($report->attachment_path_3)) }}" target="_blank" class="btn btn-sm btn-primary">
+                                                                <i class="fas fa-download"></i>
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                @endif
+                                            </div>
                             </div>
                         @endif
                                     
@@ -219,11 +268,6 @@
                             <i class="fas fa-align-left d-none d-md-inline-block me-1"></i> <span class="tab-text">Desc</span>
                         </button>
                     </li>
-                    <li class="nav-item flex-grow-1" role="presentation">
-                        <button class="nav-link px-2 py-3 w-100" id="comments-tab" data-bs-toggle="tab" data-bs-target="#comments" type="button" role="tab" aria-controls="comments" aria-selected="false">
-                            <i class="fas fa-comments d-none d-md-inline-block me-1"></i> <span class="tab-text">Comments</span>
-                        </button>
-                    </li>
                     @if($report->remark)
                     <li class="nav-item flex-grow-1" role="presentation">
                         <button class="nav-link px-2 py-3 w-100" id="remarks-tab" data-bs-toggle="tab" data-bs-target="#remarks" type="button" role="tab" aria-controls="remarks" aria-selected="false">
@@ -231,6 +275,11 @@
                         </button>
                     </li>
                     @endif
+                    <li class="nav-item flex-grow-1" role="presentation">
+                        <button class="nav-link px-2 py-3 w-100" id="comments-tab" data-bs-toggle="tab" data-bs-target="#comments" type="button" role="tab" aria-controls="comments" aria-selected="false">
+                            <i class="fas fa-comments d-none d-md-inline-block me-1"></i> <span class="tab-text">Comments</span>
+                        </button>
+                    </li>
                     @if($report->approval_status === 'rejected' && $report->rejection_reason)
                     <li class="nav-item flex-grow-1" role="presentation">
                         <button class="nav-link px-2 py-3 w-100" id="rejection-tab" data-bs-toggle="tab" data-bs-target="#rejection" type="button" role="tab" aria-controls="rejection" aria-selected="false">
@@ -255,6 +304,15 @@
                         </div>
                     @endif
     </div>
+
+                    <!-- Remarks Tab -->
+                    @if($report->remark)
+                    <div class="tab-pane fade" id="remarks" role="tabpanel" aria-labelledby="remarks-tab">
+                        <div class="bg-light p-md-4 p-3 rounded-3 border">
+                            {!! nl2br(e($report->remark)) !!}
+        </div>
+                                                    </div>
+                    @endif
 
                     <!-- Comments Tab -->
                     <div class="tab-pane fade" id="comments" role="tabpanel" aria-labelledby="comments-tab">
@@ -304,15 +362,6 @@
             </div>
         </div>
     </div>
-
-                    <!-- Remarks Tab -->
-                    @if($report->remark)
-                    <div class="tab-pane fade" id="remarks" role="tabpanel" aria-labelledby="remarks-tab">
-                        <div class="bg-light p-md-4 p-3 rounded-3 border">
-                            {!! nl2br(e($report->remark)) !!}
-        </div>
-                                                    </div>
-                    @endif
                     
                     <!-- Rejection Reason Tab -->
                     @if($report->approval_status === 'rejected' && $report->rejection_reason)

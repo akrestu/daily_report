@@ -33,16 +33,16 @@ class DatabaseSeeder extends Seeder
 
         // Create a user for each role in each department
         $departments = Department::all();
-        $roles = Role::whereIn('slug', ['department_head', 'leader', 'staff'])->get();
+        $roles = Role::whereIn('slug', ['level1', 'level2', 'level3', 'level4', 'level5'])->get();
 
         foreach ($departments as $department) {
             foreach ($roles as $role) {
                 $email = strtolower($role->slug) . '.' . strtolower($department->code) . '@example.com';
-                
+
                 User::firstOrCreate(
                     ['email' => $email],
                     [
-                        'name' => ucfirst($role->slug) . ' ' . $department->name,
+                        'name' => $role->name . ' - ' . $department->name,
                         'password' => Hash::make('password'),
                         'role_id' => $role->id,
                         'department_id' => $department->id,

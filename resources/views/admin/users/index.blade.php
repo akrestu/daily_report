@@ -291,8 +291,8 @@
                                 <input type="text" class="form-control" id="name" name="name" required>
                             </div>
                             <div class="col-md-6">
-                                <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
-                                <input type="email" class="form-control" id="email" name="email" required>
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" placeholder="Enter email address (optional)">
                             </div>
                         </div>
                         <div class="row mb-3">
@@ -363,8 +363,8 @@
                                 <input type="text" class="form-control" id="edit_name" name="name" required>
                             </div>
                             <div class="col-md-6">
-                                <label for="edit_email" class="form-label">Email <span class="text-danger">*</span></label>
-                                <input type="email" class="form-control" id="edit_email" name="email" required>
+                                <label for="edit_email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="edit_email" name="email" placeholder="Enter email address (optional)">
                             </div>
                         </div>
                         <div class="row mb-3">

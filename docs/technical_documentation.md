@@ -34,12 +34,31 @@ SiGAP (Sistem Informasi Giat Aktivitas Pekerjaan) is a Laravel-based web applica
 - **Creation**: Users can create individual reports or use batch import
 - **Approval Workflow**: Multi-step approval based on organizational hierarchy
 - **Filtering and Sorting**: Advanced filtering by date, status, department, etc.
-- **File Attachments**: Support for file uploads with automatic image optimization
+- **File Attachments**: Support for multiple file uploads (up to 3 attachments) with automatic image optimization
+- **Report Details View**: Tabbed interface with Description, Remarks, and Comments sections
+  - Tab order: Desc → Remarks → Comments (optimized for logical reading flow)
+  - Comments section includes real-time loading and inline posting
+  - Rejection reasons displayed in dedicated tab when applicable
 
 ### User Management
 - **Role-Based Access Control**: Different permissions for Admin, Department Head, Leader, Staff
 - **Department Organization**: Users are organized by departments
 - **Profile Management**: Users can update their profile information and picture
+- **Hierarchical Levels**: Users are organized in 5 levels (Level 1-5) plus Admin
+  - Level 5: Highest approval authority
+  - Level 4-2: Middle management
+  - Level 1: Entry level staff
+
+### Organization Chart
+- **Hierarchical Visualization**: Visual representation of department structure
+- **Level-Based Display**: Shows organizational hierarchy from Level 5 down to Level 1
+- **Role Legend**: Displays color-coded badges for each organizational level
+  - Level 5 (Blue): Highest Approval Authority
+  - Level 4 (Cyan): Mid-High Management
+  - Level 3 (Yellow): Mid Management
+  - Level 2 (Green): Team Leaders
+  - Level 1 (Gray): Entry Level Staff
+- **Note**: Administrator role exists for system management but is not displayed in organization hierarchy to maintain focus on operational structure
 
 ### Notification System
 - **Real-time Notifications**: Notifications for report approvals, rejections, and comments
@@ -57,11 +76,28 @@ SiGAP (Sistem Informasi Giat Aktivitas Pekerjaan) is a Laravel-based web applica
 4. **CSRF Protection**: Laravel's built-in CSRF protection
 5. **Input Validation**: Request validation for all form submissions
 
+## UI/UX Design
+
+### Branding
+- **Application Logo**: Custom SiGAP logo (Sigap.png) displayed in:
+  - Login screen (circular container at top)
+  - Sidebar navigation header
+  - Both locations use responsive sizing for optimal display
+- **Color Scheme**: Gradient theme with primary colors blue (#0d6efd) and purple (#6610f2)
+- **Icon System**: FontAwesome icons for consistent visual language
+
+### Responsive Design
+- **Mobile-First Approach**: Optimized for mobile, tablet, and desktop views
+- **Adaptive Navigation**: Sidebar converts to mobile drawer on smaller screens
+- **Touch-Optimized**: Enhanced touch targets for mobile users
+- **Tab Interface**: Responsive tab system that adjusts text and spacing based on screen size
+
 ## Performance Optimizations
 
 1. **Image Processing**: Using Intervention Image for image optimization
 2. **Query Optimization**: Eager loading relationships to prevent N+1 query problems
 3. **Pagination**: Implementation of pagination for large data sets
+4. **Asset Optimization**: Vite for fast frontend asset compilation and hot module replacement
 
 ## API Documentation
 

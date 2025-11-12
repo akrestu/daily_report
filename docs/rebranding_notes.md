@@ -20,8 +20,12 @@ Nama ini dipilih karena:
 
 #### 1. Interface Pengguna
 - **Title halaman**: Semua halaman sekarang menggunakan "SiGAP - Sistem Informasi Giat Aktivitas Pekerjaan"
-- **Logo/Branding**: Navigation sidebar menampilkan "SiGAP"
-- **Login page**: Menggunakan branding "SiGAP"
+- **Logo/Branding**:
+  - Navigation sidebar menampilkan logo SiGAP (Sigap.png) dalam circular container dengan background putih
+  - Login page menampilkan logo SiGAP dalam circular container dengan background gradient
+  - Logo file: `public/Sigap.png` (grafis dengan bar chart dan dokumen)
+  - Implementasi responsive dengan object-fit contain untuk mempertahankan proporsi
+- **Login page**: Menggunakan branding "SiGAP" dengan logo visual
 - **Manifest file**: PWA manifest menggunakan nama baru
 
 #### 2. Konfigurasi Aplikasi
@@ -79,15 +83,38 @@ Jika Anda perlu menyesuaikan environment variables:
    php artisan cache:clear
    ```
 
+### UI/UX Improvements (Update Terbaru)
+
+#### 1. Organization Chart Enhancement
+- **Role Legend**: Administrator dihapus dari legend karena tidak termasuk dalam hierarki operasional
+- **Fokus pada Operasional**: Legend hanya menampilkan Level 1-5 untuk menekankan struktur operasional
+- **Alasan**: Admin adalah role sistem management, bukan bagian dari approval workflow
+
+#### 2. Report Details Interface
+- **Tab Order Optimization**: Urutan tab diubah untuk alur baca yang lebih logis
+  - Sebelumnya: Desc → Comments → Remarks
+  - Sekarang: Desc → Remarks → Comments
+- **Alasan Perubahan**:
+  - Remarks adalah catatan yang melengkapi Description
+  - Comments adalah diskusi/feedback yang datang setelahnya
+  - Urutan baru lebih natural untuk membaca dan memahami laporan
+
+#### 3. Visual Branding
+- **Logo Implementation**: Logo custom SiGAP menggantikan icon FontAwesome
+- **Lokasi**: Login screen dan sidebar navigation
+- **Format**: PNG dengan transparent background
+- **Styling**: Circular container dengan padding optimal untuk visibility
+
 ### Catatan Penting
 
 - Semua fungsionalitas sistem tetap sama
 - Tidak ada perubahan pada database
 - Tidak ada perubahan pada API endpoints
 - User accounts dan data tidak terpengaruh
-- Hanya branding dan tampilan yang berubah
+- Perubahan fokus pada UX/UI improvement dan konsistensi visual
 
 ---
 
-**Tanggal Perubahan**: {{ date('d F Y') }}
-**Versi**: 1.0.0 (dengan branding SiGAP) 
+**Tanggal Perubahan Awal**: Oktober 2024
+**Update Terakhir**: November 2024
+**Versi**: 1.1.0 (dengan UI improvements) 

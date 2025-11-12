@@ -3,8 +3,8 @@
     <!-- Sidebar Header -->
     <div class="sidebar-header p-3 border-bottom" style="border-color: rgba(255, 255, 255, 0.1) !important;">
         <a href="{{ route('dashboard') }}" class="d-flex align-items-center text-decoration-none">
-            <div class="logo-bg rounded-circle bg-white d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px; flex-shrink: 0;">
-                <i class="fas fa-clipboard-list text-primary" style="font-size: 16px;"></i>
+            <div class="logo-bg rounded-circle bg-white d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px; flex-shrink: 0; padding: 5px;">
+                <img src="{{ asset('Sigap.png') }}" alt="SiGAP Logo" style="width: 100%; height: 100%; object-fit: contain;">
             </div>
             <span class="logo-text fw-bold text-white fs-5">SiGAP</span>
         </a>
@@ -54,50 +54,50 @@
             <li class="nav-item mb-3">
                 <span class="sidebar-heading px-3 py-2 text-uppercase fw-bold text-white-50 small d-block">Reports</span>
             </li>
-            
+
             <li class="nav-item mb-2">
-                <a class="nav-link rounded-pill {{ request()->routeIs('daily-reports.create') ? 'active bg-white text-primary' : 'text-white' }}" 
+                <a class="nav-link rounded-pill {{ request()->routeIs('daily-reports.create') ? 'active bg-white text-primary' : 'text-white' }}"
                    href="{{ route('daily-reports.create') }}">
                     <i class="fas fa-plus me-2"></i>
                     <span>Create Report</span>
                 </a>
             </li>
-            
+
+            @if(auth()->user()->isAdmin() || auth()->user()->getRoleLevel() >= 2)
             <li class="nav-item mb-2">
-                <a class="nav-link rounded-pill {{ request()->routeIs('daily-reports.user-jobs') ? 'active bg-white text-primary' : 'text-white' }}" 
-                   href="{{ route('daily-reports.user-jobs') }}">
-                    <i class="fas fa-tasks me-2"></i>
-                    <span>My Reports</span>
-                </a>
-            </li>
-            
-            @if(auth()->user()->isAdmin() || auth()->user()->isDepartmentHead() || auth()->user()->isLeader())
-            <li class="nav-item mb-2">
-                <a class="nav-link rounded-pill {{ request()->routeIs('daily-reports.assigned-jobs') ? 'active bg-white text-primary' : 'text-white' }}" 
-                   href="{{ route('daily-reports.assigned-jobs') }}">
-                    <i class="fas fa-user-check me-2"></i>
-                    <span>Assigned Reports</span>
-                </a>
-            </li>
-            @endif
-            
-            <li class="nav-item mb-2">
-                <a class="nav-link rounded-pill {{ request()->routeIs('daily-reports.index') ? 'active bg-white text-primary' : 'text-white' }}" 
-                   href="{{ route('daily-reports.index') }}">
-                    <i class="fas fa-list me-2"></i>
-                    <span>All Reports</span>
-                </a>
-            </li>
-            
-            @if(auth()->user()->isAdmin() || auth()->user()->isDepartmentHead() || auth()->user()->isLeader())
-            <li class="nav-item mb-2">
-                <a class="nav-link rounded-pill {{ request()->routeIs('daily-reports.pending') ? 'active bg-white text-primary' : 'text-white' }}" 
+                <a class="nav-link rounded-pill {{ request()->routeIs('daily-reports.pending') ? 'active bg-white text-primary' : 'text-white' }}"
                    href="{{ route('daily-reports.pending') }}">
                     <i class="fas fa-clock me-2"></i>
                     <span>Pending Reports</span>
                 </a>
             </li>
             @endif
+
+            @if(auth()->user()->isAdmin() || auth()->user()->getRoleLevel() >= 2)
+            <li class="nav-item mb-2">
+                <a class="nav-link rounded-pill {{ request()->routeIs('daily-reports.assigned-jobs') ? 'active bg-white text-primary' : 'text-white' }}"
+                   href="{{ route('daily-reports.assigned-jobs') }}">
+                    <i class="fas fa-user-check me-2"></i>
+                    <span>Assigned Reports</span>
+                </a>
+            </li>
+            @endif
+
+            <li class="nav-item mb-2">
+                <a class="nav-link rounded-pill {{ request()->routeIs('daily-reports.user-jobs') ? 'active bg-white text-primary' : 'text-white' }}"
+                   href="{{ route('daily-reports.user-jobs') }}">
+                    <i class="fas fa-tasks me-2"></i>
+                    <span>My Reports</span>
+                </a>
+            </li>
+
+            <li class="nav-item mb-2">
+                <a class="nav-link rounded-pill {{ request()->routeIs('daily-reports.index') ? 'active bg-white text-primary' : 'text-white' }}"
+                   href="{{ route('daily-reports.index') }}">
+                    <i class="fas fa-list me-2"></i>
+                    <span>All Reports</span>
+                </a>
+            </li>
             
             <li class="nav-item mb-3">
                 <span class="sidebar-heading px-3 py-2 text-uppercase fw-bold text-white-50 small d-block">Organization</span>

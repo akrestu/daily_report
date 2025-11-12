@@ -102,6 +102,32 @@ class User extends Authenticatable
         return $this->hasRole('admin');
     }
 
+    public function isLevel1(): bool
+    {
+        return $this->hasRole('level1');
+    }
+
+    public function isLevel2(): bool
+    {
+        return $this->hasRole('level2');
+    }
+
+    public function isLevel3(): bool
+    {
+        return $this->hasRole('level3');
+    }
+
+    public function isLevel4(): bool
+    {
+        return $this->hasRole('level4');
+    }
+
+    public function isLevel5(): bool
+    {
+        return $this->hasRole('level5');
+    }
+
+    // Legacy methods for backward compatibility
     public function isDepartmentHead(): bool
     {
         return $this->hasRole('department_head');
@@ -123,6 +149,19 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the role level number (1-5) or 0 for non-level roles
+     */
+    public function getRoleLevel(): int
+    {
+        if ($this->isLevel1()) return 1;
+        if ($this->isLevel2()) return 2;
+        if ($this->isLevel3()) return 3;
+        if ($this->isLevel4()) return 4;
+        if ($this->isLevel5()) return 5;
+        return 0;
+    }
+
+    /**
      * Check if user can approve reports for the given user
      */
     public function canApprove(User $user): bool
@@ -132,17 +171,75 @@ class User extends Authenticatable
             return true;
         }
 
-        // Department heads can only approve within their department
-        if ($this->isDepartmentHead() && $this->department_id === $user->department_id) {
-            return $user->isLeader() || $user->isStaff();
+        $approverLevel = $this->getRoleLevel();
+        $userLevel = $user->getRoleLevel();
+
+        // Non-level roles cannot approve
+        if ($approverLevel === 0) {
+            return false;
         }
 
-        // Leaders can only approve staff within their department
-        if ($this->isLeader() && $this->department_id === $user->department_id) {
-            return $user->isStaff();
+        // Level 5 can approve reports from Level 1-4
+        if ($approverLevel === 5 && $userLevel >= 1 && $userLevel <= 4) {
+            return true;
+        }
+
+        // Level 2-4 can approve reports from one level below
+        if ($approverLevel >= 2 && $approverLevel <= 4) {
+            return $userLevel === ($approverLevel - 1);
         }
 
         return false;
+    }
+
+    /**
+     * Get eligible PIC roles based on current user's role
+     * Returns array of role slugs that can be selected as PIC
+     */
+    public function getEligiblePicRoles(): array
+    {
+        // Admin cannot be selected as PIC
+        // Level 1: can only select Level 2
+        if ($this->isLevel1()) {
+            return ['level2'];
+        }
+
+        // Level 2: can only select Level 3
+        if ($this->isLevel2()) {
+            return ['level3'];
+        }
+
+        // Level 3: can only select Level 4
+        if ($this->isLevel3()) {
+            return ['level4'];
+        }
+
+        // Level 4: can only select Level 5
+        if ($this->isLevel4()) {
+            return ['level5'];
+        }
+
+        // Level 5: cannot select Admin, but can select Level 2-5 for flexibility
+        if ($this->isLevel5()) {
+            return ['level2', 'level3', 'level4', 'level5'];
+        }
+
+        // Admin can select any level except themselves
+        if ($this->isAdmin()) {
+            return ['level2', 'level3', 'level4', 'level5'];
+        }
+
+        // Default: no eligible roles
+        return [];
+    }
+
+    /**
+     * Check if a user can be selected as PIC
+     */
+    public function canBePic(): bool
+    {
+        // Level 1 and Admin cannot be PIC
+        return !$this->isLevel1() && !$this->isAdmin();
     }
 
     /**
