@@ -445,7 +445,7 @@ class DashboardController extends Controller
             // Setup performance data for chart
             $totalUserReports = DailyReport::where('user_id', $user->id)->count();
             
-            // Get daily job reports created by the user for the last 14 days
+            // Get reports created by the user for the last 14 days
             $startDate = Carbon::now()->subDays(13)->startOfDay();
             $endDate = Carbon::now()->endOfDay();
             $labels = [];

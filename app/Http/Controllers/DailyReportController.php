@@ -36,10 +36,10 @@ class DailyReportController extends Controller
             'report_date' => 'required|date',
             'due_date' => 'required|date|after_or_equal:report_date',
             'job_pic' => 'required|exists:users,id',
-            'description' => 'required|string',
-            'remark' => 'nullable|string',
+            'description' => 'required|string|max:2000',
+            'remark' => 'nullable|string|max:1000',
             'status' => ['required', Rule::in(['pending', 'in_progress', 'completed'])],
-            'attachment' => 'nullable|file|max:5120|mimes:jpeg,png,jpg,gif,svg,pdf,doc,docx,xls,xlsx',
+            'attachment' => 'nullable|file|max:5120|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx|mimetypes:image/jpeg,image/png,image/gif,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ];
     }
 
@@ -76,8 +76,23 @@ class DailyReportController extends Controller
      */
     private function processAttachment($file, $oldAttachmentPath = null)
     {
-        // Generate a secure filename
-        $originalName = $file->getClientOriginalName();
+        // Validate MIME type for security
+        $allowedMimes = [
+            'image/jpeg', 'image/png', 'image/gif', 'image/svg+xml',
+            'application/pdf', 'application/msword', 
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/vnd.ms-excel',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        ];
+        
+        if (!in_array($file->getMimeType(), $allowedMimes)) {
+            throw new \InvalidArgumentException('File type not allowed');
+        }
+        
+        // Sanitize original filename and prevent path traversal
+        $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_BASENAME);
+        $originalName = preg_replace('/[^a-zA-Z0-9\._-]/', '_', $originalName);
+        
         $extension = $file->getClientOriginalExtension();
         $filename = uniqid('attachment_', true) . '_' . time() . '.' . $extension;
         $path = 'attachments/' . $filename;
@@ -92,19 +107,30 @@ class DailyReportController extends Controller
             Storage::disk('public')->delete($oldAttachmentPath);
         }
         
-        // Check if it's an image
+        // Check if it's an image and process if GD extension is available
         if (in_array(strtolower($extension), ['jpg', 'jpeg', 'png', 'gif'])) {
-            // Create image manager with GD driver
-            $manager = new ImageManager(Driver::class);
-            
-            // Load and compress image
-            $image = $manager->read($file);
-            
-            // Resize if width or height is greater than 1920px while maintaining aspect ratio
-            $image->scaleDown(1920, 1920);
-            
-            // Save compressed image to public disk with higher compression (60% quality instead of 80%)
-            Storage::disk('public')->put($path, $image->toJpeg(60));
+            try {
+                // Check if GD extension is available
+                if (!extension_loaded('gd')) {
+                    throw new \Exception('GD extension not available');
+                }
+                
+                // Create image manager with GD driver
+                $manager = new ImageManager(Driver::class);
+                
+                // Load and compress image
+                $image = $manager->read($file);
+                
+                // Resize if width or height is greater than 1920px while maintaining aspect ratio
+                $image->scaleDown(1920, 1920);
+                
+                // Save compressed image to public disk with higher compression (60% quality instead of 80%)
+                Storage::disk('public')->put($path, $image->toJpeg(60));
+            } catch (\Exception $e) {
+                // Fallback: Store image without processing if GD is not available
+                Log::warning('Image processing failed, storing without compression: ' . $e->getMessage());
+                Storage::disk('public')->putFileAs('attachments', $file, $filename);
+            }
         } else {
             // For non-image files, store as is in public disk under attachments directory
             Storage::disk('public')->putFileAs('attachments', $file, $filename);

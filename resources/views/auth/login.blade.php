@@ -3,7 +3,7 @@
         <div class="auth-logo mx-auto mb-3">
             <i class="fas fa-clipboard-list text-primary" style="font-size: 24px;"></i>
         </div>
-        <h4 class="fw-bold mb-1">Daily Job Report</h4>
+        <h4 class="fw-bold mb-1">SiGAP</h4>
         <p class="text-muted small">Sign in to your account</p>
     </div>
     

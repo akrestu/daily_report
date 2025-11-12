@@ -32,12 +32,12 @@ class DailyReportPolicy
 
     public function update(User $user, DailyReport $dailyReport): bool
     {
-        return $user->id === $dailyReport->user_id && $dailyReport->status === 'pending';
+        return $user->id === $dailyReport->user_id && $dailyReport->approval_status === 'pending';
     }
 
     public function delete(User $user, DailyReport $dailyReport): bool
     {
-        return ($user->id === $dailyReport->user_id && $dailyReport->status === 'pending') || 
+        return ($user->id === $dailyReport->user_id && $dailyReport->approval_status === 'pending') || 
                 $user->isAdmin();
     }
 

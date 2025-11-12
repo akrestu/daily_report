@@ -359,95 +359,111 @@
             const performanceCanvas = document.getElementById('performanceChart');
             if (!performanceCanvas) {
                 console.error('performanceChart canvas element not found');
-            } else {
-                console.log('performanceChart canvas found');
-                const performanceData = @json($performanceData);
-                console.log('Performance data:', performanceData);
+                return;
+            }
+            
+            // Destroy existing chart instance if it exists
+            if (window.performanceChartInstance) {
+                window.performanceChartInstance.destroy();
+                window.performanceChartInstance = null;
+            }
+            
+            console.log('performanceChart canvas found');
+            const performanceData = @json($performanceData);
+            console.log('Performance data:', performanceData);
+            
+            try {
+                // Check if there's data to display
+                if (performanceData.labels.length === 0 || 
+                    performanceData.completed.length === 0 || 
+                    performanceData.total.length === 0) {
+                    // No data available, show message
+                    const ctx = performanceCanvas.getContext('2d');
+                    ctx.font = '16px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillStyle = '#6c757d';
+                    ctx.fillText('No report data available yet', performanceCanvas.width / 2, performanceCanvas.height / 2);
+                    console.log('No performance data available, showing message');
+                    return;
+                }
                 
-                try {
-                    // Check if there's data to display
-                    if (performanceData.labels.length === 0 || 
-                        performanceData.completed.length === 0 || 
-                        performanceData.total.length === 0) {
-                        // No data available, show message
-                        const ctx = performanceCanvas.getContext('2d');
-                        ctx.font = '16px Arial';
-                        ctx.textAlign = 'center';
-                        ctx.fillStyle = '#6c757d';
-                        ctx.fillText('No report data available yet', performanceCanvas.width / 2, performanceCanvas.height / 2);
-                        console.log('No performance data available, showing message');
-                        return;
-                    }
-                    
-                    const performanceChart = new Chart(performanceCanvas, {
-                        type: 'bar',
-                        data: {
-                            labels: performanceData.labels,
-                            datasets: [{
-                                label: 'Completed',
-                                data: performanceData.completed,
-                                backgroundColor: 'rgba(16, 185, 129, 0.8)',
-                                borderColor: 'rgba(16, 185, 129, 1)',
-                                borderWidth: 1,
-                                order: 1
-                            }, {
-                                label: 'Pending',
-                                data: performanceData.pending,
-                                backgroundColor: 'rgba(245, 158, 11, 0.8)',
-                                borderColor: 'rgba(245, 158, 11, 1)',
-                                borderWidth: 1,
-                                order: 2
-                            }, {
-                                label: 'In Progress',
-                                data: performanceData.in_progress,
-                                backgroundColor: 'rgba(14, 165, 233, 0.8)',
-                                borderColor: 'rgba(14, 165, 233, 1)',
-                                borderWidth: 1,
-                                order: 3
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    position: 'top'
-                                },
-                                tooltip: {
-                                    mode: 'index',
-                                    intersect: false,
-                                    callbacks: {
-                                        title: function(tooltipItems) {
-                                            // Display the full date in the tooltip
-                                            return tooltipItems[0].label;
-                                        }
-                                    }
-                                }
+                // Store chart instance globally for cleanup
+                window.performanceChartInstance = new Chart(performanceCanvas, {
+                    type: 'bar',
+                    data: {
+                        labels: performanceData.labels,
+                        datasets: [{
+                            label: 'Completed',
+                            data: performanceData.completed,
+                            backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                            borderColor: 'rgba(16, 185, 129, 1)',
+                            borderWidth: 1,
+                            order: 1
+                        }, {
+                            label: 'Pending',
+                            data: performanceData.pending,
+                            backgroundColor: 'rgba(245, 158, 11, 0.8)',
+                            borderColor: 'rgba(245, 158, 11, 1)',
+                            borderWidth: 1,
+                            order: 2
+                        }, {
+                            label: 'In Progress',
+                            data: performanceData.in_progress,
+                            backgroundColor: 'rgba(14, 165, 233, 0.8)',
+                            borderColor: 'rgba(14, 165, 233, 1)',
+                            borderWidth: 1,
+                            order: 3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top'
                             },
-                            scales: {
-                                x: {
-                                    ticks: {
-                                        maxRotation: 45,
-                                        minRotation: 45
-                                    },
-                                    stacked: true
-                                },
-                                y: {
-                                    beginAtZero: true,
-                                    stacked: true,
-                                    ticks: {
-                                        precision: 0,
-                                        stepSize: 1
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                callbacks: {
+                                    title: function(tooltipItems) {
+                                        // Display the full date in the tooltip
+                                        return tooltipItems[0].label;
                                     }
                                 }
                             }
+                        },
+                        scales: {
+                            x: {
+                                ticks: {
+                                    maxRotation: 45,
+                                    minRotation: 45
+                                },
+                                stacked: true
+                            },
+                            y: {
+                                beginAtZero: true,
+                                stacked: true,
+                                ticks: {
+                                    precision: 0,
+                                    stepSize: 1
+                                }
+                            }
                         }
-                    });
-                    console.log('Performance chart initialized successfully');
-                } catch (error) {
-                    console.error('Error initializing performance chart:', error);
-                }
+                    }
+                });
+                console.log('Performance chart initialized successfully');
+            } catch (error) {
+                console.error('Error initializing performance chart:', error);
             }
         }
+        
+        // Cleanup function for page unload
+        window.addEventListener('beforeunload', function() {
+            if (window.performanceChartInstance) {
+                window.performanceChartInstance.destroy();
+                window.performanceChartInstance = null;
+            }
+        });
     });
 </script> 

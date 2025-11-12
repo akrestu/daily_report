@@ -1,6 +1,6 @@
-# Daily Report System - API Documentation
+# SiGAP - API Documentation
 
-Although the Daily Report System primarily operates through web interfaces, it provides several API endpoints for integration with other systems. This document outlines the available endpoints, their parameters, and response formats.
+Although SiGAP (Sistem Informasi Giat Aktivitas Pekerjaan) primarily operates through web interfaces, it provides several API endpoints for integration with other systems. This document outlines the available endpoints, their parameters, and response formats.
 
 ## Authentication
 

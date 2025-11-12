@@ -6,6 +6,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DebugController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TestController;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
@@ -42,6 +43,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/notifications/mark-all-as-read', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
     Route::post('/notifications/clear-all', [\App\Http\Controllers\NotificationController::class, 'clearAll'])->name('notifications.clear-all');
     Route::get('/notifications/all', [\App\Http\Controllers\NotificationController::class, 'viewAll'])->name('notifications.view-all');
+    Route::get('/notifications/preferences', [\App\Http\Controllers\NotificationController::class, 'getPreferences'])->name('notifications.preferences.get');
+    Route::post('/notifications/preferences', [\App\Http\Controllers\NotificationController::class, 'updatePreferences'])->name('notifications.preferences.update');
     
     // Organization Chart Route
     Route::get('/organization-chart', [\App\Http\Controllers\OrganizationChartController::class, 'index'])->name('organization.chart');
@@ -125,6 +128,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/settings', function() {
             return view('admin.settings');
         })->name('settings');
+        
+        // Report cleanup management
+        Route::get('/reports/cleanup', [\App\Http\Controllers\Admin\ReportCleanupController::class, 'index'])->name('reports.cleanup.index');
+        Route::post('/reports/cleanup/preview', [\App\Http\Controllers\Admin\ReportCleanupController::class, 'preview'])->name('reports.cleanup.preview');
+        Route::post('/reports/cleanup/execute', [\App\Http\Controllers\Admin\ReportCleanupController::class, 'execute'])->name('reports.cleanup.execute');
     });
     
     // Debug Routes
@@ -133,16 +141,36 @@ Route::middleware('auth')->group(function () {
 
 // Add file attachment route
 Route::get('/storage/attachments/{filename}', function ($filename) {
-    // Check if user is authenticated using Auth facade
-    if (!Auth::user()) {
+    /** @var User|null $user */
+    $user = Auth::user();
+    if (!$user) {
         abort(403);
     }
 
+    // Sanitize filename to prevent path traversal
+    $filename = basename($filename);
     $path = 'attachments/' . $filename;
     
     // Check if file exists
     if (!Storage::disk('public')->exists($path)) {
         abort(404);
+    }
+    
+    // Check if user has access to this attachment
+    $report = \App\Models\DailyReport::where('attachment_path', $path)
+        ->orWhere('attachment_path', 'LIKE', '%' . $filename)
+        ->first();
+        
+    if (!$report) {
+        abort(404);
+    }
+    
+    // Check access permissions
+    if (!($user->isAdmin() || 
+          $user->isDepartmentHead() || 
+          $user->id === $report->user_id || 
+          ($user->department_id === $report->department_id && ($user->isLeader() || $user->isStaff())))) {
+        abort(403);
     }
     
     return response()->file(storage_path('app/public/' . $path));

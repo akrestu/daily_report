@@ -6,7 +6,7 @@
             <div class="logo-bg rounded-circle bg-white d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px; flex-shrink: 0;">
                 <i class="fas fa-clipboard-list text-primary" style="font-size: 16px;"></i>
             </div>
-            <span class="logo-text fw-bold text-white fs-5">Daily Job Report</span>
+            <span class="logo-text fw-bold text-white fs-5">SiGAP</span>
         </a>
     </div>
     

@@ -27,10 +27,13 @@ class DailyReport extends Model
         'attachment_original_name',
     ];
 
-    protected $casts = [
-        'report_date' => 'date',
-        'due_date' => 'date',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'report_date' => 'date',
+            'due_date' => 'date',
+        ];
+    }
 
     public function user(): BelongsTo
     {

@@ -1,8 +1,8 @@
-# Daily Report System - Technical Documentation
+# SiGAP - Technical Documentation
 
 ## System Architecture
 
-The Daily Report System is a Laravel-based web application with the following architecture:
+SiGAP (Sistem Informasi Giat Aktivitas Pekerjaan) is a Laravel-based web application with the following architecture:
 
 ### Core Components
 1. **Laravel Framework**: The application is built on Laravel, utilizing its MVC architecture, routing, middleware, and other core features.

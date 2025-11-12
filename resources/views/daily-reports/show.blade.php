@@ -263,8 +263,8 @@
                 @csrf
                             <div class="d-flex flex-column flex-md-row">
                                 <div class="avatar-circle bg-primary text-white me-md-3 me-0 mb-3 mb-md-0 align-self-start align-self-md-start" style="flex: 0 0 40px; height: 40px;">
-                        @if(auth()->user()->profile_picture)
-                            <img src="{{ asset('storage/' . auth()->user()->profile_picture) }}" alt="{{ auth()->user()->name }}" class="rounded-circle w-100 h-100" style="object-fit: cover;">
+                        @if(auth()->user()->profile_picture_url)
+                            <img src="{{ auth()->user()->profile_picture_url }}" alt="{{ auth()->user()->name }}" class="rounded-circle w-100 h-100" style="object-fit: cover;">
                         @else
                             {{ substr(auth()->user()->name, 0, 1) }}
                         @endif

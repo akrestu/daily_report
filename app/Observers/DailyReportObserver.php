@@ -44,13 +44,18 @@ class DailyReportObserver
      */
     private function createApprovalNotification(DailyReport $dailyReport): void
     {
-        Notification::create([
-            'user_id' => $dailyReport->user_id,
-            'daily_report_id' => $dailyReport->id,
-            'type' => 'job_approved',
-            'message' => "Your job '{$dailyReport->job_name}' has been approved.",
-            'is_read' => false,
-        ]);
+        $user = User::find($dailyReport->user_id);
+        
+        // Check if user wants to receive approval notifications
+        if ($user && $user->wantsNotification('job_approved')) {
+            Notification::create([
+                'user_id' => $dailyReport->user_id,
+                'daily_report_id' => $dailyReport->id,
+                'type' => 'job_approved',
+                'message' => "Your job '{$dailyReport->job_name}' has been approved.",
+                'is_read' => false,
+            ]);
+        }
     }
     
     /**
@@ -58,13 +63,18 @@ class DailyReportObserver
      */
     private function createRejectionNotification(DailyReport $dailyReport): void
     {
-        Notification::create([
-            'user_id' => $dailyReport->user_id,
-            'daily_report_id' => $dailyReport->id,
-            'type' => 'job_rejected',
-            'message' => "Your job '{$dailyReport->job_name}' has been rejected.",
-            'is_read' => false,
-        ]);
+        $user = User::find($dailyReport->user_id);
+        
+        // Check if user wants to receive rejection notifications
+        if ($user && $user->wantsNotification('job_rejected')) {
+            Notification::create([
+                'user_id' => $dailyReport->user_id,
+                'daily_report_id' => $dailyReport->id,
+                'type' => 'job_rejected',
+                'message' => "Your job '{$dailyReport->job_name}' has been rejected.",
+                'is_read' => false,
+            ]);
+        }
     }
     
     /**
@@ -77,38 +87,59 @@ class DailyReportObserver
         $departmentHeadRoleId = Role::where('slug', 'department_head')->pluck('id')->first() ?? 2;
         $leaderRoleId = Role::where('slug', 'leader')->pluck('id')->first() ?? 3;
         
-        // Get approvers with different criteria based on role
-        $approvers = User::where(function ($query) use ($dailyReport, $adminRoleId, $departmentHeadRoleId, $leaderRoleId) {
-            // Admins can approve any report
-            $query->where('role_id', $adminRoleId);
-            
-            // Department heads only get notifications if they are the PIC
-            $query->orWhere(function ($q) use ($dailyReport, $departmentHeadRoleId) {
-                $q->where('role_id', $departmentHeadRoleId)
-                  ->where('id', $dailyReport->job_pic);
-            });
-            
-            // Leaders in the same department get notifications
-            $query->orWhere(function ($q) use ($dailyReport, $leaderRoleId) {
-                $q->where('role_id', $leaderRoleId)
-                  ->where('department_id', $dailyReport->department_id);
-            });
-        })->get();
+        $approvers = collect();
         
-        foreach ($approvers as $approver) {
-            // Skip if the approver is the report creator
-            if ($approver->id === $dailyReport->user_id) {
-                continue;
+        // Only notify the assigned PIC (job_pic)
+        if ($dailyReport->job_pic) {
+            $picUser = User::find($dailyReport->job_pic);
+            if ($picUser && $picUser->id !== $dailyReport->user_id) {
+                $approvers->push($picUser);
             }
+        }
+        
+        // If PIC is not available or is a staff, also notify leaders in the same department
+        $picUser = User::find($dailyReport->job_pic);
+        if (!$picUser || $picUser->hasRole('staff')) {
+            $departmentLeaders = User::where('role_id', $leaderRoleId)
+                ->where('department_id', $dailyReport->department_id)
+                ->where('id', '!=', $dailyReport->user_id)
+                ->get();
             
-            // Create notification for the approver
-            Notification::create([
-                'user_id' => $approver->id,
-                'daily_report_id' => $dailyReport->id,
-                'type' => 'pending_approval',
-                'message' => "New job report '{$dailyReport->job_name}' needs your approval.",
-                'is_read' => false,
-            ]);
+            foreach ($departmentLeaders as $leader) {
+                if (!$approvers->contains('id', $leader->id)) {
+                    $approvers->push($leader);
+                }
+            }
+        }
+        
+        // Only notify admin if:
+        // 1. There's no PIC assigned, OR
+        // 2. The PIC is not available (user doesn't exist), OR  
+        // 3. It's an escalation scenario (could be added later)
+        if (!$dailyReport->job_pic || !User::find($dailyReport->job_pic)) {
+            $admins = User::where('role_id', $adminRoleId)
+                ->where('id', '!=', $dailyReport->user_id)
+                ->get();
+            
+            foreach ($admins as $admin) {
+                if (!$approvers->contains('id', $admin->id)) {
+                    $approvers->push($admin);
+                }
+            }
+        }
+        
+        // Create notifications for relevant approvers only (with preference check)
+        foreach ($approvers as $approver) {
+            // Check if user wants to receive this type of notification
+            if ($approver->wantsNotification('pending_approval')) {
+                Notification::create([
+                    'user_id' => $approver->id,
+                    'daily_report_id' => $dailyReport->id,
+                    'type' => 'pending_approval',
+                    'message' => "New job report '{$dailyReport->job_name}' needs your approval.",
+                    'is_read' => false,
+                ]);
+            }
         }
     }
 }

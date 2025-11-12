@@ -1,6 +1,6 @@
 {
-    "name": "Daily Job Report System",
-    "short_name": "Daily Report",
+    "name": "SiGAP - Sistem Informasi Giat Aktivitas Pekerjaan",
+    "short_name": "SiGAP",
     "icons": [
         {
             "src": "/favicon.ico",

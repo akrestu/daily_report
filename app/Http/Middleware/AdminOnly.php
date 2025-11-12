@@ -19,7 +19,7 @@ class AdminOnly
     {
         /** @var User|null $user */
         $user = Auth::user();
-        if (!$user || !($user->isAdmin() || $user->isLeader() || $user->isDepartmentHead())) {
+        if (!$user || !$user->isAdmin()) {
             return redirect()->route('dashboard')->with('error', 'You do not have permission to access this page.');
         }
         

@@ -19,9 +19,12 @@ class Notification extends Model
         'is_read',
     ];
 
-    protected $casts = [
-        'is_read' => 'boolean',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'is_read' => 'boolean',
+        ];
+    }
 
     /**
      * Get the user that the notification belongs to.

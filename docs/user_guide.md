@@ -1,8 +1,8 @@
-# Daily Report System - User Guide
+# SiGAP - User Guide
 
 ## Introduction
 
-The Daily Report System is a web-based application designed to streamline the process of creating, submitting, and tracking daily work reports within your organization. This guide will help you navigate the system and understand how to use its features effectively.
+SiGAP (Sistem Informasi Giat Aktivitas Pekerjaan) is a web-based application designed to streamline the process of creating, submitting, and tracking daily work activities and reports within your organization. This guide will help you navigate the system and understand how to use its features effectively.
 
 ## Getting Started
 

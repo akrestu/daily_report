@@ -12,6 +12,7 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
+use Illuminate\Support\Facades\Log;
 
 class DailyReportForm extends Component
 {
@@ -151,19 +152,30 @@ class DailyReportForm extends Component
             Storage::disk('public')->delete($oldAttachmentPath);
         }
         
-        // Check if it's an image
+        // Check if it's an image and process if GD extension is available
         if (in_array(strtolower($extension), ['jpg', 'jpeg', 'png', 'gif'])) {
-            // Create image manager with GD driver
-            $manager = new ImageManager(Driver::class);
-            
-            // Load and compress image
-            $image = $manager->read($file->getRealPath());
-            
-            // Resize if width or height is greater than 1920px while maintaining aspect ratio
-            $image->scaleDown(1920, 1920);
-            
-            // Save compressed image to public disk with higher compression (60% quality instead of 80%)
-            Storage::disk('public')->put($path, $image->toJpeg(60));
+            try {
+                // Check if GD extension is available
+                if (!extension_loaded('gd')) {
+                    throw new \Exception('GD extension not available');
+                }
+                
+                // Create image manager with GD driver
+                $manager = new ImageManager(Driver::class);
+                
+                // Load and compress image
+                $image = $manager->read($file->getRealPath());
+                
+                // Resize if width or height is greater than 1920px while maintaining aspect ratio
+                $image->scaleDown(1920, 1920);
+                
+                // Save compressed image to public disk with higher compression (60% quality instead of 80%)
+                Storage::disk('public')->put($path, $image->toJpeg(60));
+            } catch (\Exception $e) {
+                // Fallback: Store image without processing if GD is not available
+                Log::warning('Image processing failed, storing without compression: ' . $e->getMessage());
+                Storage::disk('public')->putFileAs('attachments', $file, $filename);
+            }
         } else {
             // For non-image files, store as is in public disk under attachments directory
             Storage::disk('public')->putFileAs('attachments', $file, $filename);

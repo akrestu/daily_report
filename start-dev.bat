@@ -1,21 +1,39 @@
 @echo off
-echo Starting development environment...
-
-:: Start the Laravel server in the background
-start cmd /k "php artisan serve"
-
-:: Start Vite development server with HMR
-start cmd /k "npm run dev"
-
-echo Development servers started.
-echo - Laravel: http://localhost:8000
-echo - Vite: http://localhost:5173
+echo SiGAP - Development Environment
+echo =================================
 echo.
-echo Press any key to shut down the servers.
-pause>nul
 
-:: Kill processes when user exits
-taskkill /f /im php.exe >nul 2>&1
-taskkill /f /im node.exe >nul 2>&1
+:: Check if node_modules exists
+if not exist "node_modules" (
+    echo Installing Node.js dependencies...
+    npm install
+    echo.
+)
 
-echo Development servers stopped. 
+:: Check if vendor exists
+if not exist "vendor" (
+    echo Installing PHP dependencies...
+    composer install
+    echo.
+)
+
+:: Check if .env exists
+if not exist ".env" (
+    echo Creating .env file...
+    copy .env.example .env
+    php artisan key:generate
+    echo.
+    echo Please configure your database settings in .env file
+    echo.
+)
+
+echo Starting development servers...
+echo.
+echo Using Laravel 12 concurrent development script...
+echo This will start Laravel server, Queue worker, and Vite simultaneously.
+echo.
+echo Available at: http://localhost:8000
+echo.
+
+:: Use the new Laravel 12 dev script
+composer run dev 

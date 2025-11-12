@@ -18,13 +18,23 @@ class NotificationController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
+        
+        // Optimized query with better eager loading to prevent N+1 queries
         $notifications = $user->notifications()
-            ->with(['dailyReport', 'comment'])
+            ->with([
+                'dailyReport:id,job_name,user_id',
+                'comment:id,daily_report_id,user_id,comment',
+                'comment.user:id,name'
+            ])
+            ->select(['id', 'user_id', 'daily_report_id', 'comment_id', 'type', 'message', 'is_read', 'created_at'])
             ->orderBy('created_at', 'desc')
             ->take(10)
             ->get();
             
-        $unreadCount = $user->unreadNotifications()->count();
+        // Use more efficient count query
+        $unreadCount = $user->notifications()
+            ->where('is_read', false)
+            ->count();
             
         return response()->json([
             'notifications' => $notifications,
@@ -96,23 +106,76 @@ class NotificationController extends Controller
         /** @var User $user */
         $user = Auth::user();
         
-        // Get all notifications with pagination (25 per page)
+        // Get all notifications with pagination (25 per page) and optimized eager loading
         $notifications = $user->notifications()
-            ->with(['dailyReport', 'comment'])
+            ->with([
+                'dailyReport:id,job_name,user_id',
+                'comment:id,daily_report_id,user_id,comment',
+                'comment.user:id,name'
+            ])
+            ->select(['id', 'user_id', 'daily_report_id', 'comment_id', 'type', 'message', 'is_read', 'created_at'])
             ->orderBy('created_at', 'desc')
             ->paginate(25);
             
-        // Mark all as read when viewing this page
+        // Mark all as read when viewing this page (optimized bulk update)
         if (request()->has('mark_read') && request('mark_read') == 1) {
-            $user->notifications()->update(['is_read' => true]);
+            $user->notifications()
+                ->where('is_read', false)
+                ->update(['is_read' => true]);
         }
         
         // Get unread count for UI
-        $unreadCount = $user->unreadNotifications()->count();
+        $unreadCount = $user->notifications()
+            ->where('is_read', false)
+            ->count();
         
         return view('notifications.all', [
             'notifications' => $notifications,
             'unreadCount' => $unreadCount
+        ]);
+    }
+    
+    /**
+     * Get user's notification preferences
+     */
+    public function getPreferences(): JsonResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        
+        return response()->json([
+            'preferences' => $user->notificationPreferences()
+        ]);
+    }
+    
+    /**
+     * Update user's notification preferences
+     */
+    public function updatePreferences(Request $request): JsonResponse
+    {
+        $request->validate([
+            'job_approved' => 'boolean',
+            'job_rejected' => 'boolean',
+            'pending_approval' => 'boolean',
+            'new_comment' => 'boolean',
+            'email_notifications' => 'boolean',
+        ]);
+        
+        /** @var User $user */
+        $user = Auth::user();
+        
+        $user->updateNotificationPreferences($request->only([
+            'job_approved',
+            'job_rejected', 
+            'pending_approval',
+            'new_comment',
+            'email_notifications'
+        ]));
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Notification preferences updated successfully',
+            'preferences' => $user->notificationPreferences()
         ]);
     }
 }

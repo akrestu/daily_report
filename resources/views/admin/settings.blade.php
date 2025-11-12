@@ -24,7 +24,7 @@
                     <form>
                         <div class="mb-3">
                             <label for="appName" class="form-label">Application Name</label>
-                            <input type="text" class="form-control" id="appName" value="Daily Report System" disabled>
+                            <input type="text" class="form-control" id="appName" value="SiGAP - Sistem Informasi Giat Aktivitas Pekerjaan" disabled>
                         </div>
                         
                         <div class="mb-3">

@@ -87,7 +87,7 @@ class UserController extends Controller
                 Notification::create([
                     'user_id' => $user->id,
                     'type' => 'welcome',
-                    'message' => 'Welcome to Daily Report System! We\'re glad to have you on board.',
+                    'message' => 'Welcome to SiGAP! We\'re glad to have you on board.',
                     'is_read' => false,
                 ]);
                 

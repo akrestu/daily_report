@@ -19,7 +19,9 @@ class RegisteredUserController extends Controller
      */
     public function create(): View
     {
-        return view('auth.register');
+        $roles = \App\Models\Role::all();
+        $departments = \App\Models\Department::all();
+        return view('auth.register', compact('roles', 'departments'));
     }
 
     /**
@@ -34,6 +36,8 @@ class RegisteredUserController extends Controller
             'user_id' => ['required', 'string', 'max:255', 'unique:'.User::class],
             'email' => ['nullable', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'role_id' => ['required', 'exists:roles,id'],
+            'department_id' => ['required', 'exists:departments,id'],
         ]);
 
         $user = User::create([
@@ -41,6 +45,8 @@ class RegisteredUserController extends Controller
             'user_id' => $request->user_id,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'role_id' => $request->role_id,
+            'department_id' => $request->department_id,
         ]);
 
         event(new Registered($user));

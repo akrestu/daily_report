@@ -555,6 +555,76 @@
         </div>
     </div>
     
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-bell me-2"></i>Notification Preferences</h5>
+                </div>
+                <div class="card-body">
+                    <form id="notificationPreferencesForm">
+                        @csrf
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="text-muted mb-3">App Notifications</h6>
+                                
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="job_approved" name="job_approved">
+                                    <label class="form-check-label" for="job_approved">
+                                        <strong>Job Approved</strong>
+                                        <br><small class="text-muted">When your job reports are approved</small>
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="job_rejected" name="job_rejected">
+                                    <label class="form-check-label" for="job_rejected">
+                                        <strong>Job Rejected</strong>
+                                        <br><small class="text-muted">When your job reports are rejected</small>
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="pending_approval" name="pending_approval">
+                                    <label class="form-check-label" for="pending_approval">
+                                        <strong>Pending Approval</strong>
+                                        <br><small class="text-muted">When job reports need your approval</small>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <h6 class="text-muted mb-3">Communication</h6>
+                                
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="new_comment" name="new_comment">
+                                    <label class="form-check-label" for="new_comment">
+                                        <strong>New Comments</strong>
+                                        <br><small class="text-muted">When someone comments on your jobs</small>
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="email_notifications" name="email_notifications">
+                                    <label class="form-check-label" for="email_notifications">
+                                        <strong>Email Notifications</strong>
+                                        <br><small class="text-muted">Receive notifications via email (Coming Soon)</small>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-end mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Save Preferences
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <style>
         .avatar-lg {
             width: 100px;
@@ -735,7 +805,97 @@
                     bsTab.show();
                 }
             }
+            
+            // Load current notification preferences
+            loadNotificationPreferences();
+            
+            // Handle form submission
+            document.getElementById('notificationPreferencesForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveNotificationPreferences();
+            });
         });
+        
+        function loadNotificationPreferences() {
+            fetch('/notifications/preferences')
+                .then(response => response.json())
+                .then(data => {
+                    const preferences = data.preferences;
+                    
+                    // Set checkbox states
+                    Object.keys(preferences).forEach(key => {
+                        const checkbox = document.getElementById(key);
+                        if (checkbox) {
+                            checkbox.checked = preferences[key];
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading preferences:', error);
+                });
+        }
+        
+        function saveNotificationPreferences() {
+            const formData = new FormData(document.getElementById('notificationPreferencesForm'));
+            
+            // Convert FormData to object with boolean values
+            const preferences = {};
+            const checkboxes = ['job_approved', 'job_rejected', 'pending_approval', 'new_comment', 'email_notifications'];
+            
+            checkboxes.forEach(key => {
+                preferences[key] = formData.has(key);
+            });
+            
+            fetch('/notifications/preferences', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify(preferences)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        title: 'Preferences Updated',
+                        text: data.message,
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true
+                    });
+                } else {
+                    // Show error message
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message || 'Failed to update preferences',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error saving preferences:', error);
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An error occurred while saving preferences',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            });
+        }
     </script>
     @endpush
 </x-app-layout>

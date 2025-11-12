@@ -58,7 +58,7 @@ class JobCommentController extends Controller
                         'user' => [
                             'id' => Auth::id(),
                             'name' => Auth::user()->name,
-                            'profile_picture' => Auth::user()->profile_picture ? asset('storage/' . Auth::user()->profile_picture) : null,
+                            'profile_picture' => Auth::user()->profile_picture_url,
                         ],
                         'is_owner' => true,
                     ],
@@ -120,7 +120,7 @@ class JobCommentController extends Controller
                             'user' => [
                                 'id' => $comment->user->id,
                                 'name' => $comment->user->name,
-                                'profile_picture' => $comment->user->profile_picture ? asset('storage/' . $comment->user->profile_picture) : null,
+                                'profile_picture' => $comment->user->profile_picture_url,
                             ],
                             'is_owner' => $comment->user_id === Auth::id(),
                         ];

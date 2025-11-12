@@ -57,14 +57,14 @@
 
 <!-- Dashboard JavaScript -->
 <script>
-    // Store dashboard data in a global object
+    // Store dashboard data in a global object with proper escaping
     window.dashboardData = {
-        reportTrend: @json($reportTrend),
+        reportTrend: @json($reportTrend, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT),
         pendingReports: {{ $pendingReports }},
         inProgressReports: {{ $inProgressReports }},
         completedReports: {{ $completedReports }},
         rejectedReports: {{ $rejectedReports }},
-        departmentPerformance: @json($departmentPerformance ?? [])
+        departmentPerformance: @json($departmentPerformance ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT)
     };
 </script>
 

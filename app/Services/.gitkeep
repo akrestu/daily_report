@@ -1,0 +1,2 @@
+# This directory is for service classes that contain business logic
+# Services should be used for complex operations that don't belong in models or controllers 
