@@ -172,92 +172,39 @@ class DashboardController extends Controller
             // Prepare report trends data
             $data['reportTrendsData'] = $this->getReportTrendsChartData();
         }
-        
-        // Level 5 data (monitoring + approval)
-        if ($user->isLevel5()) {
-            // Level 5 can see all reports like Admin
-            $data['reportTrend'] = $this->getReportTrendData();
-            $data['departmentPerformance'] = $this->getDepartmentPerformanceData();
-            $data['userActivityMetrics'] = $this->getUserActivityMetrics();
-            $data['reportTrendsData'] = $this->getReportTrendsChartData();
 
-            // Total users
-            $data['totalUsers'] = User::count();
-
-            // Total departments
-            $data['totalDepartments'] = Department::count();
-
-            // Recent users
-            $data['recentUsers'] = User::orderBy('created_at', 'desc')->limit(5)->get();
-
-            // Recent reports
-            $data['recentReports'] = DailyReport::with(['user', 'department'])->orderBy('created_at', 'desc')->limit(5)->get();
-
-            // User stats by role
-            $data['adminsCount'] = User::whereHas('role', function($query) {
-                $query->where('slug', 'admin');
-            })->count();
-
-            $data['level5Count'] = User::whereHas('role', function($query) {
-                $query->where('slug', 'level5');
-            })->count();
-
-            $data['level4Count'] = User::whereHas('role', function($query) {
-                $query->where('slug', 'level4');
-            })->count();
-
-            $data['level3Count'] = User::whereHas('role', function($query) {
-                $query->where('slug', 'level3');
-            })->count();
-
-            $data['level2Count'] = User::whereHas('role', function($query) {
-                $query->where('slug', 'level2');
-            })->count();
-
-            $data['level1Count'] = User::whereHas('role', function($query) {
-                $query->where('slug', 'level1');
-            })->count();
-
-            // Active users today
-            $data['activeUsersToday'] = DailyReport::whereDate('created_at', $today)->distinct('user_id')->count('user_id');
-
-            // Top departments
-            $data['topDepartments'] = Department::withCount('dailyReports')
-                ->orderBy('daily_reports_count', 'desc')
-                ->limit(5)
-                ->get();
-
-            // Reports needing approval (all pending reports since Level 5 can approve Level 1-4)
-            $data['needsApproval'] = DailyReport::with(['department', 'pic', 'user'])
-                ->where('approval_status', 'pending')
-                ->whereHas('user', function($query) {
-                    // Level 5 can approve Level 1-4
-                    $query->whereHas('role', function($q) {
-                        $q->whereIn('slug', ['level1', 'level2', 'level3', 'level4']);
-                    });
-                })
-                ->orderBy('created_at', 'desc')
-                ->limit(5)
-                ->get();
-        }
-
-        // Level 2, 3, 4 data (can approve based on hierarchy)
-        if ($user->getRoleLevel() >= 2 && $user->getRoleLevel() <= 4) {
-            // Reports needing approval (reports from one level below)
+        // Level 2, 3, 4, 5 data (can approve based on hierarchy)
+        if ($user->getRoleLevel() >= 2 && $user->getRoleLevel() <= 5) {
+            // Reports needing approval
             $approverLevel = $user->getRoleLevel();
-            $targetLevel = $approverLevel - 1;
 
-            $data['needsApproval'] = DailyReport::with(['department', 'pic', 'user'])
-                ->where('approval_status', 'pending')
-                ->where('job_pic', $user->id) // Only reports assigned to them
-                ->whereHas('user', function($query) use ($targetLevel) {
-                    $query->whereHas('role', function($q) use ($targetLevel) {
-                        $q->where('slug', 'level' . $targetLevel);
-                    });
-                })
-                ->orderBy('created_at', 'desc')
-                ->limit(5)
-                ->get();
+            if ($approverLevel == 5) {
+                // Level 5 can approve all pending reports from Level 1-4
+                $data['needsApproval'] = DailyReport::with(['department', 'pic', 'user'])
+                    ->where('approval_status', 'pending')
+                    ->whereHas('user', function($query) {
+                        $query->whereHas('role', function($q) {
+                            $q->whereIn('slug', ['level1', 'level2', 'level3', 'level4']);
+                        });
+                    })
+                    ->orderBy('created_at', 'desc')
+                    ->limit(5)
+                    ->get();
+            } else {
+                // Level 2-4 can approve reports from one level below assigned to them
+                $targetLevel = $approverLevel - 1;
+                $data['needsApproval'] = DailyReport::with(['department', 'pic', 'user'])
+                    ->where('approval_status', 'pending')
+                    ->where('job_pic', $user->id) // Only reports assigned to them
+                    ->whereHas('user', function($query) use ($targetLevel) {
+                        $query->whereHas('role', function($q) use ($targetLevel) {
+                            $q->where('slug', 'level' . $targetLevel);
+                        });
+                    })
+                    ->orderBy('created_at', 'desc')
+                    ->limit(5)
+                    ->get();
+            }
 
             // Team reports status
             $data['pendingReports'] = DailyReport::where('status', 'pending')

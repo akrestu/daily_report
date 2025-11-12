@@ -45,13 +45,8 @@
         @include('dashboard.admin')
     @endif
 
-    <!-- Level 5 Dashboard (similar to admin - monitoring + approval) -->
-    @if($user->isLevel5())
-        @include('dashboard.admin')
-    @endif
-
-    <!-- Level 2, 3, 4 Dashboard (similar to leader - approval + personal) -->
-    @if($user->getRoleLevel() >= 2 && $user->getRoleLevel() <= 4)
+    <!-- Level 2, 3, 4, 5 Dashboard (similar to leader - approval + personal) -->
+    @if($user->getRoleLevel() >= 2 && $user->getRoleLevel() <= 5)
         @include('dashboard.leader')
     @endif
 

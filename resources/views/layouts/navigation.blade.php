@@ -55,6 +55,7 @@
                 <span class="sidebar-heading px-3 py-2 text-uppercase fw-bold text-white-50 small d-block">Reports</span>
             </li>
 
+            @if(!auth()->user()->isLevel5())
             <li class="nav-item mb-2">
                 <a class="nav-link rounded-pill {{ request()->routeIs('daily-reports.create') ? 'active bg-white text-primary' : 'text-white' }}"
                    href="{{ route('daily-reports.create') }}">
@@ -62,6 +63,7 @@
                     <span>Create Report</span>
                 </a>
             </li>
+            @endif
 
             @if(auth()->user()->isAdmin() || auth()->user()->getRoleLevel() >= 2)
             <li class="nav-item mb-2">
@@ -83,6 +85,7 @@
             </li>
             @endif
 
+            @if(!auth()->user()->isLevel5())
             <li class="nav-item mb-2">
                 <a class="nav-link rounded-pill {{ request()->routeIs('daily-reports.user-jobs') ? 'active bg-white text-primary' : 'text-white' }}"
                    href="{{ route('daily-reports.user-jobs') }}">
@@ -90,6 +93,7 @@
                     <span>My Reports</span>
                 </a>
             </li>
+            @endif
 
             <li class="nav-item mb-2">
                 <a class="nav-link rounded-pill {{ request()->routeIs('daily-reports.index') ? 'active bg-white text-primary' : 'text-white' }}"

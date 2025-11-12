@@ -2,6 +2,7 @@
 
 <!-- Personal and Team Status -->
 <div class="row g-4 mb-4">
+    @if(!auth()->user()->isLevel5())
     <div class="col-md-6">
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-header bg-white p-3 border-0">
@@ -37,8 +38,9 @@
             </div>
         </div>
     </div>
+    @endif
 
-    <div class="col-md-6">
+    <div class="col-md-{{ auth()->user()->isLevel5() ? '12' : '6' }}">
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-header bg-white p-3 border-0">
                 <div class="d-flex align-items-center">
@@ -143,7 +145,7 @@
 <!-- Urgent Tasks and Recent Reports -->
 <div class="row g-4 mb-4">
     <!-- Urgent Tasks -->
-    <div class="col-lg-6">
+    <div class="col-lg-{{ auth()->user()->isLevel5() ? '12' : '6' }}">
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-header bg-white p-3 border-0">
                 <div class="d-flex align-items-center">
@@ -202,6 +204,7 @@
     </div>
 
     <!-- Recent Reports -->
+    @if(!auth()->user()->isLevel5())
     <div class="col-lg-6">
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-header bg-white p-3 border-0">
@@ -262,6 +265,7 @@
             </div>
         </div>
     </div>
+    @endif
 </div>
 
 <!-- Quick Actions -->
@@ -276,22 +280,26 @@
             </div>
             <div class="card-body">
                 <div class="row g-3">
+                    @if(!auth()->user()->isLevel5())
                     <div class="col-md-3">
                         <a href="{{ route('daily-reports.create') }}" class="btn btn-primary w-100 h-100 py-3">
                             <i class="fas fa-plus-circle me-2"></i>Create New Report
                         </a>
                     </div>
-                    <div class="col-md-3">
+                    @endif
+                    <div class="col-md-{{ auth()->user()->isLevel5() ? '6' : '3' }}">
                         <a href="{{ route('daily-reports.pending') }}" class="btn btn-outline-primary w-100 h-100 py-3">
                             <i class="fas fa-clipboard-check me-2"></i>Review Pending Reports
                         </a>
                     </div>
+                    @if(!auth()->user()->isLevel5())
                     <div class="col-md-3">
                         <a href="{{ route('daily-reports.user-jobs') }}" class="btn btn-outline-primary w-100 h-100 py-3">
                             <i class="fas fa-user me-2"></i>My Reports
                         </a>
                     </div>
-                    <div class="col-md-3">
+                    @endif
+                    <div class="col-md-{{ auth()->user()->isLevel5() ? '6' : '3' }}">
                         <a href="{{ route('daily-reports.index') }}" class="btn btn-outline-primary w-100 h-100 py-3">
                             <i class="fas fa-list me-2"></i>All Reports
                         </a>

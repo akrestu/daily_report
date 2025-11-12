@@ -3,7 +3,10 @@
     "allow": [
       "Bash(claude mcp add:*)",
       "Bash(claude mcp remove:*)",
-      "Bash(php artisan:*)"
+      "Bash(php artisan:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(storage/logs/laravel.log)"
     ],
     "deny": [],
     "ask": []
