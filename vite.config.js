@@ -23,4 +23,6 @@ export default defineConfig({
             },
         },
     },
+    // Note: Service worker (sw.js) and offline.html are in public/ directory
+    // They are served directly by Laravel and not processed by Vite
 }); 

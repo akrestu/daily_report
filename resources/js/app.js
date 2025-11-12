@@ -1,6 +1,7 @@
 import './bootstrap';
 import Alpine from 'alpinejs';
 import Chart from 'chart.js/auto';
+import { Workbox } from 'workbox-window';
 
 // Make Chart.js available globally
 window.Chart = Chart;
@@ -13,6 +14,76 @@ if (!window.__alpine_was_already_initialized) {
     Alpine.start();
 } else {
     console.log('Alpine.js already initialized, skipping...');
+}
+
+// Register Service Worker for PWA offline support
+if ('serviceWorker' in navigator) {
+    const wb = new Workbox('/sw.js');
+
+    // Show update notification when new service worker is waiting
+    wb.addEventListener('waiting', () => {
+        console.log('New service worker waiting...');
+
+        // Show update available notification
+        const updateNotification = document.createElement('div');
+        updateNotification.className = 'position-fixed bottom-0 end-0 p-3';
+        updateNotification.style.zIndex = '9999';
+        updateNotification.innerHTML = `
+            <div class="toast show" role="alert">
+                <div class="toast-header bg-primary text-white">
+                    <i class="fas fa-sync-alt me-2"></i>
+                    <strong class="me-auto">Update Available</strong>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+                </div>
+                <div class="toast-body">
+                    A new version of SiGAP is available!
+                    <div class="mt-2 pt-2 border-top">
+                        <button class="btn btn-primary btn-sm w-100" id="reload-button">
+                            <i class="fas fa-redo me-1"></i> Update Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(updateNotification);
+
+        // Handle update button click
+        document.getElementById('reload-button').addEventListener('click', () => {
+            wb.messageSkipWaiting();
+        });
+    });
+
+    // Reload page when new service worker takes control
+    wb.addEventListener('controlling', () => {
+        console.log('Service worker now controlling, reloading page...');
+        window.location.reload();
+    });
+
+    // Log when service worker is activated
+    wb.addEventListener('activated', (event) => {
+        if (!event.isUpdate) {
+            console.log('Service worker activated for the first time');
+        } else {
+            console.log('Service worker updated successfully');
+        }
+    });
+
+    // Register the service worker
+    wb.register()
+        .then((registration) => {
+            console.log('Service Worker registered successfully:', registration);
+
+            // Check for updates every 60 minutes
+            setInterval(() => {
+                registration.update();
+                console.log('Checking for service worker updates...');
+            }, 60 * 60 * 1000);
+        })
+        .catch((error) => {
+            console.error('Service Worker registration failed:', error);
+        });
+} else {
+    console.warn('Service Workers are not supported in this browser');
 }
 
 // Common UI functions

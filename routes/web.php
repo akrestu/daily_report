@@ -48,6 +48,11 @@ Route::middleware('auth')->group(function () {
     
     // Organization Chart Route
     Route::get('/organization-chart', [\App\Http\Controllers\OrganizationChartController::class, 'index'])->name('organization.chart');
+
+    // PWA Install Page
+    Route::get('/install-app', function () {
+        return view('pwa-install');
+    })->name('pwa.install');
     
     // Daily Reports Routes
     Route::get('/daily-reports/pending', [DailyReportController::class, 'pending'])->name('daily-reports.pending');

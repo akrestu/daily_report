@@ -10,8 +10,18 @@
     <!-- Favicon -->
     <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
     <link rel="alternate icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
-    <link rel="apple-touch-icon" href="{{ asset('favicon.svg') }}">
+
+    <!-- PWA Icons -->
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('icons/icon-180x180.png') }}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('icons/icon-192x192.png') }}">
+    <link rel="icon" type="image/png" sizes="512x512" href="{{ asset('icons/icon-512x512.png') }}">
     <link rel="manifest" href="{{ asset('web/site.webmanifest') }}">
+
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#0d6efd">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="SiGAP">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -462,7 +472,7 @@
                     {{ $slot }}
                 </div>
             </div>
-            
+
             <div class="text-center mt-3">
                 <p class="copyright">
                     &copy; {{ date('Y') }} Created with <span class="heart">♥</span> by ak.restu
@@ -470,6 +480,9 @@
             </div>
         </div>
     </div>
+
+    <!-- PWA Install Prompt -->
+    <x-pwa-install />
 
     <!-- Bootstrap 5 JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

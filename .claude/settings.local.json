@@ -6,7 +6,14 @@
       "Bash(php artisan:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(storage/logs/laravel.log)"
+      "Bash(storage/logs/laravel.log)",
+      "Bash(php -r:*)",
+      "Bash(php generate_pwa_icons.php:*)",
+      "Bash(del generate_pwa_icons.php)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__get-library-docs",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []

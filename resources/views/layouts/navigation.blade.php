@@ -108,14 +108,27 @@
             </li>
             
             <li class="nav-item mb-2">
-                <a class="nav-link rounded-pill {{ request()->routeIs('organization.chart') ? 'active bg-white text-primary' : 'text-white' }}" 
+                <a class="nav-link rounded-pill {{ request()->routeIs('organization.chart') ? 'active bg-white text-primary' : 'text-white' }}"
                    href="{{ route('organization.chart') }}">
                     <i class="fas fa-sitemap me-2"></i>
                     <span>Team Structure</span>
                 </a>
             </li>
-            
-            @if(auth()->user()->role_id == 1 || auth()->check() && auth()->user()->isAdmin())
+
+            <li class="nav-item mb-3">
+                <span class="sidebar-heading px-3 py-2 text-uppercase fw-bold text-white-50 small d-block">Application</span>
+            </li>
+
+            <li class="nav-item mb-2">
+                <a class="nav-link rounded-pill {{ request()->routeIs('pwa.install') ? 'active bg-white text-primary' : 'text-white' }}"
+                   href="{{ route('pwa.install') }}">
+                    <i class="fas fa-download me-2"></i>
+                    <span>Install App</span>
+                    <span class="badge bg-success ms-auto">PWA</span>
+                </a>
+            </li>
+
+            @if(auth()->check() && auth()->user()->isAdmin())
             <li class="nav-item mb-3">
                 <span class="sidebar-heading px-3 py-2 text-uppercase fw-bold text-white-50 small d-block">Administration</span>
             </li>
