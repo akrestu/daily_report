@@ -20,8 +20,14 @@ if (workbox) {
   // PRECACHING STRATEGY
   // Precache important static assets
   workbox.precaching.precacheAndRoute([
-    { url: '/offline.html', revision: '1.0' },
-    { url: '/icons/icon-192x192.png', revision: '1.0' },
+    { url: '/offline.html', revision: '1.2' },
+    { url: '/icons/icon-48x48.png', revision: '2.0' },
+    { url: '/icons/icon-72x72.png', revision: '2.0' },
+    { url: '/icons/icon-96x96.png', revision: '2.0' },
+    { url: '/icons/icon-144x144.png', revision: '2.0' },
+    { url: '/icons/icon-180x180.png', revision: '2.0' },
+    { url: '/icons/icon-192x192.png', revision: '2.0' },
+    { url: '/icons/icon-512x512.png', revision: '2.0' },
   ]);
 
   // CACHING STRATEGIES
@@ -184,6 +190,18 @@ if (workbox) {
     if (event.data && event.data.type === 'SKIP_WAITING') {
       self.skipWaiting();
     }
+    
+    // Handle cache clearing request
+    if (event.data && event.data.type === 'CLEAR_OLD_CACHES') {
+      caches.keys().then(cacheNames => {
+        cacheNames.forEach(cacheName => {
+          if (cacheName.includes('v1') || cacheName.includes('1.1')) {
+            console.log('PWA: Clearing old cache:', cacheName);
+            caches.delete(cacheName);
+          }
+        });
+      });
+    }
   });
 
   console.log('SiGAP Service Worker: All routes registered');
@@ -192,4 +210,4 @@ if (workbox) {
 }
 
 // Cache version for manual updates
-const CACHE_VERSION = 'v1.1.0';
+const CACHE_VERSION = 'v2.0.0';

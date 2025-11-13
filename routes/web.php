@@ -10,7 +10,80 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
-use Symfony\Component\HttpFoundation\Response;
+
+// ===== PWA MANIFEST ROUTE (DYNAMIC) =====
+// Generate manifest dynamically to support different deployment environments
+// This ensures manifest works correctly on localhost, Plesk, or any other server
+// NOTE: This route must be defined BEFORE serving static files to ensure it takes priority
+Route::get('/web/site.webmanifest', function () {
+    $appUrl = rtrim(config('app.url'), '/');
+
+    // Generate version timestamp to force cache refresh when icons change
+    $version = '3.0';
+
+    $manifest = [
+        "name" => "SiGAP - Sistem Informasi Giat Aktivitas Pekerjaan",
+        "short_name" => "SiGAP",
+        "description" => "Sistem Informasi Giat Aktivitas Pekerjaan - Daily Work Activity Reporting System",
+        "icons" => [
+            [
+                "src" => $appUrl . "/icons/icon-48x48.png?v=" . $version,
+                "sizes" => "48x48",
+                "type" => "image/png",
+                "purpose" => "any"
+            ],
+            [
+                "src" => $appUrl . "/icons/icon-72x72.png?v=" . $version,
+                "sizes" => "72x72",
+                "type" => "image/png",
+                "purpose" => "any"
+            ],
+            [
+                "src" => $appUrl . "/icons/icon-96x96.png?v=" . $version,
+                "sizes" => "96x96",
+                "type" => "image/png",
+                "purpose" => "any"
+            ],
+            [
+                "src" => $appUrl . "/icons/icon-144x144.png?v=" . $version,
+                "sizes" => "144x144",
+                "type" => "image/png",
+                "purpose" => "any"
+            ],
+            [
+                "src" => $appUrl . "/icons/icon-180x180.png?v=" . $version,
+                "sizes" => "180x180",
+                "type" => "image/png",
+                "purpose" => "any"
+            ],
+            [
+                "src" => $appUrl . "/icons/icon-192x192.png?v=" . $version,
+                "sizes" => "192x192",
+                "type" => "image/png",
+                "purpose" => "any maskable"
+            ],
+            [
+                "src" => $appUrl . "/icons/icon-512x512.png?v=" . $version,
+                "sizes" => "512x512",
+                "type" => "image/png",
+                "purpose" => "any maskable"
+            ]
+        ],
+        "theme_color" => "#0d6efd",
+        "background_color" => "#ffffff",
+        "display" => "standalone",
+        "start_url" => $appUrl . "/dashboard",
+        "scope" => $appUrl . "/",
+        "orientation" => "portrait-primary",
+        "id" => $appUrl . "/"
+    ];
+
+    return response()->json($manifest)
+        ->header('Content-Type', 'application/manifest+json')
+        ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
+        ->header('Pragma', 'no-cache')
+        ->header('Expires', '0');
+})->name('pwa.manifest');
 
 // Redirect root to dashboard or login page
 Route::get('/', function () {
@@ -155,30 +228,49 @@ Route::get('/storage/attachments/{filename}', function ($filename) {
     // Sanitize filename to prevent path traversal
     $filename = basename($filename);
     $path = 'attachments/' . $filename;
-    
+
     // Check if file exists
     if (!Storage::disk('public')->exists($path)) {
         abort(404);
     }
-    
+
     // Check if user has access to this attachment
-    $report = \App\Models\DailyReport::where('attachment_path', $path)
-        ->orWhere('attachment_path', 'LIKE', '%' . $filename)
-        ->first();
-        
+    // Look for the attachment in any of the three attachment fields
+    $report = \App\Models\DailyReport::where(function($query) use ($path, $filename) {
+        $query->where('attachment_path', $path)
+              ->orWhere('attachment_path', 'LIKE', '%' . $filename)
+              ->orWhere('attachment_path_2', $path)
+              ->orWhere('attachment_path_2', 'LIKE', '%' . $filename)
+              ->orWhere('attachment_path_3', $path)
+              ->orWhere('attachment_path_3', 'LIKE', '%' . $filename);
+    })->first();
+
     if (!$report) {
         abort(404);
     }
-    
+
     // Check access permissions
-    if (!($user->isAdmin() || 
-          $user->isDepartmentHead() || 
-          $user->id === $report->user_id || 
-          ($user->department_id === $report->department_id && ($user->isLeader() || $user->isStaff())))) {
+    // Allow access if:
+    // 1. User is admin
+    // 2. User is the report creator
+    // 3. User is the PIC (job_pic)
+    // 4. User is in the same department (any level: Level 1-5)
+    // This allows all department members to view attachments for transparency
+    if (!($user->isAdmin() ||
+          $user->id === $report->user_id ||
+          $user->id === $report->job_pic ||
+          $user->department_id === $report->department_id)) {
         abort(403);
     }
-    
-    return response()->file(storage_path('app/public/' . $path));
+
+    // Return file with appropriate headers for inline display
+    $filePath = storage_path('app/public/' . $path);
+    $mimeType = mime_content_type($filePath);
+
+    return response()->file($filePath, [
+        'Content-Type' => $mimeType,
+        'Content-Disposition' => 'inline; filename="' . basename($filename) . '"'
+    ]);
 })->name('attachments.show')->middleware('auth');
 
 require __DIR__.'/auth.php';

@@ -12,10 +12,10 @@
     <link rel="alternate icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
 
     <!-- PWA Icons -->
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('icons/icon-180x180.png') }}">
-    <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('icons/icon-192x192.png') }}">
-    <link rel="icon" type="image/png" sizes="512x512" href="{{ asset('icons/icon-512x512.png') }}">
-    <link rel="manifest" href="{{ asset('web/site.webmanifest') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('icons/icon-180x180.png?v=2.0') }}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('icons/icon-192x192.png?v=2.0') }}">
+    <link rel="icon" type="image/png" sizes="512x512" href="{{ asset('icons/icon-512x512.png?v=2.0') }}">
+    <link rel="manifest" href="{{ route('pwa.manifest') }}">
 
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#0d6efd">

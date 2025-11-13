@@ -16,7 +16,9 @@
       "Bash(npm run build:*)",
       "Bash(dir /s /b public*.json 2)",
       "Bash(nul)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(dir:*)",
+      "mcp__ide__getDiagnostics"
     ],
     "deny": [],
     "ask": []

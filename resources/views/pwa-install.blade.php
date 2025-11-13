@@ -12,7 +12,7 @@
                         <div class="row g-0">
                             <div class="col-md-6 d-flex align-items-center justify-content-center p-5" style="background: linear-gradient(135deg, #0d6efd 0%, #6610f2 100%);">
                                 <div class="text-center text-white">
-                                    <img src="{{ asset('icons/icon-192x192.png') }}" alt="SiGAP" class="mb-4" style="width: 128px; height: 128px; border-radius: 28px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                                    <img src="{{ asset('icons/icon-192x192.png?v=2.0') }}" alt="SiGAP" class="mb-4" style="width: 128px; height: 128px; border-radius: 28px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
                                     <h3 class="fw-bold mb-2">SiGAP PWA</h3>
                                     <p class="mb-0 opacity-75">Progressive Web Application</p>
                                 </div>

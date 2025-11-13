@@ -55,8 +55,8 @@
                 <div class="card mb-3 report-card shadow-sm">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start mb-2">
-                            <h6 class="card-title mb-0 fw-bold text-truncate">{{ $report->job_name }}</h6>
-                            <span class="badge {{ $report->status == 'pending' ? 'bg-secondary' : ($report->status == 'in_progress' ? 'bg-info' : 'bg-primary') }}">
+                            <h6 class="card-title mb-0 fw-bold flex-grow-1" style="word-break: break-word; overflow-wrap: break-word; line-height: 1.4; max-width: calc(100% - 90px);">{{ $report->job_name }}</h6>
+                            <span class="badge flex-shrink-0 ms-2 {{ $report->status == 'pending' ? 'bg-secondary' : ($report->status == 'in_progress' ? 'bg-info' : 'bg-primary') }}" style="white-space: nowrap;">
                                 {{ ucfirst(str_replace('_', ' ', $report->status)) }}
                             </span>
                         </div>
@@ -177,14 +177,14 @@
                     @foreach($reports as $report)
                     <div class="card mb-3 report-card shadow-sm">
                         <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="form-check my-0">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div class="d-flex align-items-start gap-2 flex-grow-1" style="min-width: 0; max-width: calc(100% - 90px);">
+                                    <div class="form-check my-0 flex-shrink-0" style="padding-top: 0.125rem;">
                                         <input class="form-check-input select-checkbox-mobile" type="checkbox" name="selected_reports[]" value="{{ $report->id }}">
                                     </div>
-                                    <h6 class="card-title mb-0 fw-bold text-truncate">{{ $report->job_name }}</h6>
+                                    <h6 class="card-title mb-0 fw-bold" style="word-break: break-word; overflow-wrap: break-word; line-height: 1.4;">{{ $report->job_name }}</h6>
                                 </div>
-                                <span class="badge {{ $report->status == 'pending' ? 'bg-secondary' : ($report->status == 'in_progress' ? 'bg-info' : 'bg-primary') }}">
+                                <span class="badge flex-shrink-0 ms-2 {{ $report->status == 'pending' ? 'bg-secondary' : ($report->status == 'in_progress' ? 'bg-info' : 'bg-primary') }}" style="white-space: nowrap;">
                                     {{ ucfirst(str_replace('_', ' ', $report->status)) }}
                                 </span>
                             </div>

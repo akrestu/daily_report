@@ -6,6 +6,37 @@ import { Workbox } from 'workbox-window';
 // Make Chart.js available globally
 window.Chart = Chart;
 
+// ===== AGGRESSIVE PWA CACHE CLEARING =====
+// This ensures old cached icons and assets are removed immediately
+if ('caches' in window) {
+    console.log('PWA: Starting aggressive cache cleanup...');
+    caches.keys().then(cacheNames => {
+        let deletedCount = 0;
+        console.log('PWA: Found ' + cacheNames.length + ' cache(s):', cacheNames);
+        
+        cacheNames.forEach(cacheName => {
+            // Delete any cache with old version markers
+            if (cacheName.includes('v1.') || 
+                cacheName.includes('1.1') || 
+                cacheName.includes('1.0') ||
+                cacheName === 'pwa-icons' ||
+                cacheName === 'static-assets' ||
+                cacheName === 'images') {
+                
+                console.log('PWA: Deleting cache:', cacheName);
+                caches.delete(cacheName).then(() => {
+                    console.log('PWA: Successfully deleted cache:', cacheName);
+                });
+                deletedCount++;
+            }
+        });
+        
+        if (deletedCount > 0) {
+            console.log('PWA: Scheduled deletion of ' + deletedCount + ' cache(s)');
+        }
+    });
+}
+
 // Prevent multiple Alpine.js initializations
 if (!window.__alpine_was_already_initialized) {
     window.Alpine = Alpine;

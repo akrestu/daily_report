@@ -141,9 +141,80 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // PWA installation can still be done via browser menu
-    // This script just logs when PWA is installed
+    // This script manages service worker updates and installation
 
     const installModal = new bootstrap.Modal(document.getElementById('pwaInstallModal'));
+
+    // Register service worker with update handling
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).then(function(registration) {
+            console.log('PWA: Service Worker registered successfully');
+
+            // Send message to clear old caches
+            if (registration.active) {
+                registration.active.postMessage({ type: 'CLEAR_OLD_CACHES' });
+                console.log('PWA: Sent message to clear old caches');
+            }
+
+            // Check for updates every 30 seconds (frequent checks to detect icon changes)
+            setInterval(() => {
+                registration.update();
+                console.log('PWA: Checking for service worker updates...');
+            }, 30000);
+
+            // Handle service worker updates
+            registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+
+                newWorker.addEventListener('statechange', () => {
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        console.log('PWA: New service worker available');
+
+                        // Tell the new service worker to skip waiting
+                        newWorker.postMessage({ type: 'SKIP_WAITING' });
+
+                        // Reload the page to activate new service worker
+                        setTimeout(() => {
+                            console.log('PWA: Reloading to activate new service worker');
+                            window.location.reload();
+                        }, 1000);
+                    }
+                });
+            });
+        }).catch(function(error) {
+            console.log('PWA: Service Worker registration failed:', error);
+        });
+
+        // When service worker controller changes, reload the page
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+            console.log('PWA: Service worker controller changed, reloading...');
+            window.location.reload();
+        });
+
+        // Clean up old caches on page load
+        if ('caches' in window) {
+            caches.keys().then(cacheNames => {
+                let deletedCount = 0;
+                cacheNames.forEach(cacheName => {
+                    // Delete caches with old version names
+                    if (cacheName.includes('v1') || cacheName.includes('1.1') || cacheName.includes('1.0')) {
+                        console.log('PWA: Deleting old cache:', cacheName);
+                        caches.delete(cacheName);
+                        deletedCount++;
+                    }
+                    // Also delete 'pwa-icons' to force fresh icons
+                    if (cacheName === 'pwa-icons') {
+                        console.log('PWA: Deleting pwa-icons cache to refresh icons');
+                        caches.delete(cacheName);
+                        deletedCount++;
+                    }
+                });
+                if (deletedCount > 0) {
+                    console.log('PWA: Deleted ' + deletedCount + ' old cache(s)');
+                }
+            });
+        }
+    }
 
     // Listen for app installed event
     window.addEventListener('appinstalled', (evt) => {
