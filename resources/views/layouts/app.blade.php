@@ -10,8 +10,6 @@
     <!-- Favicon -->
     <link rel="icon" href="{{ asset('Sigap.png') }}" type="image/png">
     <link rel="shortcut icon" href="{{ asset('Sigap.png') }}" type="image/png">
-    <link rel="alternate icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
-    <link rel="alternate icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
 
     <!-- PWA Icons -->
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('icons/icon-180x180.png?v=3.1') }}">
