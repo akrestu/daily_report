@@ -12,13 +12,14 @@
     <link rel="shortcut icon" href="{{ asset('Sigap.png') }}" type="image/png">
 
     <!-- PWA Icons -->
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('icons/icon-180x180.png?v=3.1') }}">
-    <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('icons/icon-192x192.png?v=3.1') }}">
-    <link rel="icon" type="image/png" sizes="512x512" href="{{ asset('icons/icon-512x512.png?v=3.1') }}">
-    <link rel="manifest" href="{{ asset('site.webmanifest') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('icons/icon-180x180.png?v=4.0') }}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('icons/icon-192x192.png?v=4.0') }}">
+    <link rel="icon" type="image/png" sizes="512x512" href="{{ asset('icons/icon-512x512.png?v=4.0') }}">
+    <link rel="manifest" href="{{ asset('site.webmanifest?v=4.0') }}">
 
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#0d6efd">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="SiGAP">

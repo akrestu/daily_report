@@ -1,0 +1,31 @@
+# Allow direct access to all files in this directory
+<IfModule mod_rewrite.c>
+    RewriteEngine Off
+</IfModule>
+
+# Set proper MIME types for images
+<IfModule mod_mime.c>
+    AddType image/png .png
+</IfModule>
+
+# Enable CORS for web app manifest
+<IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
+</IfModule>
+
+# Cache icons for 1 year (they have version query params)
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/png "access plus 1 year"
+</IfModule>
+
+# Allow all access
+<IfModule mod_authz_core.c>
+    Require all granted
+</IfModule>
+
+# Fallback for older Apache versions
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Allow from all
+</IfModule>

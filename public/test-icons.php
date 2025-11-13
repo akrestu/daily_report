@@ -18,6 +18,30 @@
     <div class="container">
         <h1>🔍 SiGAP Icon Test</h1>
 
+        <h2>0. Server Configuration</h2>
+        <div class="manifest">
+            <strong>Document Root:</strong> <?php echo $_SERVER['DOCUMENT_ROOT']; ?><br>
+            <strong>Current Script Path:</strong> <?php echo __DIR__; ?><br>
+            <strong>Icons Directory:</strong> <?php echo __DIR__ . '/icons'; ?><br>
+            <br>
+            <?php
+            $docRoot = realpath($_SERVER['DOCUMENT_ROOT']);
+            $publicPath = realpath(__DIR__);
+
+            if ($docRoot === $publicPath) {
+                echo '<span style="color: green;">✓ Document root correctly points to public folder</span>';
+            } else {
+                echo '<span style="color: red;">⚠ WARNING: Document root mismatch!</span><br>';
+                echo '<span style="color: red;">Document root should be: ' . $publicPath . '</span><br>';
+                echo '<span style="color: red;">But currently is: ' . $docRoot . '</span><br>';
+                echo '<br><strong>Solution:</strong> Update web server config to point to /public folder<br>';
+                echo '<strong>For cPanel:</strong> Set document root to: public<br>';
+                echo '<strong>For Apache:</strong> DocumentRoot "/path/to/sigap/public"<br>';
+                echo '<strong>For Nginx:</strong> root /path/to/sigap/public;';
+            }
+            ?>
+        </div>
+
         <h2>1. Testing Icon Files</h2>
         <?php
         $icons = [
@@ -42,11 +66,16 @@
             echo "<div class='icon-test {$class}'>";
             if ($exists) {
                 $fileSize = round(filesize($fullPath) / 1024, 1);
-                echo "<img src='{$path}' width='48' height='48' alt='{$size}'>";
+                $permissions = substr(sprintf('%o', fileperms($fullPath)), -4);
+                $isReadable = is_readable($fullPath);
+
+                echo "<img src='{$path}?v=4.0' width='48' height='48' alt='{$size}' onerror='this.style.border=\"2px solid red\"'>";
                 echo "<div>";
                 echo "<strong>{$status} icon-{$size}.png</strong><br>";
                 echo "Size: {$fileSize} KB<br>";
-                echo "Path: {$fullPath}";
+                echo "Permissions: {$permissions} " . ($isReadable ? '✓' : '✗ NOT READABLE') . "<br>";
+                echo "Path: {$fullPath}<br>";
+                echo "<a href='{$path}?v=4.0' target='_blank'>Test URL</a>";
                 echo "</div>";
             } else {
                 echo "<div>";
@@ -91,17 +120,60 @@
             <?php endif; ?>
         </div>
 
-        <h2>4. Next Steps</h2>
+        <h2>4. .htaccess Check</h2>
+        <?php
+        $htaccessPath = __DIR__ . '/.htaccess';
+        if (file_exists($htaccessPath)) {
+            echo '<div class="manifest success">';
+            echo '<strong>✓ .htaccess file exists</strong><br>';
+            echo 'Permissions: ' . substr(sprintf('%o', fileperms($htaccessPath)), -4);
+            echo '</div>';
+        } else {
+            echo '<div class="manifest error">';
+            echo '<strong>✗ .htaccess file NOT FOUND</strong><br>';
+            echo 'Expected: ' . $htaccessPath;
+            echo '</div>';
+        }
+        ?>
+
+        <h2>5. Next Steps</h2>
         <ol>
+            <?php
+            $docRoot = realpath($_SERVER['DOCUMENT_ROOT']);
+            $publicPath = realpath(__DIR__);
+
+            if ($docRoot !== $publicPath) {
+                echo '<li style="color: red; font-weight: bold;">⚠ CRITICAL: Fix document root configuration first!</li>';
+                echo '<li>Update web server to point to /public folder (see section 0 above)</li>';
+                echo '<li>Restart web server after changing configuration</li>';
+            }
+            ?>
             <?php if ($successCount < 7): ?>
                 <li>Upload missing icon files to <code>public/icons/</code></li>
+                <li>Ensure icon files have 644 permissions: <code>chmod 644 public/icons/*.png</code></li>
             <?php endif; ?>
             <?php if (!isset($iconCount) || $iconCount < 7): ?>
                 <li>Check manifest file has correct icons array</li>
             <?php endif; ?>
             <li>Test in DevTools: F12 → Application → Manifest</li>
-            <li>Delete this test file after verification</li>
+            <li>Clear browser cache: Ctrl+Shift+R (or Cmd+Shift+R on Mac)</li>
+            <li>Delete this test file after verification: <code>rm public/test-icons.php</code></li>
         </ol>
+
+        <h2>6. Quick Fixes for Common Issues</h2>
+        <div class="manifest">
+            <strong>If icons still show 404 after upload:</strong><br>
+            <pre>cd /path/to/sigap.wahanabandhawakencana.co.id
+chmod 755 public/icons
+chmod 644 public/icons/*.png
+php artisan storage:link</pre>
+            <br>
+            <strong>If using cPanel:</strong><br>
+            1. Go to "Setup Python App" or "Domains"<br>
+            2. Find your domain settings<br>
+            3. Set Document Root to: <code>public</code> (not full path)<br>
+            4. Save and restart application
+        </div>
 
         <p><small>Test file: <?php echo __FILE__; ?></small></p>
     </div>

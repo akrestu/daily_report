@@ -96,6 +96,40 @@ use Illuminate\Support\Facades\Storage;
 })->name('pwa.manifest');
 */
 
+// ===== STATIC ASSET ROUTES (FALLBACK FOR SERVERS WHERE .htaccess DOESN'T WORK) =====
+// Serve PWA icons directly via Laravel routes
+// This ensures icons work even if .htaccess is disabled or server is Nginx
+Route::get('/icons/{filename}', function ($filename) {
+    $path = public_path('icons/' . $filename);
+
+    if (!file_exists($path)) {
+        abort(404);
+    }
+
+    $mimeType = mime_content_type($path);
+
+    return response()->file($path, [
+        'Content-Type' => $mimeType,
+        'Cache-Control' => 'public, max-age=31536000', // Cache for 1 year
+    ]);
+})->where('filename', '.*\.(png|jpg|jpeg|svg|ico)$');
+
+// Serve screenshots
+Route::get('/screenshots/{filename}', function ($filename) {
+    $path = public_path('screenshots/' . $filename);
+
+    if (!file_exists($path)) {
+        abort(404);
+    }
+
+    $mimeType = mime_content_type($path);
+
+    return response()->file($path, [
+        'Content-Type' => $mimeType,
+        'Cache-Control' => 'public, max-age=31536000',
+    ]);
+})->where('filename', '.*\.(png|jpg|jpeg)$');
+
 // Redirect root to dashboard or login page
 Route::get('/', function () {
     if (Auth::check()) {

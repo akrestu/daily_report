@@ -22,7 +22,8 @@
       "Bash(cmd /c \"dir /s /b public\\*.png 2>nul\")",
       "Bash(php:*)",
       "Bash(del public/generate_pwa_screenshots.php)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(cmd /c \"dir public\\icons\")"
     ],
     "deny": [],
     "ask": []
