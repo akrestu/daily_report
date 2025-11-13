@@ -21,11 +21,11 @@ class UsersSeeder extends Seeder
         $departmentHeadRole = Role::where('slug', 'department_head')->first();
         $leaderRole = Role::where('slug', 'leader')->first();
         $staffRole = Role::where('slug', 'staff')->first();
-        
+
         // Get departments
         $itDepartment = Department::where('name', 'IT')->first() ?? Department::create(['name' => 'IT']);
         $hrDepartment = Department::where('name', 'HR')->first() ?? Department::create(['name' => 'HR']);
-        
+
         // Create admin user
         User::updateOrCreate(
             ['email' => 'admin@example.com'],
@@ -36,7 +36,7 @@ class UsersSeeder extends Seeder
                 'department_id' => $itDepartment->id,
             ]
         );
-        
+
         // Create department head
         User::updateOrCreate(
             ['email' => 'head@example.com'],
@@ -47,7 +47,7 @@ class UsersSeeder extends Seeder
                 'department_id' => $itDepartment->id,
             ]
         );
-        
+
         // Create leader
         User::updateOrCreate(
             ['email' => 'leader@example.com'],
@@ -58,7 +58,7 @@ class UsersSeeder extends Seeder
                 'department_id' => $itDepartment->id,
             ]
         );
-        
+
         // Create staff
         User::updateOrCreate(
             ['email' => 'staff@example.com'],

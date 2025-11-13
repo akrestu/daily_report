@@ -244,6 +244,7 @@ class User extends Authenticatable
 
     /**
      * Get the profile picture URL
+     * FIXED: Returns default avatar instead of null, doesn't silently modify database
      */
     public function getProfilePictureUrlAttribute()
     {
@@ -252,12 +253,64 @@ class User extends Authenticatable
             if (Storage::disk('public')->exists($this->profile_picture)) {
                 return asset('storage/' . $this->profile_picture);
             } else {
-                // Log the missing file and clear the profile_picture field
-                Log::warning("Profile picture file not found for user {$this->id}: {$this->profile_picture}");
-                $this->update(['profile_picture' => null]);
+                // Log the missing file but don't modify database in accessor
+                Log::warning("Profile picture file not found for user {$this->id}: {$this->profile_picture}. Returning default avatar.");
+
+                // Return default avatar instead of null
+                return $this->getDefaultAvatarUrl();
             }
         }
-        return null;
+
+        // Return default avatar for users without profile picture
+        return $this->getDefaultAvatarUrl();
+    }
+
+    /**
+     * Get default avatar URL based on user's initials
+     */
+    public function getDefaultAvatarUrl(): string
+    {
+        // Generate avatar using UI Avatars service or return local default
+        $initials = $this->getInitials();
+        $backgroundColor = $this->getAvatarColor();
+
+        // Using UI Avatars API for consistent avatar generation
+        return "https://ui-avatars.com/api/?name=" . urlencode($initials)
+            . "&background=" . $backgroundColor
+            . "&color=fff&size=200&bold=true";
+    }
+
+    /**
+     * Get user initials for avatar
+     */
+    protected function getInitials(): string
+    {
+        $nameParts = explode(' ', trim($this->name));
+
+        if (count($nameParts) >= 2) {
+            return strtoupper(substr($nameParts[0], 0, 1) . substr($nameParts[1], 0, 1));
+        }
+
+        return strtoupper(substr($this->name, 0, 2));
+    }
+
+    /**
+     * Get consistent color for user avatar based on user ID
+     */
+    protected function getAvatarColor(): string
+    {
+        $colors = [
+            '3498db', // Blue
+            '9b59b6', // Purple
+            'e74c3c', // Red
+            'f39c12', // Orange
+            '1abc9c', // Turquoise
+            '34495e', // Dark Gray
+            '16a085', // Green Sea
+            'd35400', // Pumpkin
+        ];
+
+        return $colors[$this->id % count($colors)];
     }
 
     /**

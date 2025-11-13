@@ -279,15 +279,18 @@ Route::get('/storage/attachments/{filename}', function ($filename) {
         abort(404);
     }
 
+    // Escape LIKE wildcards to prevent SQL injection
+    $escapedFilename = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $filename);
+
     // Check if user has access to this attachment
     // Look for the attachment in any of the three attachment fields
-    $report = \App\Models\DailyReport::where(function($query) use ($path, $filename) {
+    $report = \App\Models\DailyReport::where(function($query) use ($path, $escapedFilename) {
         $query->where('attachment_path', $path)
-              ->orWhere('attachment_path', 'LIKE', '%' . $filename)
+              ->orWhere('attachment_path', 'LIKE', '%' . $escapedFilename . '%')
               ->orWhere('attachment_path_2', $path)
-              ->orWhere('attachment_path_2', 'LIKE', '%' . $filename)
+              ->orWhere('attachment_path_2', 'LIKE', '%' . $escapedFilename . '%')
               ->orWhere('attachment_path_3', $path)
-              ->orWhere('attachment_path_3', 'LIKE', '%' . $filename);
+              ->orWhere('attachment_path_3', 'LIKE', '%' . $escapedFilename . '%');
     })->first();
 
     if (!$report) {
@@ -308,14 +311,53 @@ Route::get('/storage/attachments/{filename}', function ($filename) {
         abort(403);
     }
 
-    // Return file with appropriate headers for inline display
+    // Return file with appropriate headers and content-type validation
     $filePath = storage_path('app/public/' . $path);
     $mimeType = mime_content_type($filePath);
 
-    return response()->file($filePath, [
+    // Define whitelist of safe MIME types that can be displayed inline
+    // Only images, PDFs, and plain text are considered safe
+    $safeMimeTypes = [
+        // Images
+        'image/jpeg',
+        'image/jpg',
+        'image/png',
+        'image/gif',
+        'image/webp',
+        'image/svg+xml',
+        // Documents
+        'application/pdf',
+        // Text files
+        'text/plain',
+    ];
+
+    // Validate MIME type against whitelist
+    $isSafeType = in_array($mimeType, $safeMimeTypes);
+
+    // Determine content disposition based on safety
+    // Safe types: display inline in browser
+    // Unsafe types: force download to prevent XSS
+    $disposition = $isSafeType ? 'inline' : 'attachment';
+
+    // Security headers to prevent XSS attacks
+    $headers = [
         'Content-Type' => $mimeType,
-        'Content-Disposition' => 'inline; filename="' . basename($filename) . '"'
-    ]);
+        'Content-Disposition' => $disposition . '; filename="' . basename($filename) . '"',
+        'X-Content-Type-Options' => 'nosniff', // Prevent MIME sniffing
+        'Content-Security-Policy' => "default-src 'none'; img-src 'self'; style-src 'unsafe-inline';", // Restrict what can execute
+    ];
+
+    // Log suspicious file types for security monitoring
+    if (!$isSafeType) {
+        Log::warning('Unsafe file type downloaded', [
+            'filename' => $filename,
+            'mime_type' => $mimeType,
+            'user_id' => $user->id,
+            'report_id' => $report->id,
+        ]);
+    }
+
+    return response()->file($filePath, $headers);
 })->name('attachments.show')->middleware('auth');
 
 require __DIR__.'/auth.php';

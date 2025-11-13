@@ -86,9 +86,9 @@ class DailyReportObserver
         $adminRoleId = Role::where('slug', 'admin')->pluck('id')->first() ?? 1;
         $departmentHeadRoleId = Role::where('slug', 'department_head')->pluck('id')->first() ?? 2;
         $leaderRoleId = Role::where('slug', 'leader')->pluck('id')->first() ?? 3;
-        
+
         $approvers = collect();
-        
+
         // Only notify the assigned PIC (job_pic)
         if ($dailyReport->job_pic) {
             $picUser = User::find($dailyReport->job_pic);
@@ -96,7 +96,7 @@ class DailyReportObserver
                 $approvers->push($picUser);
             }
         }
-        
+
         // If PIC is not available or is a staff, also notify leaders in the same department
         $picUser = User::find($dailyReport->job_pic);
         if (!$picUser || $picUser->hasRole('staff')) {
@@ -104,30 +104,30 @@ class DailyReportObserver
                 ->where('department_id', $dailyReport->department_id)
                 ->where('id', '!=', $dailyReport->user_id)
                 ->get();
-            
+
             foreach ($departmentLeaders as $leader) {
                 if (!$approvers->contains('id', $leader->id)) {
                     $approvers->push($leader);
                 }
             }
         }
-        
+
         // Only notify admin if:
         // 1. There's no PIC assigned, OR
-        // 2. The PIC is not available (user doesn't exist), OR  
+        // 2. The PIC is not available (user doesn't exist), OR
         // 3. It's an escalation scenario (could be added later)
         if (!$dailyReport->job_pic || !User::find($dailyReport->job_pic)) {
             $admins = User::where('role_id', $adminRoleId)
                 ->where('id', '!=', $dailyReport->user_id)
                 ->get();
-            
+
             foreach ($admins as $admin) {
                 if (!$approvers->contains('id', $admin->id)) {
                     $approvers->push($admin);
                 }
             }
         }
-        
+
         // Create notifications for relevant approvers only (with preference check)
         foreach ($approvers as $approver) {
             // Check if user wants to receive this type of notification

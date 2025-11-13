@@ -37,14 +37,43 @@ class DailyReportPolicy
             return true;
         }
 
-        // Users can view reports within their department
+        // FIXED: More granular department-based access control
         if ($user->department_id === $dailyReport->department_id) {
-            return true;
+            // Level 4 (Department Head) can view all reports in their department
+            if ($user->isLevel4()) {
+                return true;
+            }
+
+            // Level 3 can view reports from Level 2 and Level 1 in their department
+            if ($user->isLevel3()) {
+                $reportOwnerLevel = $dailyReport->user?->getRoleLevel();
+                return $reportOwnerLevel && $reportOwnerLevel <= 2;
+            }
+
+            // Level 2 can view reports from Level 1 in their department
+            if ($user->isLevel2()) {
+                $reportOwnerLevel = $dailyReport->user?->getRoleLevel();
+                return $reportOwnerLevel && $reportOwnerLevel <= 1;
+            }
+
+            // Level 1 can only view:
+            // 1. Their own reports (already checked above)
+            // 2. Completed/approved reports in their department (for reference)
+            if ($user->isLevel1()) {
+                return in_array($dailyReport->approval_status, ['approved_by_department_head', 'completed']);
+            }
         }
 
         // Legacy role support for backward compatibility
-        if ($user->isManager() || $user->isDepartmentHead() || $user->isLeader()) {
-            return true;
+        if ($user->department_id === $dailyReport->department_id) {
+            if ($user->isDepartmentHead()) {
+                return true;
+            }
+
+            if ($user->isLeader()) {
+                // Leaders can view reports they're responsible for
+                return true;
+            }
         }
 
         return false;
@@ -62,8 +91,22 @@ class DailyReportPolicy
 
     public function delete(User $user, DailyReport $dailyReport): bool
     {
-        return ($user->id === $dailyReport->user_id && $dailyReport->approval_status === 'pending') || 
-                $user->isAdmin();
+        // Owner can delete their own pending reports
+        if ($user->id === $dailyReport->user_id && $dailyReport->approval_status === 'pending') {
+            return true;
+        }
+
+        // Admin can delete any report
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        // Level 5 can delete reports from their department
+        if ($user->isLevel5() && $user->department_id === $dailyReport->department_id) {
+            return true;
+        }
+
+        return false;
     }
 
     public function approve(User $user, DailyReport $dailyReport): bool

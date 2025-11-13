@@ -47,8 +47,8 @@ class DashboardController extends Controller
             ? round(($data['completedReports'] / $totalNonRejectedReports) * 100, 1) 
             : 0;
             
-        // Recent reports for all users
-        $data['recentReports'] = DailyReport::with(['department'])
+        // Recent reports for all users - Fixed N+1: Added 'user' relationship
+        $data['recentReports'] = DailyReport::with(['department', 'user'])
             ->orderBy('created_at', 'desc')
             ->limit(5)
             ->get();
@@ -65,8 +65,8 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
             
-        // Urgent reports
-        $data['urgentReports'] = DailyReport::with(['department'])
+        // Urgent reports - Fixed N+1: Added 'user' relationship
+        $data['urgentReports'] = DailyReport::with(['department', 'user'])
             ->where('status', '!=', 'completed')
             ->whereNotNull('due_date')
             ->whereDate('due_date', '>=', Carbon::today())
@@ -85,8 +85,8 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
             
-        // Recent activities
-        $data['recentActivities'] = DailyReport::with(['department', 'pic'])
+        // Recent activities - Fixed N+1: Added 'user' relationship (pic is user relationship)
+        $data['recentActivities'] = DailyReport::with(['department', 'user', 'pic'])
             ->orderBy('updated_at', 'desc')
             ->limit(5)
             ->get();
@@ -114,7 +114,10 @@ class DashboardController extends Controller
                 'totalDepartments' => Department::count(),
                 'activeUsers' => User::count(),
                 'totalReports' => DailyReport::count(),
-                'usersByDepartment' => Department::withCount('users')->get(),
+                'usersByDepartment' => Department::withCount('users')
+                    ->orderBy('users_count', 'desc')
+                    ->limit(10)
+                    ->get(),
             ];
             
             // Trend of reports created over time
@@ -139,8 +142,8 @@ class DashboardController extends Controller
                 ->count();
             $data['rejectedReports'] = DailyReport::where('approval_status', 'rejected')->count();
             
-            // Recent users and reports
-            $data['recentUsers'] = User::orderBy('created_at', 'desc')->limit(5)->get();
+            // Recent users and reports - Fixed N+1: Added 'role' and 'department' relationships
+            $data['recentUsers'] = User::with(['role', 'department'])->orderBy('created_at', 'desc')->limit(5)->get();
             $data['recentReports'] = DailyReport::with(['user', 'department'])->orderBy('created_at', 'desc')->limit(5)->get();
             
             // User stats
@@ -244,8 +247,9 @@ class DashboardController extends Controller
                           ->orWhere('user_id', $user->id);
                 })->count();
 
-            // Personal report history
-            $data['myRecentReports'] = DailyReport::where(function($query) use ($user) {
+            // Personal report history - Fixed N+1: Added relationships
+            $data['myRecentReports'] = DailyReport::with(['department', 'user', 'pic'])
+                ->where(function($query) use ($user) {
                     $query->where('job_pic', $user->id)
                           ->orWhere('user_id', $user->id);
                 })
@@ -253,8 +257,8 @@ class DashboardController extends Controller
                 ->limit(5)
                 ->get();
 
-            // Deadline reminders
-            $data['urgentReports'] = DailyReport::with(['department', 'pic'])
+            // Deadline reminders - Fixed N+1: Added 'user' relationship
+            $data['urgentReports'] = DailyReport::with(['department', 'pic', 'user'])
                 ->where('status', '!=', 'completed')
                 ->where(function($query) use ($user) {
                     $query->where('job_pic', $user->id)
@@ -304,8 +308,9 @@ class DashboardController extends Controller
                 ->where('approval_status', 'rejected')
                 ->count();
 
-            // Personal report history
-            $data['myRecentReports'] = DailyReport::where(function($query) use ($user) {
+            // Personal report history - Fixed N+1: Added relationships
+            $data['myRecentReports'] = DailyReport::with(['department', 'user', 'pic'])
+                ->where(function($query) use ($user) {
                     $query->where('job_pic', $user->id)
                           ->orWhere('user_id', $user->id);
                 })
@@ -313,8 +318,8 @@ class DashboardController extends Controller
                 ->limit(5)
                 ->get();
 
-            // Deadline reminders
-            $data['urgentReports'] = DailyReport::with(['department', 'pic'])
+            // Deadline reminders - Fixed N+1: Added 'user' relationship
+            $data['urgentReports'] = DailyReport::with(['department', 'pic', 'user'])
                 ->where('status', '!=', 'completed')
                 ->where(function($query) use ($user) {
                     $query->where('job_pic', $user->id)
@@ -431,8 +436,8 @@ class DashboardController extends Controller
                 ? round(($data['completedReports'] / $totalNonRejectedDeptReports) * 100, 1) 
                 : 0;
                 
-            // Reports needing approval
-            $data['needsApproval'] = DailyReport::with(['department', 'pic'])
+            // Reports needing approval - Fixed N+1: Added 'user' relationship
+            $data['needsApproval'] = DailyReport::with(['department', 'pic', 'user'])
                 ->where('approval_status', 'pending')
                 ->where('department_id', $user->department_id)
                 ->orderBy('created_at', 'desc')
@@ -442,8 +447,8 @@ class DashboardController extends Controller
         
         // Leader data
         if ($user->hasRole('leader') && $user->department_id) {
-            // Reports needing approval (if leader can approve staff reports)
-            $data['needsApproval'] = DailyReport::with(['department', 'pic'])
+            // Reports needing approval (if leader can approve staff reports) - Fixed N+1: Added 'user' relationship
+            $data['needsApproval'] = DailyReport::with(['department', 'pic', 'user'])
                 ->where('approval_status', 'pending')
                 ->where('department_id', $user->department_id)
                 ->where('job_pic', $user->id)
@@ -489,8 +494,9 @@ class DashboardController extends Controller
                           ->orWhere('user_id', $user->id);
                 })->count();
             
-            // Personal report history
-            $data['myRecentReports'] = DailyReport::where(function($query) use ($user) {
+            // Personal report history - Fixed N+1: Added relationships
+            $data['myRecentReports'] = DailyReport::with(['department', 'user', 'pic'])
+                ->where(function($query) use ($user) {
                     $query->where('job_pic', $user->id)
                           ->orWhere('user_id', $user->id);
                 })
@@ -498,8 +504,8 @@ class DashboardController extends Controller
                 ->limit(5)
                 ->get();
             
-            // Deadline reminders
-            $data['urgentReports'] = DailyReport::with(['department', 'pic'])
+            // Deadline reminders - Fixed N+1: Added 'user' relationship
+            $data['urgentReports'] = DailyReport::with(['department', 'pic', 'user'])
                 ->where('status', '!=', 'completed')
                 ->where(function($query) use ($user) {
                     $query->where('job_pic', $user->id)
@@ -556,8 +562,9 @@ class DashboardController extends Controller
                 ->where('approval_status', 'rejected')
                 ->count();
             
-            // Personal report history
-            $data['myRecentReports'] = DailyReport::where(function($query) use ($user) {
+            // Personal report history - Fixed N+1: Added relationships
+            $data['myRecentReports'] = DailyReport::with(['department', 'user', 'pic'])
+                ->where(function($query) use ($user) {
                     $query->where('job_pic', $user->id)
                           ->orWhere('user_id', $user->id);
                 })
@@ -565,8 +572,8 @@ class DashboardController extends Controller
                 ->limit(5)
                 ->get();
             
-            // Deadline reminders
-            $data['urgentReports'] = DailyReport::with(['department', 'pic'])
+            // Deadline reminders - Fixed N+1: Added 'user' relationship
+            $data['urgentReports'] = DailyReport::with(['department', 'pic', 'user'])
                 ->where('status', '!=', 'completed')
                 ->where(function($query) use ($user) {
                     $query->where('job_pic', $user->id)

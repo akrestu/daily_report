@@ -93,33 +93,31 @@ class DailyReportController extends Controller
         // Validate MIME type for security
         $allowedMimes = [
             'image/jpeg', 'image/png', 'image/gif', 'image/svg+xml',
-            'application/pdf', 'application/msword', 
+            'application/pdf', 'application/msword',
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             'application/vnd.ms-excel',
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         ];
-        
+
         if (!in_array($file->getMimeType(), $allowedMimes)) {
             throw new \InvalidArgumentException('File type not allowed');
         }
-        
+
         // Sanitize original filename and prevent path traversal
         $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_BASENAME);
         $originalName = preg_replace('/[^a-zA-Z0-9\._-]/', '_', $originalName);
-        
+
         $extension = $file->getClientOriginalExtension();
         $filename = uniqid('attachment_', true) . '_' . time() . '.' . $extension;
         $path = 'attachments/' . $filename;
-        
+
         // Create attachments directory if it doesn't exist
         if (!Storage::disk('public')->exists('attachments')) {
             Storage::disk('public')->makeDirectory('attachments');
         }
-        
-        // Delete old file if exists
-        if ($oldAttachmentPath) {
-            Storage::disk('public')->delete($oldAttachmentPath);
-        }
+
+        // DON'T delete old file here - let caller handle it after successful transaction
+        // This prevents data loss if transaction fails after file deletion
         
         // Check if it's an image and process if GD extension is available
         if (in_array(strtolower($extension), ['jpg', 'jpeg', 'png', 'gif'])) {
@@ -214,6 +212,11 @@ class DailyReportController extends Controller
                     return true;
                 }
 
+                // Level 5 can delete reports from their department
+                if ($user->isLevel5() && $user->department_id === $report->department_id) {
+                    return true;
+                }
+
                 return false;
 
             default:
@@ -223,12 +226,21 @@ class DailyReportController extends Controller
 
     public function index()
     {
+        // FIXED: Validate date filters to prevent SQL errors
+        $validated = request()->validate([
+            'search' => 'nullable|string|max:255',
+            'department' => 'nullable|exists:departments,id',
+            'date_from' => 'nullable|date|before_or_equal:today',
+            'date_to' => 'nullable|date|after_or_equal:date_from|before_or_equal:today',
+            'type' => 'nullable|in:approved,rejected',
+        ]);
+
         // Fetch departments for dropdown
         $departments = \App\Models\Department::pluck('name', 'id');
-        
+
         // Get report type (approved or rejected)
-        $reportType = request('type', 'approved');
-        
+        $reportType = $validated['type'] ?? 'approved';
+
         // Build the query
         $query = DailyReport::with(['user', 'department', 'pic', 'approver'])
             ->whereNotNull('approved_by');
@@ -253,24 +265,23 @@ class DailyReportController extends Controller
                 });
             }
         }
-        
-        // Apply filters if present
-        if (request()->has('search') && !empty(request('search'))) {
-            $search = request('search');
-            $query->where('job_name', 'like', "%{$search}%");
-        }
-        
-        if (request()->has('department') && !empty(request('department'))) {
-            $query->where('department_id', request('department'));
+
+        // Apply filters if present (using validated data)
+        if (!empty($validated['search'])) {
+            $query->where('job_name', 'like', "%{$validated['search']}%");
         }
 
-        // Filter by date range
-        if (request()->has('date_from') && !empty(request('date_from'))) {
-            $query->whereDate('report_date', '>=', request('date_from'));
+        if (!empty($validated['department'])) {
+            $query->where('department_id', $validated['department']);
         }
-        
-        if (request()->has('date_to') && !empty(request('date_to'))) {
-            $query->whereDate('report_date', '<=', request('date_to'));
+
+        // Filter by date range (validated dates)
+        if (!empty($validated['date_from'])) {
+            $query->whereDate('report_date', '>=', $validated['date_from']);
+        }
+
+        if (!empty($validated['date_to'])) {
+            $query->whereDate('report_date', '<=', $validated['date_to']);
         }
         
         // Get the paginated results
@@ -642,12 +653,20 @@ class DailyReportController extends Controller
                 ->withInput();
         }
         
+        // Store old attachment paths before processing (for deletion after commit)
+        $oldAttachments = [];
+
         // Use transaction for data integrity
         DB::beginTransaction();
 
         try {
             // Handle first attachment if present
             if ($request->hasFile('attachment')) {
+                // Store old path for deletion after successful commit
+                if ($dailyReport->attachment_path) {
+                    $oldAttachments[] = $dailyReport->attachment_path;
+                }
+
                 $attachmentData = $this->processAttachment(
                     $request->file('attachment'),
                     $dailyReport->attachment_path
@@ -659,6 +678,11 @@ class DailyReportController extends Controller
 
             // Handle second attachment if present
             if ($request->hasFile('attachment_2')) {
+                // Store old path for deletion after successful commit
+                if ($dailyReport->attachment_path_2) {
+                    $oldAttachments[] = $dailyReport->attachment_path_2;
+                }
+
                 $attachmentData2 = $this->processAttachment(
                     $request->file('attachment_2'),
                     $dailyReport->attachment_path_2
@@ -670,6 +694,11 @@ class DailyReportController extends Controller
 
             // Handle third attachment if present
             if ($request->hasFile('attachment_3')) {
+                // Store old path for deletion after successful commit
+                if ($dailyReport->attachment_path_3) {
+                    $oldAttachments[] = $dailyReport->attachment_path_3;
+                }
+
                 $attachmentData3 = $this->processAttachment(
                     $request->file('attachment_3'),
                     $dailyReport->attachment_path_3
@@ -680,15 +709,29 @@ class DailyReportController extends Controller
             }
 
             $dailyReport->update($validated);
-            
+
             DB::commit();
-            
+
+            // Only delete old files AFTER successful commit
+            // This prevents data loss if transaction fails
+            foreach ($oldAttachments as $oldPath) {
+                try {
+                    Storage::disk('public')->delete($oldPath);
+                } catch (\Exception $e) {
+                    // Log but don't fail - old file cleanup is not critical
+                    Log::warning('Failed to delete old attachment after update: ' . $e->getMessage(), [
+                        'path' => $oldPath,
+                        'report_id' => $dailyReport->id
+                    ]);
+                }
+            }
+
             return redirect()->route('daily-reports.user-jobs')
                 ->with('success', 'Daily report updated successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Failed to update daily report: ' . $e->getMessage());
-            
+
             return redirect()->back()
                 ->with('error', 'Failed to update report. Please try again.')
                 ->withInput();
@@ -749,27 +792,30 @@ class DailyReportController extends Controller
         if (!$reportOwner || !$user->canApprove($reportOwner)) {
             abort(403, 'Unauthorized action. You cannot approve reports for this user.');
         }
-        
+
         // Allow changing approval status even for already approved/rejected reports for Admin and Department Head
         $validated = $request->validate([
             'status' => ['required', Rule::in(['approved', 'rejected'])],
             'rejection_reason' => 'required_if:status,rejected',
             'redirect_back' => 'nullable',
         ]);
-        
+
         // Use transaction for data integrity
         DB::beginTransaction();
-        
+
         try {
-            // Update approval_status instead of status to keep job status separate
+            // Update approval_status
             $dailyReport->approval_status = $validated['status'];
-            
+
             if ($validated['status'] === 'rejected') {
                 $dailyReport->rejection_reason = $validated['rejection_reason'];
+                // When rejected, keep job status as is (could be pending, in_progress, etc.)
             } else {
                 $dailyReport->rejection_reason = null;
+                // When approved, update job status to completed
+                $dailyReport->status = 'completed';
             }
-            
+
             $dailyReport->approved_by = Auth::id();
             $dailyReport->save();
             
@@ -794,9 +840,9 @@ class DailyReportController extends Controller
             }
             
             DB::commit();
-            
+
             $successMessage = 'Daily report ' . $validated['status'] . ' successfully.';
-            
+
             // Check if we should redirect back to the previous page
             if (isset($validated['redirect_back']) && $validated['redirect_back']) {
                 // Get the previous URL from the session or referer header
@@ -879,28 +925,35 @@ class DailyReportController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        
+
+        // FIXED: Validate filters to prevent SQL errors
+        $validated = request()->validate([
+            'search' => 'nullable|string|max:255',
+            'status' => 'nullable|in:pending,in_progress,completed',
+            'date_from' => 'nullable|date|before_or_equal:today',
+            'date_to' => 'nullable|date|after_or_equal:date_from|before_or_equal:today',
+        ]);
+
         // Build query with relations
         $query = DailyReport::where('user_id', $user->id)
             ->with(['user', 'approver', 'department', 'pic']);
-            
-        // Apply filters if present
-        if (request()->has('search') && !empty(request('search'))) {
-            $search = request('search');
-            $query->where('job_name', 'like', "%{$search}%");
-        }
-        
-        if (request()->has('status') && !empty(request('status'))) {
-            $query->where('status', request('status'));
+
+        // Apply filters if present (using validated data)
+        if (!empty($validated['search'])) {
+            $query->where('job_name', 'like', "%{$validated['search']}%");
         }
 
-        // Filter by date range
-        if (request()->has('date_from') && !empty(request('date_from'))) {
-            $query->whereDate('report_date', '>=', request('date_from'));
+        if (!empty($validated['status'])) {
+            $query->where('status', $validated['status']);
         }
-        
-        if (request()->has('date_to') && !empty(request('date_to'))) {
-            $query->whereDate('report_date', '<=', request('date_to'));
+
+        // Filter by date range (validated dates)
+        if (!empty($validated['date_from'])) {
+            $query->whereDate('report_date', '>=', $validated['date_from']);
+        }
+
+        if (!empty($validated['date_to'])) {
+            $query->whereDate('report_date', '<=', $validated['date_to']);
         }
         
         // Get paginated results
@@ -918,28 +971,35 @@ class DailyReportController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        
+
+        // FIXED: Validate filters to prevent SQL errors
+        $validated = request()->validate([
+            'search' => 'nullable|string|max:255',
+            'status' => 'nullable|in:pending,in_progress,completed',
+            'date_from' => 'nullable|date|before_or_equal:today',
+            'date_to' => 'nullable|date|after_or_equal:date_from|before_or_equal:today',
+        ]);
+
         // Build query with relations
         $query = DailyReport::where('job_pic', $user->id)
             ->with(['user', 'approver', 'department', 'pic']);
-            
-        // Apply filters if present
-        if (request()->has('search') && !empty(request('search'))) {
-            $search = request('search');
-            $query->where('job_name', 'like', "%{$search}%");
-        }
-        
-        if (request()->has('status') && !empty(request('status'))) {
-            $query->where('status', request('status'));
+
+        // Apply filters if present (using validated data)
+        if (!empty($validated['search'])) {
+            $query->where('job_name', 'like', "%{$validated['search']}%");
         }
 
-        // Filter by date range
-        if (request()->has('date_from') && !empty(request('date_from'))) {
-            $query->whereDate('report_date', '>=', request('date_from'));
+        if (!empty($validated['status'])) {
+            $query->where('status', $validated['status']);
         }
-        
-        if (request()->has('date_to') && !empty(request('date_to'))) {
-            $query->whereDate('report_date', '<=', request('date_to'));
+
+        // Filter by date range (validated dates)
+        if (!empty($validated['date_from'])) {
+            $query->whereDate('report_date', '>=', $validated['date_from']);
+        }
+
+        if (!empty($validated['date_to'])) {
+            $query->whereDate('report_date', '<=', $validated['date_to']);
         }
         
         // Get paginated results
@@ -963,50 +1023,85 @@ class DailyReportController extends Controller
         try {
             // Extract IDs from request (handles both JSON and form data)
             $ids = $request->input('selected_reports');
-            
+
             // Check if input is a JSON string (sometimes happens with non-AJAX form submissions)
             if (is_string($ids) && $this->isJson($ids)) {
                 $ids = json_decode($ids, true);
             }
-            
+
             // Validate the ids
             if (empty($ids) || !is_array($ids)) {
                 return redirect()->back()->with('error', 'No reports selected for approval.');
             }
 
+            // Prevent DoS: Limit batch size to 100 reports
+            if (count($ids) > 100) {
+                return redirect()->back()->with('error', 'Cannot approve more than 100 reports at once. Please select fewer reports.');
+            }
+
             // Build query for reports to approve
-            $query = DailyReport::with('user')
+            $query = DailyReport::with(['user', 'department'])
                 ->whereIn('id', $ids)
-                ->where('approval_status', '!=', 'approved'); // Allow approving any non-approved reports
+                ->where('approval_status', 'pending'); // Only approve pending reports
+
+            // Add department filter for non-admin users
+            if (!$user->isAdmin()) {
+                $query->where('department_id', $user->department_id);
+            }
 
             $reports = $query->get();
 
             if ($reports->isEmpty()) {
-                return redirect()->back()->with('error', 'No reports selected for approval.');
+                return redirect()->back()->with('error', 'No reports found for approval. Reports may be from a different department or not at the correct approval stage.');
             }
 
-            // Filter reports that user can approve
+            // Filter reports with comprehensive authorization checks
             $approvableReports = $reports->filter(function ($report) use ($user) {
-                return $report->user && $user->canApprove($report->user);
+                // Check 1: User must have permission to approve the report owner's level
+                if (!$report->user || !$user->canApprove($report->user)) {
+                    Log::warning('Batch approve: User cannot approve report owner', [
+                        'user_id' => $user->id,
+                        'report_id' => $report->id,
+                        'report_owner_id' => $report->user_id
+                    ]);
+                    return false;
+                }
+
+                // Check 2: For non-admin, verify department match
+                if (!$user->isAdmin() && $report->department_id !== $user->department_id) {
+                    Log::warning('Batch approve: Department mismatch', [
+                        'user_id' => $user->id,
+                        'user_dept' => $user->department_id,
+                        'report_id' => $report->id,
+                        'report_dept' => $report->department_id
+                    ]);
+                    return false;
+                }
+
+                return true;
             });
 
             if ($approvableReports->isEmpty()) {
-                return redirect()->back()->with('error', 'No valid reports found to approve. You may not have permission to approve the selected reports.');
+                return redirect()->back()->with('error', 'No valid reports found to approve. You may not have permission to approve the selected reports, or they are not at the correct approval stage.');
             }
+
+            $approvedCount = 0;
+            $skippedCount = count($reports) - count($approvableReports);
 
             DB::beginTransaction();
             try {
-                // Use bulk update for better performance
-                $reportIds = $approvableReports->pluck('id')->toArray();
-                DailyReport::whereIn('id', $reportIds)
-                    ->update([
+                // Process each report individually to set correct approval status
+                foreach ($approvableReports as $report) {
+                    $oldStatus = $report->approval_status;
+
+                    $report->update([
                         'approval_status' => 'approved',
                         'approved_by' => $user->id,
-                        'rejection_reason' => null // Clear any rejection reason
+                        'rejection_reason' => null, // Clear any rejection reason
+                        'status' => 'completed' // Update job status to completed when approved
                     ]);
 
-                // Create notifications for each report owner
-                foreach ($approvableReports as $report) {
+                    // Create notification for report owner
                     if ($report->user_id) {
                         Notification::create([
                             'user_id' => $report->user_id,
@@ -1016,26 +1111,46 @@ class DailyReportController extends Controller
                             'is_read' => false,
                         ]);
                     }
+
+                    // Audit log
+                    Log::info('Batch approval: Report approved', [
+                        'user_id' => $user->id,
+                        'user_name' => $user->name,
+                        'report_id' => $report->id,
+                        'report_name' => $report->job_name,
+                        'old_status' => $oldStatus,
+                        'new_status' => 'approved',
+                        'department_id' => $report->department_id
+                    ]);
+
+                    $approvedCount++;
                 }
 
                 DB::commit();
 
-                return redirect()->back()->with('success', count($approvableReports) . ' reports have been approved successfully.');
+                $message = "{$approvedCount} reports have been approved successfully.";
+                if ($skippedCount > 0) {
+                    $message .= " {$skippedCount} reports were skipped due to authorization or workflow constraints.";
+                }
+
+                return redirect()->back()->with('success', $message);
             } catch (\Exception $e) {
                 DB::rollBack();
                 Log::error('Error during batch approval transaction', [
+                    'user_id' => $user->id,
                     'error' => $e->getMessage(),
                     'trace' => $e->getTraceAsString()
                 ]);
-                
+
                 return redirect()->back()->with('error', 'An error occurred while approving the reports: ' . $e->getMessage());
             }
         } catch (\Exception $e) {
             Log::error('Error in batch approval', [
+                'user_id' => $user->id ?? null,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            
+
             return redirect()->back()->with('error', 'Error processing request: ' . $e->getMessage());
         }
     }
@@ -1056,7 +1171,7 @@ class DailyReportController extends Controller
         try {
             // Validate the request
             $validated = $request->validate([
-                'selected_reports' => 'required|array',
+                'selected_reports' => 'required|array|max:100', // Limit batch size to 100
                 'selected_reports.*' => 'exists:daily_reports,id',
                 'rejection_reason' => 'required|string|max:500',
             ]);
@@ -1064,39 +1179,94 @@ class DailyReportController extends Controller
             $ids = $validated['selected_reports'];
             $rejectionReason = $validated['rejection_reason'];
 
+            // Prevent DoS: Additional check for batch size
+            if (count($ids) > 100) {
+                return redirect()->back()->with('error', 'Cannot reject more than 100 reports at once. Please select fewer reports.');
+            }
+
+            // Determine expected approval status based on user's role level
+            $userLevel = $user->getRoleLevel();
+            $expectedCurrentStatus = $this->getExpectedApprovalStatus($userLevel, 'current');
+
             // Build query for reports to reject
-            $query = DailyReport::with('user')
-                ->whereIn('id', $ids)
-                ->where('approval_status', '!=', 'rejected'); // Allow rejecting any non-rejected reports
+            $query = DailyReport::with(['user', 'department'])
+                ->whereIn('id', $ids);
+
+            // Add department filter for non-admin users
+            if (!$user->isAdmin()) {
+                $query->where('department_id', $user->department_id);
+            }
+
+            // Add approval status filter based on user's level
+            if ($expectedCurrentStatus) {
+                $query->whereIn('approval_status', $expectedCurrentStatus);
+            }
 
             $reports = $query->get();
 
             if ($reports->isEmpty()) {
-                return redirect()->back()->with('error', 'No reports selected for rejection.');
+                return redirect()->back()->with('error', 'No reports found for rejection. Reports may be from a different department or not at the correct approval stage.');
             }
 
-            // Filter reports that user can reject (same as approve permission)
-            $rejectableReports = $reports->filter(function ($report) use ($user) {
-                return $report->user && $user->canApprove($report->user);
+            // Filter reports with comprehensive authorization checks
+            $rejectableReports = $reports->filter(function ($report) use ($user, $userLevel) {
+                // Check 1: User must have permission to reject the report owner's level
+                if (!$report->user || !$user->canApprove($report->user)) {
+                    Log::warning('Batch reject: User cannot reject report owner', [
+                        'user_id' => $user->id,
+                        'report_id' => $report->id,
+                        'report_owner_id' => $report->user_id
+                    ]);
+                    return false;
+                }
+
+                // Check 2: For non-admin, verify department match
+                if (!$user->isAdmin() && $report->department_id !== $user->department_id) {
+                    Log::warning('Batch reject: Department mismatch', [
+                        'user_id' => $user->id,
+                        'user_dept' => $user->department_id,
+                        'report_id' => $report->id,
+                        'report_dept' => $report->department_id
+                    ]);
+                    return false;
+                }
+
+                // Check 3: Verify report is at correct approval stage for user's level
+                $expectedStatuses = $this->getExpectedApprovalStatus($userLevel, 'current');
+                if ($expectedStatuses && !in_array($report->approval_status, $expectedStatuses)) {
+                    Log::warning('Batch reject: Invalid approval status for user level', [
+                        'user_id' => $user->id,
+                        'user_level' => $userLevel,
+                        'report_id' => $report->id,
+                        'current_status' => $report->approval_status,
+                        'expected_statuses' => $expectedStatuses
+                    ]);
+                    return false;
+                }
+
+                return true;
             });
 
             if ($rejectableReports->isEmpty()) {
-                return redirect()->back()->with('error', 'No valid reports found to reject. You may not have permission to reject the selected reports.');
+                return redirect()->back()->with('error', 'No valid reports found to reject. You may not have permission to reject the selected reports, or they are not at the correct approval stage.');
             }
+
+            $rejectedCount = 0;
+            $skippedCount = count($reports) - count($rejectableReports);
 
             DB::beginTransaction();
             try {
-                // Use bulk update for better performance
-                $reportIds = $rejectableReports->pluck('id')->toArray();
-                DailyReport::whereIn('id', $reportIds)
-                    ->update([
+                // Process each report individually for proper audit trail
+                foreach ($rejectableReports as $report) {
+                    $oldStatus = $report->approval_status;
+
+                    $report->update([
                         'approval_status' => 'rejected',
                         'approved_by' => $user->id,
                         'rejection_reason' => $rejectionReason
                     ]);
 
-                // Create notifications for each report owner
-                foreach ($rejectableReports as $report) {
+                    // Create notification for report owner
                     if ($report->user_id) {
                         Notification::create([
                             'user_id' => $report->user_id,
@@ -1106,26 +1276,48 @@ class DailyReportController extends Controller
                             'is_read' => false,
                         ]);
                     }
+
+                    // Audit log
+                    Log::info('Batch rejection: Report rejected', [
+                        'user_id' => $user->id,
+                        'user_name' => $user->name,
+                        'user_level' => $userLevel,
+                        'report_id' => $report->id,
+                        'report_name' => $report->job_name,
+                        'old_status' => $oldStatus,
+                        'new_status' => 'rejected',
+                        'rejection_reason' => $rejectionReason,
+                        'department_id' => $report->department_id
+                    ]);
+
+                    $rejectedCount++;
                 }
 
                 DB::commit();
 
-                return redirect()->back()->with('success', count($rejectableReports) . ' reports have been rejected successfully.');
+                $message = "{$rejectedCount} reports have been rejected successfully.";
+                if ($skippedCount > 0) {
+                    $message .= " {$skippedCount} reports were skipped due to authorization or workflow constraints.";
+                }
+
+                return redirect()->back()->with('success', $message);
             } catch (\Exception $e) {
                 DB::rollBack();
                 Log::error('Error during batch rejection transaction', [
+                    'user_id' => $user->id,
                     'error' => $e->getMessage(),
                     'trace' => $e->getTraceAsString()
                 ]);
-                
+
                 return redirect()->back()->with('error', 'An error occurred while rejecting the reports: ' . $e->getMessage());
             }
         } catch (\Exception $e) {
             Log::error('Error in batch rejection', [
+                'user_id' => $user->id ?? null,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            
+
             return redirect()->back()->with('error', 'Error processing request: ' . $e->getMessage());
         }
     }
@@ -1321,5 +1513,53 @@ class DailyReportController extends Controller
     public function exportTemplate()
     {
         return Excel::download(new DailyReportsTemplateExport, 'daily_reports_template.xlsx');
+    }
+
+    /**
+     * Get expected approval status based on user's role level
+     *
+     * @param int $userLevel The user's role level (1-5)
+     * @param string $type 'current' for statuses this level can approve, 'next' for the status to set after approval
+     * @return array|string|null Array of valid current statuses, string for next status, or null for admin
+     */
+    private function getExpectedApprovalStatus(int $userLevel, string $type = 'current')
+    {
+        // Admin can approve any status, no restrictions
+        if ($userLevel === 0) {
+            return null;
+        }
+
+        // Define approval workflow based on role levels
+        // Level 1 = Staff (cannot approve)
+        // Level 2 = Leader (approves Level 1 staff reports)
+        // Level 3 = Supervisor (approves Level 2 leader reports)
+        // Level 4 = Manager (approves Level 3 supervisor reports)
+        // Level 5 = Department Head (can approve Level 1-4 reports)
+
+        $workflowMap = [
+            2 => [ // Level 2 (Leader)
+                'current' => ['pending'],
+                'next' => 'approved_by_leader'
+            ],
+            3 => [ // Level 3 (Supervisor)
+                'current' => ['approved_by_leader'],
+                'next' => 'approved_by_supervisor'
+            ],
+            4 => [ // Level 4 (Manager)
+                'current' => ['approved_by_supervisor'],
+                'next' => 'approved_by_department_head'
+            ],
+            5 => [ // Level 5 (Department Head)
+                'current' => ['pending', 'approved_by_leader', 'approved_by_supervisor'],
+                'next' => 'approved_by_department_head'
+            ]
+        ];
+
+        // Return the appropriate value based on type
+        if (isset($workflowMap[$userLevel])) {
+            return $workflowMap[$userLevel][$type] ?? null;
+        }
+
+        return null;
     }
 }

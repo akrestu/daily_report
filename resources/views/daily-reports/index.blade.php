@@ -119,7 +119,7 @@
                     <table class="table table-hover align-middle mb-0">
                         <thead class="bg-light">
                             <tr>
-                                @if(auth()->user()->isAdmin() || auth()->user()->isDepartmentHead())
+                                @if(auth()->user()->isAdmin() || auth()->user()->isDepartmentHead() || auth()->user()->isLevel5())
                                 <th width="40" class="fw-semibold py-3">
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" id="selectAll" style="border-radius: 3px;">
@@ -146,7 +146,7 @@
                         <tbody class="border-top-0">
                             @foreach($reports as $report)
                             <tr>
-                                @if(auth()->user()->isAdmin() || auth()->user()->isDepartmentHead())
+                                @if(auth()->user()->isAdmin() || auth()->user()->isDepartmentHead() || auth()->user()->isLevel5())
                                 <td class="py-3">
                                     <div class="form-check">
                                         <input class="form-check-input select-checkbox" type="checkbox" name="selected_reports[]" value="{{ $report->id }}" style="border-radius: 3px;">
@@ -226,14 +226,14 @@
                                                     <i class="fas fa-eye text-primary me-2"></i> View Details
                                                 </a>
                                             </li>
-                                            @if(auth()->user()->isAdmin() || auth()->user()->isDepartmentHead())
+                                            @can('delete', $report)
                                             <li>
-                                                <a href="#" class="dropdown-item text-danger" 
+                                                <a href="#" class="dropdown-item text-danger"
                                                    onclick="event.preventDefault(); confirmDelete({{ $report->id }}, '{{ $report->job_name }}')">
                                                     <i class="fas fa-trash text-danger me-2"></i> Delete
                                                 </a>
                                             </li>
-                                            @endif
+                                            @endcan
                                         </ul>
                                     </div>
                                 </td>
@@ -244,7 +244,7 @@
 
                     <div class="mt-4 d-flex justify-content-between align-items-center flex-wrap p-3 bg-light">
                         <div>
-                            @if(auth()->user()->isAdmin() || auth()->user()->isDepartmentHead())
+                            @if(auth()->user()->isAdmin() || auth()->user()->isDepartmentHead() || auth()->user()->isLevel5())
                             <button type="button" class="btn btn-danger rounded-pill px-4 bulk-action-button" disabled onclick="showBatchDeleteModal()">
                                 <i class="fas fa-trash me-1"></i> Delete Selected
                             </button>
@@ -261,7 +261,7 @@
             <div class="d-lg-none" id="mobile-reports-container">
                 <form id="mobile-bulk-action-form" method="POST">
                     @csrf
-                    @if(auth()->user()->isAdmin() || auth()->user()->isDepartmentHead())
+                    @if(auth()->user()->isAdmin() || auth()->user()->isDepartmentHead() || auth()->user()->isLevel5())
                     <div class="mb-3 d-flex justify-content-between align-items-center">
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="mobileSelectAll" style="border-radius: 3px;">
@@ -290,7 +290,7 @@
                                             </h6>
                                             <div class="small text-muted mb-2">{{ $report->department->name ?? 'N/A' }}</div>
                                         </div>
-                                        @if(auth()->user()->isAdmin() || auth()->user()->isDepartmentHead())
+                                        @if(auth()->user()->isAdmin() || auth()->user()->isDepartmentHead() || auth()->user()->isLevel5())
                                         <div class="form-check">
                                             <input class="form-check-input mobile-select-checkbox" type="checkbox" name="selected_reports[]" value="{{ $report->id }}" style="border-radius: 3px;">
                                         </div>
@@ -375,11 +375,11 @@
                                         <a href="{{ route('daily-reports.show', $report) }}" class="btn btn-primary btn-sm rounded-pill px-3 me-2">
                                             <i class="fas fa-eye me-1"></i> View
                                         </a>
-                                        @if(auth()->user()->isAdmin() || auth()->user()->isDepartmentHead())
+                                        @can('delete', $report)
                                         <button type="button" class="btn btn-danger btn-sm rounded-pill px-3" onclick="confirmDelete({{ $report->id }}, '{{ $report->job_name }}')">
                                             <i class="fas fa-trash me-1"></i> Delete
                                         </button>
-                                        @endif
+                                        @endcan
                                     </div>
                                 </div>
                             </div>

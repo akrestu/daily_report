@@ -14,11 +14,44 @@ class JobCommentObserver
     public function created(JobComment $comment): void
     {
         $dailyReport = $comment->dailyReport;
-        
+
+        // Collect all user IDs we need to query at once
+        $userIdsToLoad = [];
+
+        // Add report owner if different from commenter
+        if ($comment->user_id != $dailyReport->user_id) {
+            $userIdsToLoad[] = $dailyReport->user_id;
+        }
+
+        // Add job PIC if different from owner and commenter
+        if ($dailyReport->job_pic &&
+            $dailyReport->job_pic != $dailyReport->user_id &&
+            $dailyReport->job_pic != $comment->user_id) {
+            $userIdsToLoad[] = $dailyReport->job_pic;
+        }
+
+        // Get previous commenters
+        $previousCommenterIds = JobComment::where('daily_report_id', $dailyReport->id)
+            ->where('user_id', '!=', $comment->user_id)
+            ->distinct()
+            ->pluck('user_id')
+            ->toArray();
+
+        // Filter out users already included (owner, PIC)
+        $additionalCommenters = array_diff($previousCommenterIds, [
+            $dailyReport->user_id,
+            $dailyReport->job_pic
+        ]);
+
+        $userIdsToLoad = array_merge($userIdsToLoad, $additionalCommenters);
+
+        // Single query to load all users at once - FIXES N+1!
+        $users = User::whereIn('id', array_unique($userIdsToLoad))->get()->keyBy('id');
+
         // Notify report owner if the comment is not from them
         if ($comment->user_id != $dailyReport->user_id) {
-            $reportOwner = User::find($dailyReport->user_id);
-            
+            $reportOwner = $users->get($dailyReport->user_id);
+
             // Check if user wants to receive comment notifications
             if ($reportOwner && $reportOwner->wantsNotification('new_comment')) {
                 Notification::create([
@@ -31,11 +64,13 @@ class JobCommentObserver
                 ]);
             }
         }
-        
+
         // Notify the job PIC if different from owner and commenter
-        if ($dailyReport->job_pic && $dailyReport->job_pic != $dailyReport->user_id && $dailyReport->job_pic != $comment->user_id) {
-            $picUser = User::find($dailyReport->job_pic);
-            
+        if ($dailyReport->job_pic &&
+            $dailyReport->job_pic != $dailyReport->user_id &&
+            $dailyReport->job_pic != $comment->user_id) {
+            $picUser = $users->get($dailyReport->job_pic);
+
             // Check if PIC wants to receive comment notifications
             if ($picUser && $picUser->wantsNotification('new_comment')) {
                 Notification::create([
@@ -48,30 +83,24 @@ class JobCommentObserver
                 ]);
             }
         }
-        
+
         // Notify other relevant commenters (exclude admin unless they are directly involved)
-        $previousCommenters = JobComment::where('daily_report_id', $dailyReport->id)
-            ->where('user_id', '!=', $comment->user_id)
-            ->distinct()
-            ->pluck('user_id')
-            ->toArray();
-        
-        foreach ($previousCommenters as $commenter) {
-            // Skip if commenter is the report owner or the job PIC (already notified)
-            if ($commenter == $dailyReport->user_id || ($dailyReport->job_pic && $commenter == $dailyReport->job_pic)) {
+        foreach ($additionalCommenters as $commenterId) {
+            $commenterUser = $users->get($commenterId);
+
+            if (!$commenterUser) {
                 continue;
             }
-            
+
             // Only notify admin if they are the PIC, otherwise skip admin notifications for comments
-            $commenterUser = User::find($commenter);
-            if ($commenterUser && $commenterUser->isAdmin() && $commenter != $dailyReport->job_pic) {
+            if ($commenterUser->isAdmin() && $commenterId != $dailyReport->job_pic) {
                 continue; // Skip admin notification unless they are the PIC
             }
-            
+
             // Check if user wants to receive comment notifications
-            if ($commenterUser && $commenterUser->wantsNotification('new_comment')) {
+            if ($commenterUser->wantsNotification('new_comment')) {
                 Notification::create([
-                    'user_id' => $commenter,
+                    'user_id' => $commenterId,
                     'daily_report_id' => $dailyReport->id,
                     'comment_id' => $comment->id,
                     'type' => 'new_comment',
