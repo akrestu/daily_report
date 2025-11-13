@@ -18,7 +18,11 @@
       "Bash(nul)",
       "Bash(findstr:*)",
       "Bash(dir:*)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(cmd /c \"dir /s /b public\\*.png 2>nul\")",
+      "Bash(php:*)",
+      "Bash(del public/generate_pwa_screenshots.php)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

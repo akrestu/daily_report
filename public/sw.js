@@ -1,14 +1,18 @@
 /**
- * SiGAP Service Worker
+ * SiGAP Service Worker v3.0
  * Provides offline support and caching strategies for PWA
+ * Updated: 2025-11-13 - Fixed precaching errors
  */
+
+// Cache version for manual updates
+const CACHE_VERSION = 'v3.0.0';
 
 // Import Workbox from CDN
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.0.0/workbox-sw.js');
 
 // Check if Workbox loaded successfully
 if (workbox) {
-  console.log('Workbox loaded successfully');
+  console.log('Workbox loaded successfully - Version:', CACHE_VERSION);
 
   // Enable skip waiting and client claim
   workbox.core.skipWaiting();
@@ -19,15 +23,9 @@ if (workbox) {
 
   // PRECACHING STRATEGY
   // Precache important static assets
+  // Only precache offline.html - icons will be cached on-demand via StaleWhileRevalidate
   workbox.precaching.precacheAndRoute([
     { url: '/offline.html', revision: '1.2' },
-    { url: '/icons/icon-48x48.png', revision: '2.0' },
-    { url: '/icons/icon-72x72.png', revision: '2.0' },
-    { url: '/icons/icon-96x96.png', revision: '2.0' },
-    { url: '/icons/icon-144x144.png', revision: '2.0' },
-    { url: '/icons/icon-180x180.png', revision: '2.0' },
-    { url: '/icons/icon-192x192.png', revision: '2.0' },
-    { url: '/icons/icon-512x512.png', revision: '2.0' },
   ]);
 
   // CACHING STRATEGIES
@@ -208,6 +206,3 @@ if (workbox) {
 } else {
   console.error('Workbox failed to load');
 }
-
-// Cache version for manual updates
-const CACHE_VERSION = 'v2.0.0';

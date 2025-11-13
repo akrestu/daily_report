@@ -14,69 +14,79 @@ use Illuminate\Support\Facades\Storage;
 // ===== PWA MANIFEST ROUTE (DYNAMIC) =====
 // Generate manifest dynamically to support different deployment environments
 // This ensures manifest works correctly on localhost, Plesk, or any other server
-// NOTE: This route must be defined BEFORE serving static files to ensure it takes priority
-Route::get('/web/site.webmanifest', function () {
-    $appUrl = rtrim(config('app.url'), '/');
-
+// NOTE: Route DISABLED - Using static files instead (see public/site.webmanifest)
+// Route::get('/web/site.webmanifest', function () {
+/*
     // Generate version timestamp to force cache refresh when icons change
-    $version = '3.0';
+    // Increment this when icons or manifest changes
+    $version = '3.1';
+
+    // Build icons array - only include icons that exist
+    $icons = [];
+    $iconSizes = ['48x48', '72x72', '96x96', '144x144', '180x180', '192x192', '512x512'];
+
+    foreach ($iconSizes as $size) {
+        $iconPath = public_path("icons/icon-{$size}.png");
+        if (file_exists($iconPath)) {
+            $purpose = in_array($size, ['192x192', '512x512']) ? 'any maskable' : 'any';
+            $icons[] = [
+                "src" => "/icons/icon-{$size}.png?v=" . $version,
+                "sizes" => $size,
+                "type" => "image/png",
+                "purpose" => $purpose
+            ];
+        }
+    }
+
+    // Add Sigap.png if exists
+    if (file_exists(public_path('Sigap.png'))) {
+        $icons[] = [
+            "src" => "/Sigap.png?v=" . $version,
+            "sizes" => "512x512",
+            "type" => "image/png",
+            "purpose" => "any"
+        ];
+    }
 
     $manifest = [
         "name" => "SiGAP - Sistem Informasi Giat Aktivitas Pekerjaan",
         "short_name" => "SiGAP",
         "description" => "Sistem Informasi Giat Aktivitas Pekerjaan - Daily Work Activity Reporting System",
-        "icons" => [
-            [
-                "src" => $appUrl . "/icons/icon-48x48.png?v=" . $version,
-                "sizes" => "48x48",
-                "type" => "image/png",
-                "purpose" => "any"
-            ],
-            [
-                "src" => $appUrl . "/icons/icon-72x72.png?v=" . $version,
-                "sizes" => "72x72",
-                "type" => "image/png",
-                "purpose" => "any"
-            ],
-            [
-                "src" => $appUrl . "/icons/icon-96x96.png?v=" . $version,
-                "sizes" => "96x96",
-                "type" => "image/png",
-                "purpose" => "any"
-            ],
-            [
-                "src" => $appUrl . "/icons/icon-144x144.png?v=" . $version,
-                "sizes" => "144x144",
-                "type" => "image/png",
-                "purpose" => "any"
-            ],
-            [
-                "src" => $appUrl . "/icons/icon-180x180.png?v=" . $version,
-                "sizes" => "180x180",
-                "type" => "image/png",
-                "purpose" => "any"
-            ],
-            [
-                "src" => $appUrl . "/icons/icon-192x192.png?v=" . $version,
-                "sizes" => "192x192",
-                "type" => "image/png",
-                "purpose" => "any maskable"
-            ],
-            [
-                "src" => $appUrl . "/icons/icon-512x512.png?v=" . $version,
-                "sizes" => "512x512",
-                "type" => "image/png",
-                "purpose" => "any maskable"
-            ]
-        ],
+        "icons" => $icons,
         "theme_color" => "#0d6efd",
         "background_color" => "#ffffff",
         "display" => "standalone",
-        "start_url" => $appUrl . "/dashboard",
-        "scope" => $appUrl . "/",
+        "start_url" => "/",
+        "scope" => "/",
         "orientation" => "portrait-primary",
-        "id" => $appUrl . "/"
+        "id" => "/"
     ];
+
+    // Add screenshots only if they exist
+    $screenshots = [];
+    if (file_exists(public_path('screenshots/desktop-screenshot.png'))) {
+        $screenshots[] = [
+            "src" => "/screenshots/desktop-screenshot.png",
+            "sizes" => "1280x720",
+            "type" => "image/png",
+            "form_factor" => "wide",
+            "label" => "SiGAP Dashboard - Desktop View"
+        ];
+    }
+
+    if (file_exists(public_path('screenshots/mobile-screenshot.png'))) {
+        $screenshots[] = [
+            "src" => "/screenshots/mobile-screenshot.png",
+            "sizes" => "750x1334",
+            "type" => "image/png",
+            "label" => "SiGAP Dashboard - Mobile View"
+        ];
+    }
+
+    // Only add screenshots key if we have screenshots
+    if (!empty($screenshots)) {
+        $manifest['screenshots'] = $screenshots;
+    }
 
     return response()->json($manifest)
         ->header('Content-Type', 'application/manifest+json')
@@ -84,6 +94,7 @@ Route::get('/web/site.webmanifest', function () {
         ->header('Pragma', 'no-cache')
         ->header('Expires', '0');
 })->name('pwa.manifest');
+*/
 
 // Redirect root to dashboard or login page
 Route::get('/', function () {

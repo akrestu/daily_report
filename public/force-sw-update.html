@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Force Service Worker Update - SiGAP</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .status {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #667eea;
+        }
+        .log {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 20px 0;
+        }
+        .log-entry {
+            margin: 5px 0;
+        }
+        .success { color: #00ff00; }
+        .error { color: #ff4444; }
+        .warning { color: #ffaa00; }
+        .info { color: #00aaff; }
+        .step {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .step h3 {
+            color: #667eea;
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Force Service Worker Update</h1>
+        <p class="subtitle">Tool untuk memaksa update Service Worker ke versi terbaru</p>
+
+        <div class="status">
+            <strong>Current Status:</strong>
+            <div id="status">Checking...</div>
+        </div>
+
+        <div class="step">
+            <h3>Step 1: Unregister All Service Workers</h3>
+            <p>Hapus semua service worker yang terdaftar (termasuk yang redundant)</p>
+            <button onclick="unregisterAll()">🗑️ Unregister All</button>
+        </div>
+
+        <div class="step">
+            <h3>Step 2: Clear All Caches</h3>
+            <p>Hapus semua cache yang dibuat oleh service worker</p>
+            <button onclick="clearAllCaches()">🧹 Clear All Caches</button>
+        </div>
+
+        <div class="step">
+            <h3>Step 3: Register New Service Worker</h3>
+            <p>Daftarkan service worker baru dari sw.js</p>
+            <button onclick="registerNew()">✅ Register New SW</button>
+        </div>
+
+        <div class="step">
+            <h3>Step 4: Complete Refresh</h3>
+            <p>Reload halaman untuk menggunakan service worker baru</p>
+            <button onclick="completeRefresh()">🔄 Hard Refresh</button>
+        </div>
+
+        <div class="step">
+            <h3>Or: Do Everything at Once</h3>
+            <button onclick="doEverything()" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                ⚡ Auto Fix Everything
+            </button>
+        </div>
+
+        <div class="log" id="log"></div>
+
+        <div style="text-align: center; margin-top: 30px; color: #999;">
+            <small>SiGAP PWA - Service Worker Management Tool</small>
+        </div>
+    </div>
+
+    <script>
+        const log = document.getElementById('log');
+        const status = document.getElementById('status');
+
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${timestamp}] ${message}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        async function updateStatus() {
+            if ('serviceWorker' in navigator) {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                const cacheNames = await caches.keys();
+
+                status.innerHTML = `
+                    <div>📦 Service Workers: ${registrations.length}</div>
+                    <div>💾 Caches: ${cacheNames.length}</div>
+                    <div>🌐 Browser: ${navigator.userAgent.includes('Chrome') ? 'Chrome' : 'Other'}</div>
+                `;
+            } else {
+                status.innerHTML = '❌ Service Worker not supported';
+            }
+        }
+
+        async function unregisterAll() {
+            addLog('Starting unregistration...', 'info');
+            try {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+
+                if (registrations.length === 0) {
+                    addLog('No service workers found', 'warning');
+                    return;
+                }
+
+                for (let registration of registrations) {
+                    await registration.unregister();
+                    addLog(`✓ Unregistered: ${registration.scope}`, 'success');
+                }
+
+                addLog(`✓ All ${registrations.length} service worker(s) unregistered`, 'success');
+                await updateStatus();
+            } catch (error) {
+                addLog(`✗ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function clearAllCaches() {
+            addLog('Starting cache cleanup...', 'info');
+            try {
+                const cacheNames = await caches.keys();
+
+                if (cacheNames.length === 0) {
+                    addLog('No caches found', 'warning');
+                    return;
+                }
+
+                for (let cacheName of cacheNames) {
+                    await caches.delete(cacheName);
+                    addLog(`✓ Deleted cache: ${cacheName}`, 'success');
+                }
+
+                addLog(`✓ All ${cacheNames.length} cache(s) cleared`, 'success');
+                await updateStatus();
+            } catch (error) {
+                addLog(`✗ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function registerNew() {
+            addLog('Registering new service worker...', 'info');
+            try {
+                const registration = await navigator.serviceWorker.register('/sw.js', {
+                    scope: '/',
+                    updateViaCache: 'none'
+                });
+
+                addLog('✓ Service worker registered successfully', 'success');
+                addLog(`  Scope: ${registration.scope}`, 'info');
+
+                registration.addEventListener('updatefound', () => {
+                    addLog('Update found! Installing new version...', 'warning');
+                });
+
+                await updateStatus();
+            } catch (error) {
+                addLog(`✗ Registration failed: ${error.message}`, 'error');
+            }
+        }
+
+        function completeRefresh() {
+            addLog('Performing hard refresh...', 'info');
+            window.location.reload(true);
+        }
+
+        async function doEverything() {
+            addLog('=== AUTO FIX STARTED ===', 'warning');
+
+            await unregisterAll();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            await clearAllCaches();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            await registerNew();
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            addLog('=== AUTO FIX COMPLETE ===', 'success');
+            addLog('Refreshing in 3 seconds...', 'warning');
+
+            setTimeout(() => {
+                completeRefresh();
+            }, 3000);
+        }
+
+        // Initialize
+        updateStatus();
+        addLog('Tool ready. Select an action above.', 'success');
+    </script>
+</body>
+</html>
