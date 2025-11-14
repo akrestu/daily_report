@@ -31,31 +31,11 @@
                     <div class="row">
                         <div class="col-12 text-center mb-5">
                             <!-- Organization Tree Visualization -->
+                            <!-- Note: Admin role excluded - it's for system management, not operational hierarchy -->
                             <div class="org-chart">
-                                <!-- Admin (if exists) -->
-                                @if($organizationTree['admin'])
-                                <div class="org-chart-level-1 mb-4 mb-md-5">
-                                    <div class="org-chart-node admin-node mx-auto">
-                                        <div class="avatar bg-danger mx-auto mb-2">
-                                            @if($organizationTree['admin']->profile_picture)
-                                                <img src="{{ $organizationTree['admin']->profile_picture_url }}" alt="{{ $organizationTree['admin']->name }}" class="rounded-circle w-100 h-100" style="object-fit: cover;">
-                                            @else
-                                                <span>{{ strtoupper(substr($organizationTree['admin']->name, 0, 1)) }}</span>
-                                            @endif
-                                        </div>
-                                        <div class="node-content">
-                                            <h5 class="mb-0 node-name">{{ $organizationTree['admin']->name }}</h5>
-                                            <p class="role-badge admin mb-0">Administrator</p>
-                                        </div>
-                                    </div>
-                                    <div class="vertical-line"></div>
-                                </div>
-                                @endif
-
-                                <!-- Level 5 (Highest below Admin) -->
+                                <!-- Level 5 (Highest Operational Level) -->
                                 @if($organizationTree['level5']->count() > 0)
-                                <div class="org-chart-level-2 mb-4 mb-md-5">
-                                    <div class="horizontal-line"></div>
+                                <div class="org-chart-level-1 mb-4 mb-md-5">
                                     <div class="row justify-content-center">
                                         @foreach($organizationTree['level5'] as $user)
                                         <div class="col-6 col-sm-4 col-md-4 col-lg-3 mb-3">
@@ -259,11 +239,6 @@
             transform: translateY(-5px);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
-        
-        .admin-node {
-            border-color: #dc3545;
-            border-width: 2px;
-        }
 
         .level5-node {
             border-color: #0d6efd;
@@ -327,11 +302,6 @@
             border-radius: 20px;
             display: inline-block;
             margin-top: 5px;
-        }
-        
-        .admin {
-            background-color: rgba(220, 53, 69, 0.1);
-            color: #dc3545;
         }
 
         .level5 {

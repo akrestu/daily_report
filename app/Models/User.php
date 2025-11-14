@@ -29,6 +29,7 @@ class User extends Authenticatable
         'user_id',
         'role_id',
         'department_id',
+        'job_site_id',
         'notification_preferences',
     ];
 
@@ -64,6 +65,11 @@ class User extends Authenticatable
     public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class);
+    }
+
+    public function jobSite(): BelongsTo
+    {
+        return $this->belongsTo(JobSite::class);
     }
 
     public function dailyReports(): HasMany

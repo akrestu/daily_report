@@ -100,7 +100,12 @@ class DailyReportList extends Component
         } else if (!$this->isAdmin($user)) {
             $query->where('department_id', $user->department_id);
         }
-        
+
+        // Filter by jobsite - non-admin users can only see reports from their jobsite
+        if (!$this->isAdmin($user) && $user->job_site_id) {
+            $query->where('job_site_id', $user->job_site_id);
+        }
+
         // Filter by date range
         if (request('date_from')) {
             $query->whereDate('report_date', '>=', request('date_from'));

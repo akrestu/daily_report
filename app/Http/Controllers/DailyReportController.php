@@ -70,12 +70,17 @@ class DailyReportController extends Controller
         // Get role IDs for eligible slugs
         $eligibleRoleIds = Role::whereIn('slug', $eligibleRoleSlugs)->pluck('id')->toArray();
 
-        // Get users with eligible roles from the SAME DEPARTMENT, excluding self (no self-PIC)
+        // Get users with eligible roles from the SAME DEPARTMENT and SAME JOBSITE, excluding self (no self-PIC)
         $query = User::whereIn('role_id', $eligibleRoleIds)
             ->where('id', '!=', $user->id) // Exclude self
-            ->where('department_id', $user->department_id) // Filter by same department
-            ->pluck('id')
-            ->toArray();
+            ->where('department_id', $user->department_id); // Filter by same department
+
+        // Filter by same jobsite if user has a jobsite
+        if ($user->job_site_id) {
+            $query->where('job_site_id', $user->job_site_id);
+        }
+
+        $query = $query->pluck('id')->toArray();
 
         // Include the current PIC for existing reports if not already in the list
         if ($currentPicId && !in_array($currentPicId, $query)) {
@@ -173,7 +178,12 @@ class DailyReportController extends Controller
             return true;
         }
 
-        // Level 5 can view all reports (monitoring role)
+        // Non-admin users can only access reports from their jobsite
+        if ($user->job_site_id && $report->job_site_id && $user->job_site_id !== $report->job_site_id) {
+            return false;
+        }
+
+        // Level 5 can view all reports from their jobsite (monitoring role)
         if ($user->isLevel5() && $action === 'view') {
             return true;
         }
@@ -234,6 +244,7 @@ class DailyReportController extends Controller
         $validated = request()->validate([
             'search' => 'nullable|string|max:255',
             'department' => 'nullable|exists:departments,id',
+            'section' => 'nullable|exists:sections,id',
             'date_from' => 'nullable|date|before_or_equal:today',
             'date_to' => 'nullable|date|after_or_equal:date_from|before_or_equal:today',
             'type' => 'nullable|in:approved,rejected',
@@ -246,7 +257,7 @@ class DailyReportController extends Controller
         $reportType = $validated['type'] ?? 'approved';
 
         // Build the query
-        $query = DailyReport::with(['user', 'department', 'pic', 'approver'])
+        $query = DailyReport::with(['user', 'department', 'pic', 'approver', 'jobSite', 'section'])
             ->whereNotNull('approved_by');
 
         // Filter by report type
@@ -270,6 +281,11 @@ class DailyReportController extends Controller
             }
         }
 
+        // Filter by jobsite - non-admin users can only see reports from their jobsite
+        if ($user && !$user->isAdmin() && $user->job_site_id) {
+            $query->where('job_site_id', $user->job_site_id);
+        }
+
         // Apply filters if present (using validated data)
         if (!empty($validated['search'])) {
             $query->where('job_name', 'like', "%{$validated['search']}%");
@@ -277,6 +293,10 @@ class DailyReportController extends Controller
 
         if (!empty($validated['department'])) {
             $query->where('department_id', $validated['department']);
+        }
+
+        if (!empty($validated['section'])) {
+            $query->where('section_id', $validated['section']);
         }
 
         // Filter by date range (validated dates)
@@ -906,13 +926,23 @@ class DailyReportController extends Controller
 
         // For monitoring view - Level 5 and Admin can monitor all pending reports
         if ($view === 'monitoring' && ($user->isLevel5() || $user->isAdmin())) {
-            $monitoringReports = DailyReport::where('approval_status', 'pending')
+            $monitoringQuery = DailyReport::where('approval_status', 'pending')
                 ->whereNull('approved_by')
-                ->with(['user', 'approver', 'department', 'pic'])
-                ->latest()
-                ->paginate(10);
+                ->with(['user', 'approver', 'department', 'pic']);
+
+            // Filter by jobsite for non-admin users
+            if (!$user->isAdmin() && $user->job_site_id) {
+                $monitoringQuery->where('job_site_id', $user->job_site_id);
+            }
+
+            $monitoringReports = $monitoringQuery->latest()->paginate(10);
 
             return view('daily-reports.pending', compact('monitoringReports'));
+        }
+
+        // Filter by jobsite for non-admin users
+        if (!$user->isAdmin() && $user->job_site_id) {
+            $reportsQuery->where('job_site_id', $user->job_site_id);
         }
 
         // For approval view (default)
@@ -1475,16 +1505,17 @@ class DailyReportController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        
+
         // Get filters from request
         $filters = [
             'search' => $request->input('search'),
             'department' => $request->input('department'),
+            'section' => $request->input('section'),
             'date_from' => $request->input('date_from'),
             'date_to' => $request->input('date_to'),
             'type' => $request->input('type', 'approved'),
         ];
-        
+
         return Excel::download(new DailyReportsExport($filters, true), 'all_reports_' . date('Y-m-d') . '.xlsx');
     }
 

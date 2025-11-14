@@ -4,6 +4,8 @@ namespace App\Imports;
 
 use App\Models\DailyReport;
 use App\Models\Department;
+use App\Models\JobSite;
+use App\Models\Section;
 use App\Models\User;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
@@ -27,21 +29,44 @@ class DailyReportsImport extends StringValueBinder implements ToModel, WithHeadi
     {
         // Get the current user
         $user = Auth::user();
-        
+
         // Find department by name
         $department = Department::where('name', $row['department'])->first();
         if (!$department) {
             // Skip this row if department doesn't exist
             return null;
         }
-        
+
+        // Find Job Site by name (optional)
+        $jobSiteId = null;
+        if (!empty($row['job_site'])) {
+            $jobSite = JobSite::where('name', $row['job_site'])
+                ->where('is_active', true)
+                ->first();
+            if ($jobSite) {
+                $jobSiteId = $jobSite->id;
+            }
+        }
+
+        // Find Section by name (optional)
+        $sectionId = null;
+        if (!empty($row['section'])) {
+            $section = Section::where('name', $row['section'])
+                ->where('department_id', $department->id)
+                ->where('is_active', true)
+                ->first();
+            if ($section) {
+                $sectionId = $section->id;
+            }
+        }
+
         // Find PIC by user_id instead of email
         $pic = User::where('user_id', $row['user_id'])->first();
         if (!$pic) {
             // Skip this row if PIC doesn't exist
             return null;
         }
-        
+
         // Parse dates with flexible format handling
         $reportDate = $this->parseDate($row['report_date']);
         $dueDate = $this->parseDate($row['due_date']);
@@ -49,12 +74,14 @@ class DailyReportsImport extends StringValueBinder implements ToModel, WithHeadi
         if (!$reportDate || !$dueDate) {
             return null;
         }
-        
+
         // Create new daily report
         return new DailyReport([
             'user_id' => $user->id,
             'job_name' => $row['job_name'],
             'department_id' => $department->id,
+            'job_site_id' => $jobSiteId,
+            'section_id' => $sectionId,
             'status' => $row['status'],
             'report_date' => $reportDate->format('Y-m-d'),
             'due_date' => $dueDate->format('Y-m-d'),

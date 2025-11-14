@@ -7,6 +7,7 @@ use App\Exports\UsersTemplateExport;
 use App\Http\Controllers\Controller;
 use App\Imports\UsersImport;
 use App\Models\Department;
+use App\Models\JobSite;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -32,10 +33,10 @@ class UserController extends Controller
      */
     public function index()
     {
-        $users = User::with(['role', 'department'])->latest()->paginate(10);
+        $users = User::with(['role', 'department', 'jobSite'])->latest()->paginate(10);
         $roles = Role::pluck('name', 'id');
         $departments = Department::pluck('name', 'id');
-        
+
         return view('admin.users.index', compact('users', 'roles', 'departments'));
     }
 
@@ -46,7 +47,8 @@ class UserController extends Controller
     {
         $roles = Role::all();
         $departments = Department::all();
-        return view('admin.users.create', compact('roles', 'departments'));
+        $jobSites = JobSite::where('is_active', true)->orderBy('name')->get();
+        return view('admin.users.create', compact('roles', 'departments', 'jobSites'));
     }
 
     /**
@@ -64,6 +66,7 @@ class UserController extends Controller
                 'password' => ['required', Rules\Password::defaults()],
                 'role_id' => ['required', 'exists:roles,id'],
                 'department_id' => ['nullable', 'exists:departments,id'],
+                'job_site_id' => ['nullable', 'exists:job_sites,id'],
                 'user_id' => ['nullable', 'string', 'max:255', 'unique:users'],
             ]);
 
@@ -73,6 +76,7 @@ class UserController extends Controller
                 'password' => Hash::make($request->password),
                 'role_id' => $request->role_id,
                 'department_id' => $request->department_id,
+                'job_site_id' => $request->job_site_id,
                 'user_id' => $request->user_id,
                 'email_verified_at' => now(),
             ];
@@ -138,7 +142,8 @@ class UserController extends Controller
         $user = User::findOrFail($id);
         $roles = Role::all();
         $departments = Department::all();
-        return view('admin.users.edit', compact('user', 'roles', 'departments'));
+        $jobSites = JobSite::where('is_active', true)->orderBy('name')->get();
+        return view('admin.users.edit', compact('user', 'roles', 'departments', 'jobSites'));
     }
 
     /**
@@ -153,6 +158,7 @@ class UserController extends Controller
             'email' => ['nullable', 'string', 'email', 'max:255', 'unique:users,email,' . $id],
             'role_id' => ['required', 'exists:roles,id'],
             'department_id' => ['nullable', 'exists:departments,id'],
+            'job_site_id' => ['nullable', 'exists:job_sites,id'],
             'user_id' => ['nullable', 'string', 'max:255', 'unique:users,user_id,' . $id],
         ];
         
@@ -168,6 +174,7 @@ class UserController extends Controller
             'email' => $request->email,
             'role_id' => $request->role_id,
             'department_id' => $request->department_id,
+            'job_site_id' => $request->job_site_id,
             'user_id' => $request->user_id,
         ];
         

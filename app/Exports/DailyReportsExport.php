@@ -28,9 +28,9 @@ class DailyReportsExport implements FromCollection, WithHeadings, WithMapping, S
     public function collection()
     {
         $user = Auth::user();
-        
+
         // Start building the query
-        $query = DailyReport::with(['department', 'pic', 'approver']);
+        $query = DailyReport::with(['user', 'department', 'jobSite', 'section', 'pic', 'approver']);
 
         if (!$this->isAllReports) {
             // Only get user's reports for personal export
@@ -58,9 +58,17 @@ class DailyReportsExport implements FromCollection, WithHeadings, WithMapping, S
             $search = $this->filters['search'];
             $query->where('job_name', 'like', "%{$search}%");
         }
-        
+
         if (isset($this->filters['status']) && !empty($this->filters['status'])) {
             $query->where('status', $this->filters['status']);
+        }
+
+        if (isset($this->filters['department']) && !empty($this->filters['department'])) {
+            $query->where('department_id', $this->filters['department']);
+        }
+
+        if (isset($this->filters['section']) && !empty($this->filters['section'])) {
+            $query->where('section_id', $this->filters['section']);
         }
 
         // Filter by date range
@@ -83,7 +91,10 @@ class DailyReportsExport implements FromCollection, WithHeadings, WithMapping, S
         return [
             'ID',
             'Job Name',
+            'Created By',
             'Department',
+            'Job Site',
+            'Section',
             'Status',
             'Report Date',
             'Due Date',
@@ -93,6 +104,9 @@ class DailyReportsExport implements FromCollection, WithHeadings, WithMapping, S
             'Approval Status',
             'Approved/Rejected By',
             'Rejection Reason',
+            'Attachment 1',
+            'Attachment 2',
+            'Attachment 3',
             'Created At'
         ];
     }
@@ -107,16 +121,22 @@ class DailyReportsExport implements FromCollection, WithHeadings, WithMapping, S
         return [
             $report->id,
             $report->job_name,
+            $report->user->name ?? 'N/A',
             $report->department->name ?? 'N/A',
+            $report->jobSite->name ?? 'N/A',
+            $report->section->name ?? 'N/A',
             ucfirst(str_replace('_', ' ', $report->status)),
             $report->report_date->format('Y-m-d'),
             $report->due_date->format('Y-m-d'),
             $report->description,
-            $report->remark,
+            $report->remark ?? '',
             $report->pic->name ?? 'N/A',
-            ucfirst($report->approval_status),
+            ucfirst(str_replace('_', ' ', $report->approval_status)),
             $report->approver->name ?? 'N/A',
-            $report->rejection_reason,
+            $report->rejection_reason ?? '',
+            $report->attachment_original_name ?? '',
+            $report->attachment_original_name_2 ?? '',
+            $report->attachment_original_name_3 ?? '',
             $report->created_at->format('Y-m-d H:i:s')
         ];
     }
@@ -126,8 +146,8 @@ class DailyReportsExport implements FromCollection, WithHeadings, WithMapping, S
      */
     public function styles(Worksheet $sheet)
     {
-        // Style the header row
-        $sheet->getStyle('A1:M1')->applyFromArray([
+        // Style the header row (A1:S1 = 19 columns)
+        $sheet->getStyle('A1:S1')->applyFromArray([
             'font' => [
                 'bold' => true,
                 'color' => ['rgb' => 'FFFFFF'],
@@ -137,7 +157,7 @@ class DailyReportsExport implements FromCollection, WithHeadings, WithMapping, S
                 'startColor' => ['rgb' => '4472C4'],
             ],
         ]);
-        
+
         return $sheet;
     }
 }

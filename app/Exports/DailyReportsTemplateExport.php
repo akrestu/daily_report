@@ -19,6 +19,8 @@ class DailyReportsTemplateExport implements FromArray, WithHeadings, ShouldAutoS
         return [
             'job_name',
             'department',
+            'job_site',
+            'section',
             'status',
             'report_date',
             'due_date',
@@ -42,6 +44,8 @@ class DailyReportsTemplateExport implements FromArray, WithHeadings, ShouldAutoS
             [
                 'Monthly Report',
                 'IT Department',
+                'Main Office',
+                'Development',
                 'pending',
                 $today,
                 $tomorrow,
@@ -52,6 +56,8 @@ class DailyReportsTemplateExport implements FromArray, WithHeadings, ShouldAutoS
             [
                 'Weekly Meeting Minutes',
                 'HR Department',
+                'Branch A',
+                'Recruitment',
                 'in_progress',
                 $today,
                 $tomorrow,
@@ -67,8 +73,8 @@ class DailyReportsTemplateExport implements FromArray, WithHeadings, ShouldAutoS
      */
     public function styles(Worksheet $sheet)
     {
-        // Style the header row
-        $sheet->getStyle('A1:H1')->applyFromArray([
+        // Style the header row (A1:J1 = 10 columns)
+        $sheet->getStyle('A1:J1')->applyFromArray([
             'font' => [
                 'bold' => true,
                 'color' => ['rgb' => 'FFFFFF'],
@@ -78,31 +84,37 @@ class DailyReportsTemplateExport implements FromArray, WithHeadings, ShouldAutoS
                 'startColor' => ['rgb' => '4472C4'],
             ],
         ]);
-        
+
         // Add comment to job_name cell
         $sheet->getComment('A1')->getText()->createTextRun('Required. Name of the job or task.');
-        
+
         // Add comment to department cell
         $sheet->getComment('B1')->getText()->createTextRun('Required. Must match an existing department name in the system.');
-        
+
+        // Add comment to job_site cell
+        $sheet->getComment('C1')->getText()->createTextRun('Optional. Must match an existing active job site name in the system.');
+
+        // Add comment to section cell
+        $sheet->getComment('D1')->getText()->createTextRun('Optional. Must match an existing active section name for the department.');
+
         // Add comment to status cell
-        $sheet->getComment('C1')->getText()->createTextRun('Required. Must be one of: pending, in_progress, completed');
-        
+        $sheet->getComment('E1')->getText()->createTextRun('Required. Must be one of: pending, in_progress, completed');
+
         // Add comment to report_date cell
-        $sheet->getComment('D1')->getText()->createTextRun('Required. Format: DD/MM/YYYY (e.g., 28/04/2025)');
-        
+        $sheet->getComment('F1')->getText()->createTextRun('Required. Format: DD/MM/YYYY (e.g., 28/04/2025)');
+
         // Add comment to due_date cell
-        $sheet->getComment('E1')->getText()->createTextRun('Required. Format: DD/MM/YYYY (e.g., 30/04/2025). Must be on or after report_date.');
-        
+        $sheet->getComment('G1')->getText()->createTextRun('Required. Format: DD/MM/YYYY (e.g., 30/04/2025). Must be on or after report_date.');
+
         // Add comment to description cell
-        $sheet->getComment('F1')->getText()->createTextRun('Required. Detailed description of the job/task.');
-        
+        $sheet->getComment('H1')->getText()->createTextRun('Required. Detailed description of the job/task.');
+
         // Add comment to remark cell
-        $sheet->getComment('G1')->getText()->createTextRun('Optional. Additional notes or remarks.');
-        
+        $sheet->getComment('I1')->getText()->createTextRun('Optional. Additional notes or remarks.');
+
         // Add comment to user_id cell
-        $sheet->getComment('H1')->getText()->createTextRun('Required. User ID of the Person In Charge. Must be a valid user_id in the system.');
-        
+        $sheet->getComment('J1')->getText()->createTextRun('Required. User ID of the Person In Charge. Must be a valid user_id in the system.');
+
         return $sheet;
     }
 }

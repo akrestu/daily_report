@@ -85,6 +85,7 @@
                                 <th>Email</th>
                                 <th>Role</th>
                                 <th>Department</th>
+                                <th>Job Site</th>
                                 <!-- <th>Status</th> -->
                                 <th width="120">Actions</th>
                             </tr>
@@ -106,11 +107,12 @@
                                             <a href="#" class="fw-medium text-decoration-none user-edit-btn" 
                                                data-bs-toggle="modal" 
                                                data-bs-target="#editUserModal" 
-                                               data-user-id="{{ $user->id }}" 
-                                               data-user-name="{{ $user->name }}" 
-                                               data-user-email="{{ $user->email }}" 
-                                               data-user-role="{{ $user->role_id }}" 
-                                               data-user-department="{{ $user->department_id }}" 
+                                               data-user-id="{{ $user->id }}"
+                                               data-user-name="{{ $user->name }}"
+                                               data-user-email="{{ $user->email }}"
+                                               data-user-role="{{ $user->role_id }}"
+                                               data-user-department="{{ $user->department_id }}"
+                                               data-user-jobsite="{{ $user->job_site_id }}"
                                                data-user-userid="{{ $user->user_id }}">
                                                 {{ $user->name }}
                                             </a>
@@ -120,6 +122,13 @@
                                 <td>{{ $user->email }}</td>
                                 <td>{{ $user->role->name ?? 'No Role' }}</td>
                                 <td>{{ $user->department->name ?? 'No Department' }}</td>
+                                <td>
+                                    @if($user->jobSite)
+                                        <span class="badge bg-info">{{ $user->jobSite->name }}</span>
+                                    @else
+                                        <span class="badge bg-secondary">All Sites</span>
+                                    @endif
+                                </td>
                                 <!-- Hide verification status
                                 <td>
                                     @if($user->email_verified_at)
@@ -131,14 +140,15 @@
                                 -->
                                 <td>
                                     <div class="d-flex">
-                                        <button type="button" class="btn btn-sm btn-outline-secondary me-1 user-edit-btn" 
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#editUserModal" 
-                                                data-user-id="{{ $user->id }}" 
-                                                data-user-name="{{ $user->name }}" 
-                                                data-user-email="{{ $user->email }}" 
-                                                data-user-role="{{ $user->role_id }}" 
-                                                data-user-department="{{ $user->department_id }}" 
+                                        <button type="button" class="btn btn-sm btn-outline-secondary me-1 user-edit-btn"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#editUserModal"
+                                                data-user-id="{{ $user->id }}"
+                                                data-user-name="{{ $user->name }}"
+                                                data-user-email="{{ $user->email }}"
+                                                data-user-role="{{ $user->role_id }}"
+                                                data-user-department="{{ $user->department_id }}"
+                                                data-user-jobsite="{{ $user->job_site_id }}"
                                                 data-user-userid="{{ $user->user_id }}">
                                             <i class="fas fa-edit"></i>
                                         </button>
@@ -233,14 +243,15 @@
                                         </div>
                                         -->
                                         <div class="btn-group">
-                                            <button type="button" class="btn btn-sm btn-outline-secondary user-edit-btn" 
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#editUserModal" 
-                                                data-user-id="{{ $user->id }}" 
-                                                data-user-name="{{ $user->name }}" 
-                                                data-user-email="{{ $user->email }}" 
-                                                data-user-role="{{ $user->role_id }}" 
-                                                data-user-department="{{ $user->department_id }}" 
+                                            <button type="button" class="btn btn-sm btn-outline-secondary user-edit-btn"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#editUserModal"
+                                                data-user-id="{{ $user->id }}"
+                                                data-user-name="{{ $user->name }}"
+                                                data-user-email="{{ $user->email }}"
+                                                data-user-role="{{ $user->role_id }}"
+                                                data-user-department="{{ $user->department_id }}"
+                                                data-user-jobsite="{{ $user->job_site_id }}"
                                                 data-user-userid="{{ $user->user_id }}">
                                                 <i class="fas fa-edit me-1"></i> Edit
                                             </button>
@@ -317,14 +328,38 @@
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-6">
+                                <label for="job_site_id" class="form-label">Job Site</label>
+                                <select class="form-select" id="job_site_id" name="job_site_id">
+                                    <option value="">All Sites (Admin only)</option>
+                                    @php
+                                        $jobSites = \App\Models\JobSite::where('is_active', true)->orderBy('name')->get();
+                                    @endphp
+                                    @foreach($jobSites as $site)
+                                        <option value="{{ $site->id }}">{{ $site->name }}</option>
+                                    @endforeach
+                                </select>
+                                <small class="text-muted">Leave empty for admin users</small>
+                            </div>
+                            <div class="col-md-6">
                                 <label for="user_id" class="form-label">User ID</label>
                                 <input type="text" class="form-control" id="user_id" name="user_id">
                             </div>
+                        </div>
+                        <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
                                 <div class="input-group">
                                     <input type="password" class="form-control" id="password" name="password" required>
                                     <button class="btn btn-outline-secondary toggle-password" type="button" data-target="password">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="password_confirmation" class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" required>
+                                    <button class="btn btn-outline-secondary toggle-password" type="button" data-target="password_confirmation">
                                         <i class="fas fa-eye"></i>
                                     </button>
                                 </div>
@@ -388,6 +423,19 @@
                             </div>
                         </div>
                         <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="edit_job_site_id" class="form-label">Job Site</label>
+                                <select class="form-select" id="edit_job_site_id" name="job_site_id">
+                                    <option value="">All Sites (Admin only)</option>
+                                    @php
+                                        $jobSites = \App\Models\JobSite::where('is_active', true)->orderBy('name')->get();
+                                    @endphp
+                                    @foreach($jobSites as $site)
+                                        <option value="{{ $site->id }}">{{ $site->name }}</option>
+                                    @endforeach
+                                </select>
+                                <small class="text-muted">Leave empty for admin users</small>
+                            </div>
                             <div class="col-md-6">
                                 <label for="edit_user_id" class="form-label">User ID</label>
                                 <input type="text" class="form-control" id="edit_user_id" name="user_id">
@@ -614,16 +662,18 @@
                     const userEmail = this.getAttribute('data-user-email');
                     const userRole = this.getAttribute('data-user-role');
                     const userDepartment = this.getAttribute('data-user-department');
+                    const userJobSite = this.getAttribute('data-user-jobsite');
                     const userUserId = this.getAttribute('data-user-userid');
-                    
+
                     // Set form action
                     document.getElementById('editUserForm').action = '/admin/users/' + userId;
-                    
+
                     // Populate form fields
                     document.getElementById('edit_name').value = userName;
                     document.getElementById('edit_email').value = userEmail;
                     document.getElementById('edit_role_id').value = userRole;
                     document.getElementById('edit_department_id').value = userDepartment || '';
+                    document.getElementById('edit_job_site_id').value = userJobSite || '';
                     document.getElementById('edit_user_id').value = userUserId || '';
                     document.getElementById('edit_password').value = '';
                 });

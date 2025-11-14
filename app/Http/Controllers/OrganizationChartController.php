@@ -25,9 +25,9 @@ class OrganizationChartController extends Controller
         $roles = Role::orderBy('id')->get();
 
         // Organize users by role level (new hierarchy: Level 5 → Level 1)
+        // Note: Admin role excluded - it's for system management, not operational hierarchy
         $organizationTree = [
             'department' => $department,
-            'admin' => $department->users->where('role.slug', 'admin')->first(),
             'level5' => $department->users->where('role.slug', 'level5'),
             'level4' => $department->users->where('role.slug', 'level4'),
             'level3' => $department->users->where('role.slug', 'level3'),

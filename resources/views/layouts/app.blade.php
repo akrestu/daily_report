@@ -8,8 +8,11 @@
     <title>SiGAP - Sistem Informasi Giat Aktivitas Pekerjaan</title>
 
     <!-- Favicon -->
-    <link rel="icon" href="{{ asset('Sigap.png') }}" type="image/png">
-    <link rel="shortcut icon" href="{{ asset('Sigap.png') }}" type="image/png">
+    <link rel="icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16x16.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="48x48" href="{{ asset('favicon-48x48.png') }}">
 
     <!-- PWA Icons -->
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('icons/icon-180x180.png?v=4.0') }}">

@@ -30,7 +30,12 @@
       "Bash(cmd /c \"dir D:\\MyFolder\\projects\\SiGAP\\resources\\views\\livewire\")",
       "Bash(cmd /c \"cd D:\\MyFolder\\projects\\SiGAP\\resources\\views && dir /s /b | findstr /i daily\")",
       "Bash(cmd /c \"mkdir D:\\MyFolder\\projects\\SiGAP\\resources\\views\\admin\\job-sites\")",
-      "Bash(cmd /c \"mkdir D:\\MyFolder\\projects\\SiGAP\\resources\\views\\admin\\sections\")"
+      "Bash(cmd /c \"mkdir D:\\MyFolder\\projects\\SiGAP\\resources\\views\\admin\\sections\")",
+      "Bash(cmd /c \"dir public\\storage\")",
+      "Bash(cmd /c \"if exist public\\storage (echo Storage symlink exists) else (echo Storage symlink NOT exists)\")",
+      "Bash(cmd /c \"if exist storage\\app\\public\\attachments (echo Attachments folder exists) else (echo Attachments folder NOT exists)\")",
+      "Bash(rm:*)",
+      "Bash(del:*)"
     ],
     "deny": [],
     "ask": []

@@ -44,7 +44,10 @@ class JobSiteSeeder extends Seeder
         ];
 
         foreach ($jobSites as $jobSite) {
-            JobSite::create($jobSite);
+            JobSite::updateOrCreate(
+                ['code' => $jobSite['code']],
+                $jobSite
+            );
         }
     }
 }

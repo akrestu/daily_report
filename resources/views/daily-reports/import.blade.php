@@ -51,6 +51,8 @@
                             <ul class="mb-1">
                                 <li><strong>job_name</strong> (required): Name of the job or task</li>
                                 <li><strong>department</strong> (required): Department name (must exist in the system)</li>
+                                <li><strong>job_site</strong> (optional): Job site name (must match existing active job site)</li>
+                                <li><strong>section</strong> (optional): Section name (must match existing active section for the department)</li>
                                 <li><strong>status</strong> (required): Must be one of: pending, in_progress, completed</li>
                                 <li><strong>report_date</strong> (required): Format: DD/MM/YYYY (e.g., 28/04/2025)</li>
                                 <li><strong>due_date</strong> (required): Format: DD/MM/YYYY (e.g., 30/04/2025)</li>

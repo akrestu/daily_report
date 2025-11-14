@@ -86,7 +86,23 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-3 d-none d-md-block">
+                            <div class="col-md-2 col-sm-6">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0">
+                                        <i class="fas fa-layer-group text-primary"></i>
+                                    </span>
+                                    <select name="section" class="form-select border-start-0 ps-0">
+                                        <option value="">All Sections</option>
+                                        @php
+                                            $sections = \App\Models\Section::where('is_active', true)->orderBy('name')->get();
+                                        @endphp
+                                        @foreach($sections as $section)
+                                            <option value="{{ $section->id }}" {{ request('section') == $section->id ? 'selected' : '' }}>{{ $section->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2 d-none d-md-block">
                                 <div class="d-flex justify-content-center gap-2">
                                     <button type="submit" class="btn btn-primary rounded-pill">
                                         <i class="fas fa-filter me-1"></i> Filter

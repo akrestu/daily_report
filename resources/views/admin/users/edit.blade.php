@@ -62,6 +62,27 @@
                         />
                     </div>
                 </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <x-select
+                            label="Job Site"
+                            name="job_site_id"
+                            :options="$jobSites ?? []"
+                            :selected="old('job_site_id', $user->job_site_id)"
+                            placeholder="Select job site (optional)"
+                        />
+                        <small class="text-muted">Leave empty for admin users who can access all job sites</small>
+                    </div>
+                    <div class="col-md-6">
+                        <x-input
+                            label="User ID (optional)"
+                            name="user_id"
+                            placeholder="Enter custom user ID"
+                            :value="old('user_id', $user->user_id)"
+                        />
+                    </div>
+                </div>
                 
                 <div class="row">
                     <div class="col-md-6">
