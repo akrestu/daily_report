@@ -654,8 +654,17 @@ class DailyReportController extends Controller
             }
         }
 
+        // Get active job sites
+        $jobSites = JobSite::where('is_active', true)->orderBy('name')->get();
+
+        // Get sections for report's department
+        $sections = Section::where('department_id', $dailyReport->department_id)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
         $report = $dailyReport; // Assign to $report variable to match view expectation
-        return view('daily-reports.edit', compact('report', 'departments', 'eligiblePics'));
+        return view('daily-reports.edit', compact('report', 'departments', 'eligiblePics', 'jobSites', 'sections'));
     }
 
     public function update(Request $request, DailyReport $dailyReport)
