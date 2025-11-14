@@ -13,6 +13,8 @@ class DailyReport extends Model
     protected $fillable = [
         'user_id',
         'department_id',
+        'job_site_id',
+        'section_id',
         'job_name',
         'report_date',
         'due_date',
@@ -57,6 +59,16 @@ class DailyReport extends Model
     public function pic(): BelongsTo
     {
         return $this->belongsTo(User::class, 'job_pic');
+    }
+
+    public function jobSite(): BelongsTo
+    {
+        return $this->belongsTo(JobSite::class);
+    }
+
+    public function section(): BelongsTo
+    {
+        return $this->belongsTo(Section::class);
     }
 
     /**

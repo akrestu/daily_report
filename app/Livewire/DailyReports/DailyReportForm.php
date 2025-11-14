@@ -4,6 +4,8 @@ namespace App\Livewire\DailyReports;
 
 use App\Models\DailyReport;
 use App\Models\Department;
+use App\Models\JobSite;
+use App\Models\Section;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -22,6 +24,8 @@ class DailyReportForm extends Component
     public $reportId;
     public $jobName;
     public $departmentId;
+    public $jobSiteId;
+    public $sectionId;
     public $reportDate;
     public $dueDate;
     public $jobPic;
@@ -59,6 +63,8 @@ class DailyReportForm extends Component
         return [
             'jobName' => 'required|string|max:255',
             'departmentId' => 'required|exists:departments,id',
+            'jobSiteId' => 'nullable|exists:job_sites,id',
+            'sectionId' => 'nullable|exists:sections,id',
             'reportDate' => 'required|date',
             'dueDate' => 'required|date|after_or_equal:reportDate',
             'jobPic' => 'required|exists:users,id',
@@ -95,6 +101,8 @@ class DailyReportForm extends Component
             $this->reportId = $dailyReport->id;
             $this->jobName = $dailyReport->job_name;
             $this->departmentId = $dailyReport->department_id;
+            $this->jobSiteId = $dailyReport->job_site_id;
+            $this->sectionId = $dailyReport->section_id;
             $this->reportDate = $dailyReport->report_date->format('Y-m-d');
             $this->dueDate = $dailyReport->due_date->format('Y-m-d');
             $this->jobPic = $dailyReport->job_pic;
@@ -124,6 +132,7 @@ class DailyReportForm extends Component
     {
         $this->loadEligiblePics();
         $this->jobPic = ''; // Reset PIC when department changes
+        $this->sectionId = ''; // Reset Section when department changes
     }
     
     private function loadEligiblePics($currentPicId = null)
@@ -269,6 +278,8 @@ class DailyReportForm extends Component
                 'user_id' => Auth::id(),
                 'job_name' => $this->jobName,
                 'department_id' => $this->departmentId,
+                'job_site_id' => $this->jobSiteId,
+                'section_id' => $this->sectionId,
                 'job_pic' => $this->jobPic,
                 'report_date' => $this->reportDate,
                 'due_date' => $this->dueDate,
@@ -312,9 +323,21 @@ class DailyReportForm extends Component
     public function render()
     {
         $departments = Department::all();
-        
+        $jobSites = JobSite::where('is_active', true)->orderBy('name')->get();
+
+        // Get sections for current department
+        $sections = collect([]);
+        if ($this->departmentId) {
+            $sections = Section::where('department_id', $this->departmentId)
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get();
+        }
+
         return view('livewire.daily-reports.daily-report-form', [
             'departments' => $departments,
+            'jobSites' => $jobSites,
+            'sections' => $sections,
             'pics' => $this->eligiblePics,
             'dailyReport' => $this->isEditMode ? DailyReport::find($this->reportId) : null,
         ]);

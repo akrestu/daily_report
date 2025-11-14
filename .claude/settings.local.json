@@ -23,7 +23,14 @@
       "Bash(php:*)",
       "Bash(del public/generate_pwa_screenshots.php)",
       "Bash(cat:*)",
-      "Bash(cmd /c \"dir public\\icons\")"
+      "Bash(cmd /c \"dir public\\icons\")",
+      "Bash(del \"D:\\MyFolder\\projects\\SiGAP\\app\\Http\\Controllers\\JobSiteController.php\")",
+      "Bash(cmd /c \"del D:\\MyFolder\\projects\\SiGAP\\app\\Http\\Controllers\\JobSiteController.php\")",
+      "Bash(cmd /c \"dir /s /b D:\\MyFolder\\projects\\SiGAP\\resources\\views\\livewire\\*.blade.php 2>nul | findstr daily\")",
+      "Bash(cmd /c \"dir D:\\MyFolder\\projects\\SiGAP\\resources\\views\\livewire\")",
+      "Bash(cmd /c \"cd D:\\MyFolder\\projects\\SiGAP\\resources\\views && dir /s /b | findstr /i daily\")",
+      "Bash(cmd /c \"mkdir D:\\MyFolder\\projects\\SiGAP\\resources\\views\\admin\\job-sites\")",
+      "Bash(cmd /c \"mkdir D:\\MyFolder\\projects\\SiGAP\\resources\\views\\admin\\sections\")"
     ],
     "deny": [],
     "ask": []

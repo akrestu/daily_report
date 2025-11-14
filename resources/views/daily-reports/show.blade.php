@@ -27,6 +27,12 @@
                                 <h4 class="fw-bold text-dark mb-1">{{ $report->job_name }}</h4>
                                 <div class="d-flex flex-wrap align-items-center text-muted small">
                                     <span class="me-3"><i class="fas fa-building me-1"></i> {{ $report->department->name ?? 'N/A' }}</span>
+                                    @if($report->jobSite)
+                                    <span class="me-3"><i class="fas fa-map-marker-alt me-1"></i> {{ $report->jobSite->name }}</span>
+                                    @endif
+                                    @if($report->section)
+                                    <span class="me-3"><i class="fas fa-layer-group me-1"></i> {{ $report->section->name }}</span>
+                                    @endif
                                     <span class="me-3"><i class="fas fa-calendar-alt me-1"></i> {{ $report->report_date->format('d M Y') }}</span>
                                     <span class="me-3"><i class="fas fa-clock me-1"></i> {{ $report->created_at->diffForHumans() }}</span>
                 </div>

@@ -18,6 +18,8 @@ use App\Exports\DailyReportsTemplateExport;
 use App\Imports\DailyReportsImport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Models\Department;
+use App\Models\JobSite;
+use App\Models\Section;
 use App\Models\JobComment;
 use App\Models\Notification;
 
@@ -35,6 +37,8 @@ class DailyReportController extends Controller
         return [
             'job_name' => 'required|string|max:255',
             'department_id' => 'required|exists:departments,id',
+            'job_site_id' => 'nullable|exists:job_sites,id',
+            'section_id' => 'nullable|exists:sections,id',
             'report_date' => 'required|date',
             'due_date' => 'required|date|after_or_equal:report_date',
             'job_pic' => 'required|exists:users,id',
@@ -305,7 +309,16 @@ class DailyReportController extends Controller
         // Get eligible PICs with their names
         $eligiblePics = User::whereIn('id', $eligiblePicIds)->pluck('name', 'id')->toArray();
 
-        return view('daily-reports.create', compact('departments', 'eligiblePics'));
+        // Get active job sites
+        $jobSites = JobSite::where('is_active', true)->orderBy('name')->get();
+
+        // Get sections for user's department
+        $sections = Section::where('department_id', $user->department_id)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        return view('daily-reports.create', compact('departments', 'eligiblePics', 'jobSites', 'sections'));
     }
 
     public function store(Request $request)
@@ -370,6 +383,8 @@ class DailyReportController extends Controller
                 'user_id' => $user->id,
                 'job_name' => $validated['job_name'],
                 'department_id' => $validated['department_id'],
+                'job_site_id' => $validated['job_site_id'] ?? null,
+                'section_id' => $validated['section_id'] ?? null,
                 'job_pic' => $validated['job_pic'],
                 'report_date' => $validated['report_date'],
                 'due_date' => $validated['due_date'],
@@ -534,6 +549,8 @@ class DailyReportController extends Controller
                     'user_id' => $user->id,
                     'job_name' => $reportData['job_name'],
                     'department_id' => $reportData['department_id'],
+                    'job_site_id' => $reportData['job_site_id'] ?? null,
+                    'section_id' => $reportData['section_id'] ?? null,
                     'job_pic' => $reportData['job_pic'],
                     'report_date' => $reportData['report_date'],
                     'due_date' => $reportData['due_date'],
@@ -581,7 +598,10 @@ class DailyReportController extends Controller
             return redirect()->route('daily-reports.index')
                 ->with('error', 'You do not have permission to view this report.');
         }
-        
+
+        // Eager load relationships
+        $dailyReport->load(['jobSite', 'section', 'department', 'user', 'pic', 'approver']);
+
         $report = $dailyReport; // Assign to $report variable to match view expectation
         return view('daily-reports.show', compact('report'));
     }

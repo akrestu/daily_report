@@ -101,10 +101,11 @@
                                 <label for="department_id_0" class="form-label fw-medium">Department <span class="text-danger">*</span></label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-white"><i class="fas fa-building text-primary"></i></span>
-                                    <select 
-                                        class="form-select @error('reports.0.department_id') is-invalid @enderror" 
-                                        id="department_id_0" 
-                                        name="reports[0][department_id]" 
+                                    <select
+                                        class="form-select department-select @error('reports.0.department_id') is-invalid @enderror"
+                                        id="department_id_0"
+                                        name="reports[0][department_id]"
+                                        data-index="0"
                                         required
                                     >
                                         <option value="">Select department</option>
@@ -119,7 +120,58 @@
                                 <div class="text-danger small mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
-                            
+
+                            <!-- Job Site -->
+                            <div class="col-lg-6 col-md-12">
+                                <label for="job_site_id_0" class="form-label fw-medium">Job Site</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="fas fa-map-marker-alt text-primary"></i></span>
+                                    <select
+                                        class="form-select @error('reports.0.job_site_id') is-invalid @enderror"
+                                        id="job_site_id_0"
+                                        name="reports[0][job_site_id]"
+                                    >
+                                        <option value="">Select job site (optional)</option>
+                                        @foreach ($jobSites ?? [] as $jobSite)
+                                            <option value="{{ $jobSite->id }}" {{ old('reports.0.job_site_id') == $jobSite->id ? 'selected' : '' }}>
+                                                {{ $jobSite->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                @error('reports.0.job_site_id')
+                                <div class="text-danger small mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <!-- Section -->
+                            <div class="col-lg-6 col-md-12 mb-3 mb-lg-0">
+                                <label for="section_id_0" class="form-label fw-medium">Section</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="fas fa-layer-group text-primary"></i></span>
+                                    <select
+                                        class="form-select section-select @error('reports.0.section_id') is-invalid @enderror"
+                                        id="section_id_0"
+                                        name="reports[0][section_id]"
+                                        data-index="0"
+                                    >
+                                        <option value="">Select section (optional)</option>
+                                        @if(isset($sections) && $sections->count() > 0)
+                                            @foreach ($sections as $section)
+                                                <option value="{{ $section->id }}" {{ old('reports.0.section_id') == $section->id ? 'selected' : '' }}>
+                                                    {{ $section->name }}
+                                                </option>
+                                            @endforeach
+                                        @endif
+                                    </select>
+                                </div>
+                                @error('reports.0.section_id')
+                                <div class="text-danger small mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+
                             <!-- Job PIC -->
                             <div class="col-lg-6 col-md-12">
                                 <label for="job_pic_0" class="form-label fw-medium">Person In Charge <span class="text-danger">*</span></label>
@@ -416,19 +468,57 @@
             const addButton = document.getElementById('add-report');
             const deleteModal = new bootstrap.Modal(document.getElementById('deleteReportModal'));
             let formToDelete = null;
-            
+
             // Form submission with spinner
             const form = document.getElementById('multipleReportForm');
             const saveButton = document.getElementById('saveReportsBtn');
             const spinner = document.getElementById('saveSpinner');
-            
+
             form.addEventListener('submit', function() {
                 // Show spinner
                 spinner.classList.remove('d-none');
-                
+
                 // Disable button to prevent double submission
                 saveButton.disabled = true;
             });
+
+            // Function to load sections based on department
+            function loadSections(departmentId, sectionSelect) {
+                if (!departmentId) {
+                    sectionSelect.innerHTML = '<option value="">Select section (optional)</option>';
+                    return;
+                }
+
+                fetch(`{{ route('sections.by-department') }}?department_id=${departmentId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        sectionSelect.innerHTML = '<option value="">Select section (optional)</option>';
+                        data.forEach(section => {
+                            const option = document.createElement('option');
+                            option.value = section.id;
+                            option.textContent = section.name;
+                            sectionSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error loading sections:', error);
+                        sectionSelect.innerHTML = '<option value="">Select section (optional)</option>';
+                    });
+            }
+
+            // Setup department change listeners
+            function setupDepartmentListener(departmentSelect) {
+                departmentSelect.addEventListener('change', function() {
+                    const index = this.getAttribute('data-index');
+                    const sectionSelect = document.getElementById(`section_id_${index}`);
+                    if (sectionSelect) {
+                        loadSections(this.value, sectionSelect);
+                    }
+                });
+            }
+
+            // Setup all existing department selects
+            document.querySelectorAll('.department-select').forEach(setupDepartmentListener);
             
             // Add new report form
             addButton.addEventListener('click', function() {
@@ -501,13 +591,29 @@
                     statusContainer.classList.remove('gap-3');
                     statusContainer.classList.add('flex-column', 'flex-md-row', 'gap-2', 'gap-md-3');
                 }
-                
+
+                // Update data-index for department and section selects
+                const departmentSelect = template.querySelector('.department-select');
+                if (departmentSelect) {
+                    departmentSelect.setAttribute('data-index', newIndex);
+                }
+
+                const sectionSelect = template.querySelector('.section-select');
+                if (sectionSelect) {
+                    sectionSelect.setAttribute('data-index', newIndex);
+                }
+
                 // Add to container
                 container.appendChild(template);
-                
+
+                // Setup department change listener for new form
+                if (departmentSelect) {
+                    setupDepartmentListener(departmentSelect);
+                }
+
                 // Scroll to the new form
                 template.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                
+
                 // Setup remove button
                 setupRemoveButton(template.querySelector('.remove-form'));
             });

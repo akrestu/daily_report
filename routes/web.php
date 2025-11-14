@@ -197,7 +197,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/daily-reports/{reportId}/comments', [\App\Http\Controllers\JobCommentController::class, 'getComments'])->name('job-comments.index');
     Route::post('/daily-reports/{reportId}/comments', [\App\Http\Controllers\JobCommentController::class, 'store'])->name('job-comments.store');
     Route::delete('/comments/{commentId}', [\App\Http\Controllers\JobCommentController::class, 'destroy'])->name('job-comments.destroy');
-    
+
+    // Sections by department (for dropdown in daily report form)
+    Route::get('/sections/by-department', [\App\Http\Controllers\Admin\SectionController::class, 'getByDepartment'])->name('sections.by-department');
+
     // Debug route for comments
     Route::get('/debug/comments/{reportId}', function($reportId) {
         if (Auth::check()) {
@@ -246,7 +249,16 @@ Route::middleware('auth')->group(function () {
         // Department management
         Route::delete('/departments/batch-delete', [\App\Http\Controllers\Admin\DepartmentController::class, 'batchDelete'])->name('departments.batch-delete');
         Route::resource('departments', \App\Http\Controllers\Admin\DepartmentController::class);
-        
+
+        // Job Site management
+        Route::delete('/job-sites/batch-delete', [\App\Http\Controllers\Admin\JobSiteController::class, 'batchDelete'])->name('job-sites.batch-delete');
+        Route::resource('job-sites', \App\Http\Controllers\Admin\JobSiteController::class);
+
+        // Section management
+        Route::get('/sections/by-department', [\App\Http\Controllers\Admin\SectionController::class, 'getByDepartment'])->name('sections.by-department');
+        Route::delete('/sections/batch-delete', [\App\Http\Controllers\Admin\SectionController::class, 'batchDelete'])->name('sections.batch-delete');
+        Route::resource('sections', \App\Http\Controllers\Admin\SectionController::class);
+
         // Admin settings
         Route::get('/settings', function() {
             return view('admin.settings');

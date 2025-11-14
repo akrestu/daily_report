@@ -129,10 +129,26 @@
             </li>
             
             <li class="nav-item mb-2">
-                <a class="nav-link rounded-pill {{ request()->routeIs('admin.departments.*') ? 'active bg-white text-primary' : 'text-white' }}" 
+                <a class="nav-link rounded-pill {{ request()->routeIs('admin.departments.*') ? 'active bg-white text-primary' : 'text-white' }}"
                    href="{{ route('admin.departments.index') }}">
                     <i class="fas fa-building me-2"></i>
                     <span>Department Management</span>
+                </a>
+            </li>
+
+            <li class="nav-item mb-2">
+                <a class="nav-link rounded-pill {{ request()->routeIs('admin.job-sites.*') ? 'active bg-white text-primary' : 'text-white' }}"
+                   href="{{ route('admin.job-sites.index') }}">
+                    <i class="fas fa-map-marker-alt me-2"></i>
+                    <span>Job Site Management</span>
+                </a>
+            </li>
+
+            <li class="nav-item mb-2">
+                <a class="nav-link rounded-pill {{ request()->routeIs('admin.sections.*') ? 'active bg-white text-primary' : 'text-white' }}"
+                   href="{{ route('admin.sections.index') }}">
+                    <i class="fas fa-layer-group me-2"></i>
+                    <span>Section Management</span>
                 </a>
             </li>
             @endif

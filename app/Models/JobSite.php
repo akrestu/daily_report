@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Department extends Model
+class JobSite extends Model
 {
     use HasFactory;
 
@@ -14,18 +14,22 @@ class Department extends Model
         'name',
         'code',
         'description',
+        'location',
+        'is_active',
     ];
 
     /**
-     * Get the users in this department
+     * Get the casts array.
      */
-    public function users(): HasMany
+    protected function casts(): array
     {
-        return $this->hasMany(User::class);
+        return [
+            'is_active' => 'boolean',
+        ];
     }
 
     /**
-     * Get the daily reports from this department
+     * Get the daily reports for this job site
      */
     public function dailyReports(): HasMany
     {
@@ -33,10 +37,10 @@ class Department extends Model
     }
 
     /**
-     * Get the sections in this department
+     * Scope a query to only include active job sites.
      */
-    public function sections(): HasMany
+    public function scopeActive($query)
     {
-        return $this->hasMany(Section::class);
+        return $query->where('is_active', true);
     }
 }
