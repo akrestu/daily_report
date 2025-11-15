@@ -31,9 +31,66 @@
                     <div class="row">
                         <div class="col-12 text-center mb-5">
                             <!-- Organization Tree Visualization -->
-                            <!-- Note: Admin role excluded - it's for system management, not operational hierarchy -->
+                            <!-- Note: Admin and Level 8 excluded - Admin is for system management, Level 8 is highest management level -->
                             <div class="org-chart">
-                                <!-- Level 5 (Highest Operational Level) -->
+                                <!-- Level 7 (Highest Operational Level) -->
+                                @if($organizationTree['level7']->count() > 0)
+                                <div class="org-chart-level-7 mb-4 mb-md-5">
+                                    <div class="row justify-content-center">
+                                        @foreach($organizationTree['level7'] as $user)
+                                        <div class="col-6 col-sm-4 col-md-4 col-lg-3 mb-3">
+                                            <div class="org-chart-node level7-node">
+                                                <div class="avatar bg-danger mx-auto mb-2">
+                                                    @if($user->profile_picture)
+                                                        <img src="{{ $user->profile_picture_url }}" alt="{{ $user->name }}" class="rounded-circle w-100 h-100" style="object-fit: cover;">
+                                                    @else
+                                                        <span>{{ strtoupper(substr($user->name, 0, 1)) }}</span>
+                                                    @endif
+                                                </div>
+                                                <div class="node-content">
+                                                    <h5 class="mb-0 node-name">{{ $user->name }}</h5>
+                                                    <p class="role-badge level7 mb-0">Level 7</p>
+                                                </div>
+                                            </div>
+                                            @if($organizationTree['level6']->count() > 0)
+                                            <div class="vertical-line small"></div>
+                                            @endif
+                                        </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                @endif
+
+                                <!-- Level 6 -->
+                                @if($organizationTree['level6']->count() > 0)
+                                <div class="org-chart-level-6 mb-4 mb-md-5">
+                                    <div class="horizontal-line"></div>
+                                    <div class="row justify-content-center">
+                                        @foreach($organizationTree['level6'] as $user)
+                                        <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-3">
+                                            <div class="org-chart-node level6-node">
+                                                <div class="avatar bg-dark mx-auto mb-2">
+                                                    @if($user->profile_picture)
+                                                        <img src="{{ $user->profile_picture_url }}" alt="{{ $user->name }}" class="rounded-circle w-100 h-100" style="object-fit: cover;">
+                                                    @else
+                                                        <span>{{ strtoupper(substr($user->name, 0, 1)) }}</span>
+                                                    @endif
+                                                </div>
+                                                <div class="node-content">
+                                                    <h6 class="mb-0 node-name">{{ $user->name }}</h6>
+                                                    <p class="role-badge level6 mb-0">Level 6</p>
+                                                </div>
+                                            </div>
+                                            @if($organizationTree['level5']->count() > 0)
+                                            <div class="vertical-line small"></div>
+                                            @endif
+                                        </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                @endif
+
+                                <!-- Level 5 -->
                                 @if($organizationTree['level5']->count() > 0)
                                 <div class="org-chart-level-1 mb-4 mb-md-5">
                                     <div class="row justify-content-center">
@@ -187,8 +244,16 @@
                                 <div class="card-body">
                                     <div class="d-flex flex-wrap">
                                         <div class="me-4 mb-2">
+                                            <span class="badge bg-danger me-2">L7</span>
+                                            <span>Level 7 (Highest Approval)</span>
+                                        </div>
+                                        <div class="me-4 mb-2">
+                                            <span class="badge bg-dark me-2">L6</span>
+                                            <span>Level 6</span>
+                                        </div>
+                                        <div class="me-4 mb-2">
                                             <span class="badge bg-primary me-2">L5</span>
-                                            <span>Level 5 (Highest Approval)</span>
+                                            <span>Level 5</span>
                                         </div>
                                         <div class="me-4 mb-2">
                                             <span class="badge bg-info me-2">L4</span>
@@ -238,6 +303,16 @@
         .org-chart-node:hover {
             transform: translateY(-5px);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .level7-node {
+            border-color: #dc3545;
+            border-width: 2px;
+        }
+
+        .level6-node {
+            border-color: #212529;
+            border-width: 2px;
         }
 
         .level5-node {
@@ -302,6 +377,16 @@
             border-radius: 20px;
             display: inline-block;
             margin-top: 5px;
+        }
+
+        .level7 {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+        }
+
+        .level6 {
+            background-color: rgba(33, 37, 41, 0.1);
+            color: #212529;
         }
 
         .level5 {

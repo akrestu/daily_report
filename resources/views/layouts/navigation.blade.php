@@ -55,7 +55,7 @@
                 <span class="sidebar-heading px-3 py-2 text-uppercase fw-bold text-white-50 small d-block">Reports</span>
             </li>
 
-            @if(!auth()->user()->isLevel5())
+            @if(!auth()->user()->isLevel8())
             <li class="nav-item mb-2">
                 <a class="nav-link rounded-pill {{ request()->routeIs('daily-reports.create') ? 'active bg-white text-primary' : 'text-white' }}"
                    href="{{ route('daily-reports.create') }}">
@@ -85,7 +85,7 @@
             </li>
             @endif
 
-            @if(!auth()->user()->isLevel5())
+            @if(!auth()->user()->isLevel8())
             <li class="nav-item mb-2">
                 <a class="nav-link rounded-pill {{ request()->routeIs('daily-reports.user-jobs') ? 'active bg-white text-primary' : 'text-white' }}"
                    href="{{ route('daily-reports.user-jobs') }}">
@@ -103,10 +103,11 @@
                 </a>
             </li>
             
+            @if(!auth()->user()->isLevel8())
             <li class="nav-item mb-3">
                 <span class="sidebar-heading px-3 py-2 text-uppercase fw-bold text-white-50 small d-block">Organization</span>
             </li>
-            
+
             <li class="nav-item mb-2">
                 <a class="nav-link rounded-pill {{ request()->routeIs('organization.chart') ? 'active bg-white text-primary' : 'text-white' }}"
                    href="{{ route('organization.chart') }}">
@@ -114,6 +115,7 @@
                     <span>Team Structure</span>
                 </a>
             </li>
+            @endif
 
             @if(auth()->check() && auth()->user()->isAdmin())
             <li class="nav-item mb-3">

@@ -70,24 +70,51 @@ class DailyReportController extends Controller
         // Get role IDs for eligible slugs
         $eligibleRoleIds = Role::whereIn('slug', $eligibleRoleSlugs)->pluck('id')->toArray();
 
-        // Get users with eligible roles from the SAME DEPARTMENT and SAME JOBSITE, excluding self (no self-PIC)
-        $query = User::whereIn('role_id', $eligibleRoleIds)
-            ->where('id', '!=', $user->id) // Exclude self
-            ->where('department_id', $user->department_id); // Filter by same department
+        $eligibleUserIds = [];
 
-        // Filter by same jobsite if user has a jobsite
-        if ($user->job_site_id) {
-            $query->where('job_site_id', $user->job_site_id);
+        // Special handling for Level6-7 selecting Level8
+        // Level8 can be selected cross-department within same job site
+        if (($user->isLevel6() || $user->isLevel7()) && in_array('level8', $eligibleRoleSlugs)) {
+            // Get Level8 role ID
+            $level8RoleId = Role::where('slug', 'level8')->value('id');
+
+            // Get Level8 users from same job site (cross-department allowed)
+            if ($user->job_site_id && $level8RoleId) {
+                $level8Users = User::where('role_id', $level8RoleId)
+                    ->where('id', '!=', $user->id)
+                    ->where('job_site_id', $user->job_site_id)
+                    ->pluck('id')
+                    ->toArray();
+
+                $eligibleUserIds = array_merge($eligibleUserIds, $level8Users);
+            }
+
+            // Remove level8 from eligible slugs to avoid duplicate processing
+            $eligibleRoleSlugs = array_diff($eligibleRoleSlugs, ['level8']);
+            $eligibleRoleIds = Role::whereIn('slug', $eligibleRoleSlugs)->pluck('id')->toArray();
         }
 
-        $query = $query->pluck('id')->toArray();
+        // Get users with eligible roles from the SAME DEPARTMENT and SAME JOBSITE, excluding self (no self-PIC)
+        if (!empty($eligibleRoleIds)) {
+            $query = User::whereIn('role_id', $eligibleRoleIds)
+                ->where('id', '!=', $user->id) // Exclude self
+                ->where('department_id', $user->department_id); // Filter by same department
+
+            // Filter by same jobsite if user has a jobsite
+            if ($user->job_site_id) {
+                $query->where('job_site_id', $user->job_site_id);
+            }
+
+            $departmentUsers = $query->pluck('id')->toArray();
+            $eligibleUserIds = array_merge($eligibleUserIds, $departmentUsers);
+        }
 
         // Include the current PIC for existing reports if not already in the list
-        if ($currentPicId && !in_array($currentPicId, $query)) {
-            $query[] = $currentPicId;
+        if ($currentPicId && !in_array($currentPicId, $eligibleUserIds)) {
+            $eligibleUserIds[] = $currentPicId;
         }
 
-        return $query;
+        return array_unique($eligibleUserIds);
     }
 
     /**
@@ -183,6 +210,21 @@ class DailyReportController extends Controller
             return false;
         }
 
+        // Level 8 can view all reports from their jobsite (cross-department monitoring)
+        if ($user->isLevel8() && $action === 'view') {
+            return true;
+        }
+
+        // Level 7 can view all reports from their jobsite and department
+        if ($user->isLevel7() && $action === 'view' && $user->department_id === $report->department_id) {
+            return true;
+        }
+
+        // Level 6 can view all reports from their jobsite and department
+        if ($user->isLevel6() && $action === 'view' && $user->department_id === $report->department_id) {
+            return true;
+        }
+
         // Level 5 can view all reports from their jobsite (monitoring role)
         if ($user->isLevel5() && $action === 'view') {
             return true;
@@ -223,6 +265,21 @@ class DailyReportController extends Controller
             case 'delete':
                 // Creator can delete their own pending reports
                 if ($user->id === $report->user_id && $report->approval_status === 'pending') {
+                    return true;
+                }
+
+                // Level 8 can delete reports from their jobsite
+                if ($user->isLevel8() && $user->job_site_id === $report->job_site_id) {
+                    return true;
+                }
+
+                // Level 7 can delete reports from their department
+                if ($user->isLevel7() && $user->department_id === $report->department_id) {
+                    return true;
+                }
+
+                // Level 6 can delete reports from their department
+                if ($user->isLevel6() && $user->department_id === $report->department_id) {
                     return true;
                 }
 
@@ -267,23 +324,38 @@ class DailyReportController extends Controller
             $query->where('approval_status', 'rejected');
         }
 
-        // Filter by user's department unless they're an admin
+        // Filter by user's department unless they're an admin or Level 8
         // Show only reports from users in the same department
         $user = Auth::user();
-        if ($user && $user->role_id) {
-            // Check if user is not an admin and has a department
-            $adminRole = Role::where('slug', 'admin')->first();
-            if ($user->role_id !== $adminRole->id && $user->department_id) {
-                // Join with users table to filter by user's department
-                $query->whereHas('user', function($q) use ($user) {
-                    $q->where('department_id', $user->department_id);
-                });
-            }
+
+        // Level 8 can see cross-department, so skip department filter
+        if ($user && !$user->isAdmin() && !$user->isLevel8() && $user->department_id) {
+            // Filter by user's department
+            $query->whereHas('user', function($q) use ($user) {
+                $q->where('department_id', $user->department_id);
+            });
         }
 
         // Filter by jobsite - non-admin users can only see reports from their jobsite
-        if ($user && !$user->isAdmin() && $user->job_site_id) {
+        // Level 8 can see all reports from their jobsite (cross-department)
+        if ($user && !$user->isAdmin() && !$user->isLevel8() && $user->job_site_id) {
             $query->where('job_site_id', $user->job_site_id);
+        } elseif ($user && $user->isLevel8() && $user->job_site_id) {
+            // Level 8: Only filter by job site, allow cross-department view
+            $query->where('job_site_id', $user->job_site_id);
+        }
+
+        // Filter by role level - Level 1-4 can ONLY see reports from Level 1-4
+        // Level 5+ can see all reports (monitoring role)
+        if ($user && !$user->isAdmin() && $user->getRoleLevel() >= 1 && $user->getRoleLevel() <= 4) {
+            // Only include reports from Level 1-4 users
+            $allowedRoleIds = Role::whereIn('slug', ['level1', 'level2', 'level3', 'level4'])->pluck('id')->toArray();
+
+            if (!empty($allowedRoleIds)) {
+                $query->whereHas('user', function($q) use ($allowedRoleIds) {
+                    $q->whereIn('role_id', $allowedRoleIds);
+                });
+            }
         }
 
         // Apply filters if present (using validated data)
@@ -842,6 +914,23 @@ class DailyReportController extends Controller
             abort(403, 'Unauthorized action. You cannot approve reports for this user.');
         }
 
+        // Additional checks for non-admin users
+        if (!$user->isAdmin()) {
+            // Level 8 can approve cross-department within same job site
+            if ($user->isLevel8()) {
+                if ($user->job_site_id && $dailyReport->job_site_id) {
+                    if ($dailyReport->job_site_id !== $user->job_site_id) {
+                        abort(403, 'Unauthorized action. You can only approve reports from your job site.');
+                    }
+                }
+            } else {
+                // Other users can only approve within same department
+                if ($user->department_id && $dailyReport->department_id !== $user->department_id) {
+                    abort(403, 'Unauthorized action. You can only approve reports from your department.');
+                }
+            }
+        }
+
         // Allow changing approval status even for already approved/rejected reports for Admin and Department Head
         $validated = $request->validate([
             'status' => ['required', Rule::in(['approved', 'rejected'])],
@@ -933,8 +1022,8 @@ class DailyReportController extends Controller
             ->with(['user', 'approver', 'department', 'pic'])
             ->whereNull('approved_by');
 
-        // For monitoring view - Level 5 and Admin can monitor all pending reports
-        if ($view === 'monitoring' && ($user->isLevel5() || $user->isAdmin())) {
+        // For monitoring view - Level 5-8 and Admin can monitor all pending reports
+        if ($view === 'monitoring' && ($user->isLevel5() || $user->isLevel6() || $user->isLevel7() || $user->isLevel8() || $user->isAdmin())) {
             $monitoringQuery = DailyReport::where('approval_status', 'pending')
                 ->whereNull('approved_by')
                 ->with(['user', 'approver', 'department', 'pic']);
@@ -959,7 +1048,7 @@ class DailyReportController extends Controller
         if ($user->isAdmin()) {
             $reports = $reportsQuery->latest()->paginate(10);
         }
-        // Level 2-5 can see reports where they are PIC
+        // Level 2-8 can see reports where they are PIC
         else if ($user->getRoleLevel() >= 2) {
             $reports = $reportsQuery
                 ->where('job_pic', $user->id)
@@ -1103,9 +1192,14 @@ class DailyReportController extends Controller
                 ->whereIn('id', $ids)
                 ->where('approval_status', 'pending'); // Only approve pending reports
 
-            // Add department filter for non-admin users
-            if (!$user->isAdmin()) {
+            // Add department filter for non-admin users (except Level 8 who can approve cross-department)
+            if (!$user->isAdmin() && !$user->isLevel8()) {
                 $query->where('department_id', $user->department_id);
+            }
+
+            // Level 8 can approve cross-department within same job site
+            if ($user->isLevel8() && $user->job_site_id) {
+                $query->where('job_site_id', $user->job_site_id);
             }
 
             $reports = $query->get();
@@ -1120,14 +1214,34 @@ class DailyReportController extends Controller
                 if (!$report->user || !$user->canApprove($report->user)) {
                     Log::warning('Batch approve: User cannot approve report owner', [
                         'user_id' => $user->id,
+                        'user_level' => $user->getRoleLevel(),
                         'report_id' => $report->id,
-                        'report_owner_id' => $report->user_id
+                        'report_owner_id' => $report->user_id,
+                        'report_owner_level' => $report->user ? $report->user->getRoleLevel() : 'null'
                     ]);
                     return false;
                 }
 
-                // Check 2: For non-admin, verify department match
-                if (!$user->isAdmin() && $report->department_id !== $user->department_id) {
+                // Special handling for Level 8
+                if ($user->isLevel8()) {
+                    // Level 8 with job_site_id can only approve reports from same job site
+                    if ($user->job_site_id && $report->job_site_id) {
+                        if ($report->job_site_id !== $user->job_site_id) {
+                            Log::warning('Batch approve: Job site mismatch for Level 8', [
+                                'user_id' => $user->id,
+                                'user_job_site' => $user->job_site_id,
+                                'report_id' => $report->id,
+                                'report_job_site' => $report->job_site_id
+                            ]);
+                            return false;
+                        }
+                    }
+                    // Level 8 can approve cross-department
+                    return true;
+                }
+
+                // Check 2: For non-admin (non-Level 8), verify department match
+                if (!$user->isAdmin() && $user->department_id && $report->department_id !== $user->department_id) {
                     Log::warning('Batch approve: Department mismatch', [
                         'user_id' => $user->id,
                         'user_dept' => $user->department_id,
@@ -1251,9 +1365,14 @@ class DailyReportController extends Controller
             $query = DailyReport::with(['user', 'department'])
                 ->whereIn('id', $ids);
 
-            // Add department filter for non-admin users
-            if (!$user->isAdmin()) {
+            // Add department filter for non-admin users (except Level 8 who can reject cross-department)
+            if (!$user->isAdmin() && !$user->isLevel8()) {
                 $query->where('department_id', $user->department_id);
+            }
+
+            // Level 8 can reject cross-department within same job site
+            if ($user->isLevel8() && $user->job_site_id) {
+                $query->where('job_site_id', $user->job_site_id);
             }
 
             // Add approval status filter based on user's level
@@ -1386,8 +1505,8 @@ class DailyReportController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        // Only Admin and Level 5 can batch delete
-        if (!$user->isAdmin() && !$user->isLevel5()) {
+        // Only Admin and Level 5-8 can batch delete
+        if (!$user->isAdmin() && !$user->isLevel5() && !$user->isLevel6() && !$user->isLevel7() && !$user->isLevel8()) {
             return redirect()->back()->with('error', 'Unauthorized action.');
         }
 
@@ -1578,7 +1697,7 @@ class DailyReportController extends Controller
     /**
      * Get expected approval status based on user's role level
      *
-     * @param int $userLevel The user's role level (1-5)
+     * @param int $userLevel The user's role level (1-8)
      * @param string $type 'current' for statuses this level can approve, 'next' for the status to set after approval
      * @return array|string|null Array of valid current statuses, string for next status, or null for admin
      */
@@ -1591,27 +1710,42 @@ class DailyReportController extends Controller
 
         // Define approval workflow based on role levels
         // Level 1 = Staff (cannot approve)
-        // Level 2 = Leader (approves Level 1 staff reports)
-        // Level 3 = Supervisor (approves Level 2 leader reports)
-        // Level 4 = Manager (approves Level 3 supervisor reports)
-        // Level 5 = Department Head (can approve Level 1-4 reports)
+        // Level 2 = Can approve Level 1 reports
+        // Level 3 = Can approve Level 2 reports
+        // Level 4 = Can approve Level 3 reports
+        // Level 5 = Can approve Level 4 reports
+        // Level 6 = Can approve Level 5 reports
+        // Level 7 = Can approve Level 6 reports
+        // Level 8 = Can approve Level 7 reports (highest level)
 
         $workflowMap = [
-            2 => [ // Level 2 (Leader)
+            2 => [
                 'current' => ['pending'],
-                'next' => 'approved_by_leader'
+                'next' => 'approved'
             ],
-            3 => [ // Level 3 (Supervisor)
-                'current' => ['approved_by_leader'],
-                'next' => 'approved_by_supervisor'
+            3 => [
+                'current' => ['pending'],
+                'next' => 'approved'
             ],
-            4 => [ // Level 4 (Manager)
-                'current' => ['approved_by_supervisor'],
-                'next' => 'approved_by_department_head'
+            4 => [
+                'current' => ['pending'],
+                'next' => 'approved'
             ],
-            5 => [ // Level 5 (Department Head)
-                'current' => ['pending', 'approved_by_leader', 'approved_by_supervisor'],
-                'next' => 'approved_by_department_head'
+            5 => [
+                'current' => ['pending'],
+                'next' => 'approved'
+            ],
+            6 => [
+                'current' => ['pending'],
+                'next' => 'approved'
+            ],
+            7 => [
+                'current' => ['pending'],
+                'next' => 'approved'
+            ],
+            8 => [
+                'current' => ['pending'],
+                'next' => 'approved'
             ]
         ];
 

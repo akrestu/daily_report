@@ -226,17 +226,19 @@
             </div>
             <div class="card-body">
                 <div class="row g-3">
-                    <div class="col-md-4">
+                    <div class="col-md-{{ auth()->user()->isLevel8() ? '6' : '4' }}">
                         <a href="{{ route('daily-reports.pending') }}" class="btn btn-primary w-100 h-100 py-3">
                             <i class="fas fa-clipboard-check me-2"></i>Review Pending Reports
                         </a>
                     </div>
+                    @if(!auth()->user()->isLevel8())
                     <div class="col-md-4">
                         <a href="{{ route('daily-reports.create') }}" class="btn btn-outline-primary w-100 h-100 py-3">
                             <i class="fas fa-plus-circle me-2"></i>Create New Report
                         </a>
                     </div>
-                    <div class="col-md-4">
+                    @endif
+                    <div class="col-md-{{ auth()->user()->isLevel8() ? '6' : '4' }}">
                         <a href="{{ route('daily-reports.index') }}" class="btn btn-outline-primary w-100 h-100 py-3">
                             <i class="fas fa-list me-2"></i>View All Department Reports
                         </a>

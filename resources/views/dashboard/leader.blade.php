@@ -280,26 +280,26 @@
             </div>
             <div class="card-body">
                 <div class="row g-3">
-                    @if(!auth()->user()->isLevel5())
+                    @if(!auth()->user()->isLevel8())
                     <div class="col-md-3">
                         <a href="{{ route('daily-reports.create') }}" class="btn btn-primary w-100 h-100 py-3">
                             <i class="fas fa-plus-circle me-2"></i>Create New Report
                         </a>
                     </div>
                     @endif
-                    <div class="col-md-{{ auth()->user()->isLevel5() ? '6' : '3' }}">
+                    <div class="col-md-{{ auth()->user()->isLevel8() ? '4' : '3' }}">
                         <a href="{{ route('daily-reports.pending') }}" class="btn btn-outline-primary w-100 h-100 py-3">
                             <i class="fas fa-clipboard-check me-2"></i>Review Pending Reports
                         </a>
                     </div>
-                    @if(!auth()->user()->isLevel5())
+                    @if(!auth()->user()->isLevel8())
                     <div class="col-md-3">
                         <a href="{{ route('daily-reports.user-jobs') }}" class="btn btn-outline-primary w-100 h-100 py-3">
                             <i class="fas fa-user me-2"></i>My Reports
                         </a>
                     </div>
                     @endif
-                    <div class="col-md-{{ auth()->user()->isLevel5() ? '6' : '3' }}">
+                    <div class="col-md-{{ auth()->user()->isLevel8() ? '4' : '3' }}">
                         <a href="{{ route('daily-reports.index') }}" class="btn btn-outline-primary w-100 h-100 py-3">
                             <i class="fas fa-list me-2"></i>All Reports
                         </a>

@@ -32,8 +32,36 @@ class DailyReportPolicy
             return true;
         }
 
-        // Level 5 can view all reports (monitoring role)
-        if ($user->isLevel5()) {
+        $reportOwnerLevel = $dailyReport->user?->getRoleLevel();
+
+        // Level 1-4 cannot view reports from Level 5-7 at all
+        $userLevel = $user->getRoleLevel();
+        if ($userLevel >= 1 && $userLevel <= 4) {
+            if ($reportOwnerLevel >= 5 && $reportOwnerLevel <= 7) {
+                return false;
+            }
+        }
+
+        // Level 8 can view all reports in the same job site (cross-department)
+        if ($user->isLevel8()) {
+            // Must be in the same job site
+            if ($user->job_site_id && $user->job_site_id === $dailyReport->job_site_id) {
+                return true;
+            }
+        }
+
+        // Level 7 can view all reports in same department and lower levels
+        if ($user->isLevel7() && $user->department_id === $dailyReport->department_id) {
+            return true;
+        }
+
+        // Level 6 can view all reports in same department and lower levels
+        if ($user->isLevel6() && $user->department_id === $dailyReport->department_id) {
+            return true;
+        }
+
+        // Level 5 can view all reports in same department (monitoring role)
+        if ($user->isLevel5() && $user->department_id === $dailyReport->department_id) {
             return true;
         }
 
@@ -46,13 +74,11 @@ class DailyReportPolicy
 
             // Level 3 can view reports from Level 2 and Level 1 in their department
             if ($user->isLevel3()) {
-                $reportOwnerLevel = $dailyReport->user?->getRoleLevel();
                 return $reportOwnerLevel && $reportOwnerLevel <= 2;
             }
 
             // Level 2 can view reports from Level 1 in their department
             if ($user->isLevel2()) {
-                $reportOwnerLevel = $dailyReport->user?->getRoleLevel();
                 return $reportOwnerLevel && $reportOwnerLevel <= 1;
             }
 
@@ -81,6 +107,11 @@ class DailyReportPolicy
 
     public function create(User $user): bool
     {
+        // Level 8 cannot create reports
+        if ($user->isLevel8()) {
+            return false;
+        }
+
         return true;
     }
 
@@ -101,6 +132,21 @@ class DailyReportPolicy
             return true;
         }
 
+        // Level 8 can delete reports from same job site
+        if ($user->isLevel8() && $user->job_site_id === $dailyReport->job_site_id) {
+            return true;
+        }
+
+        // Level 7 can delete reports from their department
+        if ($user->isLevel7() && $user->department_id === $dailyReport->department_id) {
+            return true;
+        }
+
+        // Level 6 can delete reports from their department
+        if ($user->isLevel6() && $user->department_id === $dailyReport->department_id) {
+            return true;
+        }
+
         // Level 5 can delete reports from their department
         if ($user->isLevel5() && $user->department_id === $dailyReport->department_id) {
             return true;
@@ -111,6 +157,16 @@ class DailyReportPolicy
 
     public function approve(User $user, DailyReport $dailyReport): bool
     {
+        // Level 8 can approve cross-department within same job site
+        if ($user->isLevel8()) {
+            // Must be in the same job site
+            if ($user->job_site_id && $user->job_site_id === $dailyReport->job_site_id) {
+                // Can approve Level 7 reports
+                return $dailyReport->user?->isLevel7();
+            }
+            return false;
+        }
+
         return $user->canApprove($dailyReport->user);
     }
 }

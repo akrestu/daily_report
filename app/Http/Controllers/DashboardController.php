@@ -176,25 +176,26 @@ class DashboardController extends Controller
             $data['reportTrendsData'] = $this->getReportTrendsChartData();
         }
 
-        // Level 2, 3, 4, 5 data (can approve based on hierarchy)
-        if ($user->getRoleLevel() >= 2 && $user->getRoleLevel() <= 5) {
+        // Level 2, 3, 4, 5, 6, 7, 8 data (can approve based on hierarchy)
+        if ($user->getRoleLevel() >= 2 && $user->getRoleLevel() <= 8) {
             // Reports needing approval
             $approverLevel = $user->getRoleLevel();
 
-            if ($approverLevel == 5) {
-                // Level 5 can approve all pending reports from Level 1-4
+            if ($approverLevel == 8) {
+                // Level 8 can approve Level 6 and Level 7 reports from same job site (cross-department)
                 $data['needsApproval'] = DailyReport::with(['department', 'pic', 'user'])
                     ->where('approval_status', 'pending')
+                    ->where('job_site_id', $user->job_site_id)
                     ->whereHas('user', function($query) {
                         $query->whereHas('role', function($q) {
-                            $q->whereIn('slug', ['level1', 'level2', 'level3', 'level4']);
+                            $q->whereIn('slug', ['level6', 'level7']);
                         });
                     })
                     ->orderBy('created_at', 'desc')
                     ->limit(5)
                     ->get();
             } else {
-                // Level 2-4 can approve reports from one level below assigned to them
+                // Level 2-7 can approve reports from one level below assigned to them
                 $targetLevel = $approverLevel - 1;
                 $data['needsApproval'] = DailyReport::with(['department', 'pic', 'user'])
                     ->where('approval_status', 'pending')
@@ -223,52 +224,92 @@ class DashboardController extends Controller
                 ->where('job_pic', $user->id)->count();
 
             // Personal report status
-            $data['myPendingReports'] = DailyReport::where('status', 'pending')
-                ->where('approval_status', '!=', 'rejected')
-                ->where(function($query) use ($user) {
-                    $query->where('job_pic', $user->id)
-                          ->orWhere('user_id', $user->id);
-                })->count();
-            $data['myInProgressReports'] = DailyReport::where('status', 'in_progress')
-                ->where('approval_status', '!=', 'rejected')
-                ->where(function($query) use ($user) {
-                    $query->where('job_pic', $user->id)
-                          ->orWhere('user_id', $user->id);
-                })->count();
-            $data['myCompletedReports'] = DailyReport::where('status', 'completed')
-                ->where('approval_status', '!=', 'rejected')
-                ->where(function($query) use ($user) {
-                    $query->where('job_pic', $user->id)
-                          ->orWhere('user_id', $user->id);
-                })->count();
-            $data['myRejectedReports'] = DailyReport::where('approval_status', 'rejected')
-                ->where(function($query) use ($user) {
-                    $query->where('job_pic', $user->id)
-                          ->orWhere('user_id', $user->id);
-                })->count();
+            // Level 8 doesn't create reports, only PIC assignments
+            if ($user->isLevel8()) {
+                $data['myPendingReports'] = DailyReport::where('status', 'pending')
+                    ->where('approval_status', '!=', 'rejected')
+                    ->where('job_pic', $user->id)
+                    ->count();
+                $data['myInProgressReports'] = DailyReport::where('status', 'in_progress')
+                    ->where('approval_status', '!=', 'rejected')
+                    ->where('job_pic', $user->id)
+                    ->count();
+                $data['myCompletedReports'] = DailyReport::where('status', 'completed')
+                    ->where('approval_status', '!=', 'rejected')
+                    ->where('job_pic', $user->id)
+                    ->count();
+                $data['myRejectedReports'] = DailyReport::where('approval_status', 'rejected')
+                    ->where('job_pic', $user->id)
+                    ->count();
+            } else {
+                $data['myPendingReports'] = DailyReport::where('status', 'pending')
+                    ->where('approval_status', '!=', 'rejected')
+                    ->where(function($query) use ($user) {
+                        $query->where('job_pic', $user->id)
+                              ->orWhere('user_id', $user->id);
+                    })->count();
+                $data['myInProgressReports'] = DailyReport::where('status', 'in_progress')
+                    ->where('approval_status', '!=', 'rejected')
+                    ->where(function($query) use ($user) {
+                        $query->where('job_pic', $user->id)
+                              ->orWhere('user_id', $user->id);
+                    })->count();
+                $data['myCompletedReports'] = DailyReport::where('status', 'completed')
+                    ->where('approval_status', '!=', 'rejected')
+                    ->where(function($query) use ($user) {
+                        $query->where('job_pic', $user->id)
+                              ->orWhere('user_id', $user->id);
+                    })->count();
+                $data['myRejectedReports'] = DailyReport::where('approval_status', 'rejected')
+                    ->where(function($query) use ($user) {
+                        $query->where('job_pic', $user->id)
+                              ->orWhere('user_id', $user->id);
+                    })->count();
+            }
 
             // Personal report history - Fixed N+1: Added relationships
-            $data['myRecentReports'] = DailyReport::with(['department', 'user', 'pic'])
-                ->where(function($query) use ($user) {
-                    $query->where('job_pic', $user->id)
-                          ->orWhere('user_id', $user->id);
-                })
-                ->orderBy('created_at', 'desc')
-                ->limit(5)
-                ->get();
+            // Level 8 doesn't create reports, only PIC assignments
+            if ($user->isLevel8()) {
+                $data['myRecentReports'] = DailyReport::with(['department', 'user', 'pic'])
+                    ->where('job_pic', $user->id)
+                    ->orderBy('created_at', 'desc')
+                    ->limit(5)
+                    ->get();
+            } else {
+                $data['myRecentReports'] = DailyReport::with(['department', 'user', 'pic'])
+                    ->where(function($query) use ($user) {
+                        $query->where('job_pic', $user->id)
+                              ->orWhere('user_id', $user->id);
+                    })
+                    ->orderBy('created_at', 'desc')
+                    ->limit(5)
+                    ->get();
+            }
 
             // Deadline reminders - Fixed N+1: Added 'user' relationship
-            $data['urgentReports'] = DailyReport::with(['department', 'pic', 'user'])
-                ->where('status', '!=', 'completed')
-                ->where(function($query) use ($user) {
-                    $query->where('job_pic', $user->id)
-                        ->orWhere('user_id', $user->id);
-                })
-                ->whereDate('due_date', '>=', Carbon::today())
-                ->whereDate('due_date', '<=', Carbon::today()->addDays(3))
-                ->orderBy('due_date')
-                ->limit(5)
-                ->get();
+            // Level 8 doesn't create reports, only PIC assignments
+            if ($user->isLevel8()) {
+                $data['urgentReports'] = DailyReport::with(['department', 'pic', 'user'])
+                    ->where('status', '!=', 'completed')
+                    ->where('job_pic', $user->id)
+                    ->whereDate('due_date', '>=', Carbon::today())
+                    ->whereDate('due_date', '<=', Carbon::today()->addDays(3))
+                    ->orderBy('due_date')
+                    ->limit(5)
+                    ->get();
+            } else {
+                $data['urgentReports'] = DailyReport::with(['department', 'pic', 'user'])
+                    ->where('status', '!=', 'completed')
+                    ->where(function($query) use ($user) {
+                        $query->where('job_pic', $user->id)
+                            ->orWhere('user_id', $user->id);
+                    })
+                    ->whereDate('due_date', '>=', Carbon::today())
+                    ->whereDate('due_date', '<=', Carbon::today()->addDays(3))
+                    ->orderBy('due_date')
+                    ->limit(5)
+                    ->get();
+            }
 
             // Report trend
             $data['reportTrend'] = $this->getPersonalReportTrendData($user->id);

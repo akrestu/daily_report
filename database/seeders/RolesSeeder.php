@@ -42,7 +42,22 @@ class RolesSeeder extends Seeder
             [
                 'name' => 'Level 5',
                 'slug' => 'level5',
-                'description' => 'Level 5 - Highest approval level below Admin, can approve Level 1-4 reports, cannot assign to Admin',
+                'description' => 'Level 5 - Can approve Level 4 reports, can assign to Level 6',
+            ],
+            [
+                'name' => 'Level 6',
+                'slug' => 'level6',
+                'description' => 'Level 6 - Can approve Level 5 reports, can assign to Level 7',
+            ],
+            [
+                'name' => 'Level 7',
+                'slug' => 'level7',
+                'description' => 'Level 7 - Can approve Level 6 reports, can assign to Level 8',
+            ],
+            [
+                'name' => 'Level 8',
+                'slug' => 'level8',
+                'description' => 'Level 8 - Highest approval level, can approve Level 7 reports, can view all reports in same job site, cannot create reports',
             ],
         ];
 

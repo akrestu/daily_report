@@ -94,7 +94,39 @@
                                     <select name="section" class="form-select border-start-0 ps-0">
                                         <option value="">All Sections</option>
                                         @php
-                                            $sections = \App\Models\Section::where('is_active', true)->orderBy('name')->get();
+                                            // Level 8 can see all sections from all departments in same job site
+                                            if (auth()->user()->isLevel8()) {
+                                                if (auth()->user()->job_site_id) {
+                                                    // Get all departments from users in the same job site
+                                                    $departmentIds = \App\Models\User::where('job_site_id', auth()->user()->job_site_id)
+                                                        ->whereNotNull('department_id')
+                                                        ->distinct()
+                                                        ->pluck('department_id');
+
+                                                    if ($departmentIds->isNotEmpty()) {
+                                                        $sections = \App\Models\Section::whereIn('department_id', $departmentIds)
+                                                            ->where('is_active', true)
+                                                            ->orderBy('name')
+                                                            ->get();
+                                                    } else {
+                                                        $sections = collect();
+                                                    }
+                                                } else {
+                                                    // Level 8 without job_site can see all sections
+                                                    $sections = \App\Models\Section::where('is_active', true)
+                                                        ->orderBy('name')
+                                                        ->get();
+                                                }
+                                            } elseif (auth()->user()->department_id) {
+                                                // Other users only see sections from their department
+                                                $sections = \App\Models\Section::where('department_id', auth()->user()->department_id)
+                                                    ->where('is_active', true)
+                                                    ->orderBy('name')
+                                                    ->get();
+                                            } else {
+                                                // Users without department see no sections
+                                                $sections = collect();
+                                            }
                                         @endphp
                                         @foreach($sections as $section)
                                             <option value="{{ $section->id }}" {{ request('section') == $section->id ? 'selected' : '' }}>{{ $section->name }}</option>

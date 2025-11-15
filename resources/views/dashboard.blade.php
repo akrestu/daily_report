@@ -15,6 +15,12 @@
                     <p class="mb-4 opacity-75">
                         @if($user->hasRole('admin'))
                             Here's an overview of the system activity.
+                        @elseif($user->isLevel8())
+                            Here's an overview of the system activity and approvals across job sites.
+                        @elseif($user->isLevel7())
+                            Here's an overview of your department's reports and approvals.
+                        @elseif($user->isLevel6())
+                            Here's an overview of your department's reports and approvals.
                         @elseif($user->isLevel5())
                             Here's an overview of the system activity and approvals.
                         @elseif($user->getRoleLevel() >= 2 && $user->getRoleLevel() <= 4)
@@ -29,9 +35,11 @@
                             Here's an overview of your reports.
                         @endif
                     </p>
+                    @if(!$user->isLevel8())
                     <a href="{{ route('daily-reports.create') }}" class="btn btn-light">
                         <i class="fas fa-plus-circle me-2"></i>Create New Report
                     </a>
+                    @endif
                 </div>
             </div>
             <div class="position-absolute d-none d-lg-block" style="right: 1rem; bottom: -2rem;">
@@ -45,8 +53,8 @@
         @include('dashboard.admin')
     @endif
 
-    <!-- Level 2, 3, 4, 5 Dashboard (similar to leader - approval + personal) -->
-    @if($user->getRoleLevel() >= 2 && $user->getRoleLevel() <= 5)
+    <!-- Level 2, 3, 4, 5, 6, 7, 8 Dashboard (similar to leader - approval + personal) -->
+    @if($user->getRoleLevel() >= 2 && $user->getRoleLevel() <= 8)
         @include('dashboard.leader')
     @endif
 

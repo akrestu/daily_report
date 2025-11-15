@@ -133,6 +133,21 @@ class User extends Authenticatable
         return $this->hasRole('level5');
     }
 
+    public function isLevel6(): bool
+    {
+        return $this->hasRole('level6');
+    }
+
+    public function isLevel7(): bool
+    {
+        return $this->hasRole('level7');
+    }
+
+    public function isLevel8(): bool
+    {
+        return $this->hasRole('level8');
+    }
+
     // Legacy methods for backward compatibility
     public function isDepartmentHead(): bool
     {
@@ -155,7 +170,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the role level number (1-5) or 0 for non-level roles
+     * Get the role level number (1-8) or 0 for non-level roles
      */
     public function getRoleLevel(): int
     {
@@ -164,6 +179,9 @@ class User extends Authenticatable
         if ($this->isLevel3()) return 3;
         if ($this->isLevel4()) return 4;
         if ($this->isLevel5()) return 5;
+        if ($this->isLevel6()) return 6;
+        if ($this->isLevel7()) return 7;
+        if ($this->isLevel8()) return 8;
         return 0;
     }
 
@@ -185,13 +203,13 @@ class User extends Authenticatable
             return false;
         }
 
-        // Level 5 can approve reports from Level 1-4
-        if ($approverLevel === 5 && $userLevel >= 1 && $userLevel <= 4) {
-            return true;
+        // Level 8 can approve Level 6 and Level 7
+        if ($approverLevel === 8) {
+            return $userLevel === 6 || $userLevel === 7;
         }
 
-        // Level 2-4 can approve reports from one level below
-        if ($approverLevel >= 2 && $approverLevel <= 4) {
+        // Level 2-7 can approve reports from one level below
+        if ($approverLevel >= 2 && $approverLevel <= 7) {
             return $userLevel === ($approverLevel - 1);
         }
 
@@ -225,14 +243,29 @@ class User extends Authenticatable
             return ['level5'];
         }
 
-        // Level 5: cannot select Admin, but can select Level 2-5 for flexibility
+        // Level 5: can only select Level 6
         if ($this->isLevel5()) {
-            return ['level2', 'level3', 'level4', 'level5'];
+            return ['level6'];
+        }
+
+        // Level 6: can select Level 7 or Level 8 (within same job site)
+        if ($this->isLevel6()) {
+            return ['level7', 'level8'];
+        }
+
+        // Level 7: can select Level 8 (within same job site)
+        if ($this->isLevel7()) {
+            return ['level8'];
+        }
+
+        // Level 8: cannot create reports, so no eligible PIC
+        if ($this->isLevel8()) {
+            return [];
         }
 
         // Admin can select any level except themselves
         if ($this->isAdmin()) {
-            return ['level2', 'level3', 'level4', 'level5'];
+            return ['level2', 'level3', 'level4', 'level5', 'level6', 'level7', 'level8'];
         }
 
         // Default: no eligible roles
@@ -245,6 +278,7 @@ class User extends Authenticatable
     public function canBePic(): bool
     {
         // Level 1 and Admin cannot be PIC
+        // Level 8 can be PIC for Level 6-7 reports
         return !$this->isLevel1() && !$this->isAdmin();
     }
 
