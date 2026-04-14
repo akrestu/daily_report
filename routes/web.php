@@ -183,6 +183,7 @@ Route::middleware('auth')->group(function () {
     
     // Daily Reports Import/Export Routes
     Route::get('/daily-reports/export-all', [DailyReportController::class, 'exportAll'])->name('daily-reports.export-all');
+    Route::get('/daily-reports/whatsapp-share', [DailyReportController::class, 'whatsappShare'])->name('daily-reports.whatsapp-share');
     Route::get('/daily-reports/export', [DailyReportController::class, 'export'])->name('daily-reports.export');
     Route::get('/daily-reports/import', [DailyReportController::class, 'showImport'])->name('daily-reports.show-import');
     Route::post('/daily-reports/import', [DailyReportController::class, 'import'])->name('daily-reports.import');

@@ -16,6 +16,11 @@
                         <a href="{{ route('daily-reports.export-all') }}?{{ http_build_query(request()->all()) }}" class="btn btn-outline-primary rounded-pill px-3">
                             <i class="fas fa-file-export me-1"></i> Export
                         </a>
+                        @if(Auth::user()->isAdmin() || Auth::user()->getRoleLevel() >= 3)
+                        <button type="button" class="btn btn-outline-success rounded-pill px-3" onclick="openShareWhatsApp()">
+                            <i class="fab fa-whatsapp me-1"></i> Share WA
+                        </button>
+                        @endif
                         <a href="{{ route('daily-reports.create') }}" class="btn btn-primary rounded-pill px-3">
                             <i class="fas fa-plus-circle me-1"></i> New Report
                         </a>
@@ -474,6 +479,48 @@
         <input type="hidden" name="_method" value="DELETE">
         <!-- Selected reports will be appended here via JavaScript -->
     </form>
+
+    <!-- WhatsApp Share Modal -->
+    <div class="modal fade" id="whatsappShareModal" tabindex="-1" aria-labelledby="whatsappShareModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header" style="background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);">
+                    <h5 class="modal-title text-white" id="whatsappShareModalLabel">
+                        <i class="fab fa-whatsapp me-2"></i>Preview Pesan WhatsApp
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div id="waShareLoading" class="text-center py-4">
+                        <div class="spinner-border text-success" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Menyiapkan pesan...</p>
+                    </div>
+                    <div id="waShareContent" style="display:none;">
+                        <div id="waShareLimitAlert" class="alert alert-warning border-0 py-2 mb-3" style="display:none;">
+                            <i class="fas fa-info-circle me-1"></i>
+                            <span id="waShareLimitText"></span>
+                        </div>
+                        <label class="form-label fw-semibold text-muted small mb-1">Preview Pesan:</label>
+                        <textarea id="waShareText" class="form-control font-monospace" rows="14" readonly
+                            style="font-size:0.78rem; background:#f8f9fa; resize:none; white-space:pre;"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i> Tutup
+                    </button>
+                    <button type="button" class="btn btn-outline-dark rounded-pill px-4" id="waCopyBtn" onclick="copyWaText()" style="display:none;">
+                        <i class="far fa-copy me-1"></i> Salin Teks
+                    </button>
+                    <a href="#" target="_blank" id="waOpenBtn" class="btn btn-success rounded-pill px-4" style="display:none;">
+                        <i class="fab fa-whatsapp me-1"></i> Buka WhatsApp
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Delete Confirmation Modal -->
     <div class="modal fade" id="deleteConfirmationModal" tabindex="-1" aria-labelledby="deleteConfirmationModalLabel" aria-hidden="true">
@@ -1111,6 +1158,99 @@
                 });
             }
         });
+
+        // ─── WhatsApp Share ───────────────────────────────────────────────────
+
+        function openShareWhatsApp() {
+            // Show modal in loading state
+            const modal = new bootstrap.Modal(document.getElementById('whatsappShareModal'));
+            document.getElementById('waShareLoading').style.display = 'block';
+            document.getElementById('waShareContent').style.display = 'none';
+            document.getElementById('waCopyBtn').style.display = 'none';
+            document.getElementById('waOpenBtn').style.display = 'none';
+            modal.show();
+
+            // Collect current filter values from the filter form
+            const filterForm = document.querySelector('form[action*="daily-reports"]');
+            const params = new URLSearchParams();
+            if (filterForm) {
+                const fields = ['search', 'date_from', 'date_to', 'department', 'section', 'type'];
+                fields.forEach(function(name) {
+                    const el = filterForm.querySelector('[name="' + name + '"]');
+                    if (el && el.value) {
+                        params.set(name, el.value);
+                    }
+                });
+            }
+            // Also pass type from URL if not in form
+            if (!params.has('type')) {
+                const urlType = new URLSearchParams(window.location.search).get('type');
+                if (urlType) params.set('type', urlType);
+            }
+
+            fetch('{{ route("daily-reports.whatsapp-share") }}?' + params.toString(), {
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+            })
+            .then(function(res) {
+                if (!res.ok) throw new Error('Gagal memuat data laporan.');
+                return res.json();
+            })
+            .then(function(data) {
+                document.getElementById('waShareText').value = data.text;
+
+                if (data.limited) {
+                    document.getElementById('waShareLimitText').textContent =
+                        'Menampilkan 30 dari ' + data.count + ' laporan. Gunakan filter lebih spesifik untuk hasil lengkap.';
+                    document.getElementById('waShareLimitAlert').style.display = 'block';
+                } else {
+                    document.getElementById('waShareLimitAlert').style.display = 'none';
+                }
+
+                const waUrl = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(data.text);
+                document.getElementById('waOpenBtn').href = waUrl;
+
+                document.getElementById('waShareLoading').style.display = 'none';
+                document.getElementById('waShareContent').style.display = 'block';
+                document.getElementById('waCopyBtn').style.display = 'inline-block';
+                document.getElementById('waOpenBtn').style.display = 'inline-block';
+            })
+            .catch(function(err) {
+                document.getElementById('waShareLoading').innerHTML =
+                    '<div class="alert alert-danger border-0"><i class="fas fa-exclamation-circle me-2"></i>' + err.message + '</div>';
+            });
+        }
+
+        function copyWaText() {
+            const textarea = document.getElementById('waShareText');
+            textarea.select();
+            textarea.setSelectionRange(0, 99999);
+            try {
+                navigator.clipboard.writeText(textarea.value).then(function() {
+                    showCopyFeedback();
+                }).catch(function() {
+                    document.execCommand('copy');
+                    showCopyFeedback();
+                });
+            } catch (e) {
+                document.execCommand('copy');
+                showCopyFeedback();
+            }
+        }
+
+        function showCopyFeedback() {
+            const btn = document.getElementById('waCopyBtn');
+            const original = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check me-1"></i> Tersalin!';
+            btn.classList.replace('btn-outline-dark', 'btn-success');
+            setTimeout(function() {
+                btn.innerHTML = original;
+                btn.classList.replace('btn-success', 'btn-outline-dark');
+            }, 2000);
+        }
+
+        // Make functions accessible globally
+        window.openShareWhatsApp = openShareWhatsApp;
+        window.copyWaText = copyWaText;
     </script>
     @endpush
 </x-app-layout>

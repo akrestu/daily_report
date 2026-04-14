@@ -1717,4 +1717,213 @@ class DailyReportController extends Controller
 
         return null;
     }
+
+    /**
+     * Generate WhatsApp share text for filtered reports.
+     * Only available for users Level 3+ and admin.
+     */
+    public function whatsappShare(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user->isAdmin() && $user->getRoleLevel() < 3) {
+            abort(403, 'Fitur ini hanya tersedia untuk Level 3 ke atas.');
+        }
+
+        $validated = $request->validate([
+            'search'      => 'nullable|string|max:255',
+            'department'  => 'nullable|exists:departments,id',
+            'section'     => 'nullable|exists:sections,id',
+            'date_from'   => 'nullable|date',
+            'date_to'     => 'nullable|date|after_or_equal:date_from',
+            'type'        => 'nullable|in:approved,rejected',
+        ]);
+
+        $reportType = $validated['type'] ?? 'approved';
+
+        $query = DailyReport::with(['user', 'department', 'pic', 'approver', 'jobSite', 'section'])
+            ->whereNotNull('approved_by');
+
+        if ($reportType === 'approved') {
+            $query->where('approval_status', 'approved');
+        } elseif ($reportType === 'rejected') {
+            $query->where('approval_status', 'rejected');
+        }
+
+        // Role-based department/jobsite visibility (same as index())
+        if (!$user->isAdmin() && !$user->isLevel8() && $user->department_id) {
+            $query->whereHas('user', function ($q) use ($user) {
+                $q->where('department_id', $user->department_id);
+            });
+        }
+
+        if (!$user->isAdmin() && !$user->isLevel8() && $user->job_site_id) {
+            $query->where('job_site_id', $user->job_site_id);
+        } elseif ($user->isLevel8() && $user->job_site_id) {
+            $query->where('job_site_id', $user->job_site_id);
+        }
+
+        if (!$user->isAdmin() && $user->getRoleLevel() >= 1 && $user->getRoleLevel() <= 4) {
+            $allowedRoleIds = Role::whereIn('slug', ['level1', 'level2', 'level3', 'level4'])->pluck('id')->toArray();
+            if (!empty($allowedRoleIds)) {
+                $query->whereHas('user', function ($q) use ($allowedRoleIds) {
+                    $q->whereIn('role_id', $allowedRoleIds);
+                });
+            }
+        }
+
+        if (!empty($validated['search'])) {
+            $query->where('job_name', 'like', "%{$validated['search']}%");
+        }
+
+        if (!empty($validated['department'])) {
+            $query->where('department_id', $validated['department']);
+        }
+
+        if (!empty($validated['section'])) {
+            $query->where('section_id', $validated['section']);
+        }
+
+        if (!empty($validated['date_from'])) {
+            $query->whereDate('report_date', '>=', $validated['date_from']);
+        }
+
+        if (!empty($validated['date_to'])) {
+            $query->whereDate('report_date', '<=', $validated['date_to']);
+        }
+
+        $total = $query->count();
+        $limited = $total > 30;
+        $reports = $query->orderBy('report_date', 'desc')->limit(30)->get();
+
+        $text = $this->formatWhatsAppText($reports, $validated, $reportType, $total);
+
+        return response()->json([
+            'text'    => $text,
+            'count'   => $total,
+            'limited' => $limited,
+        ]);
+    }
+
+    /**
+     * Format a collection of DailyReports into a WhatsApp-ready text (ringkas/brief).
+     */
+    private function formatWhatsAppText($reports, array $filters, string $reportType, int $total): string
+    {
+        $indonesianMonths = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember',
+        ];
+
+        $formatDate = function ($date) use ($indonesianMonths) {
+            if (!$date) return '-';
+            $d = \Carbon\Carbon::parse($date);
+            return $d->day . ' ' . $indonesianMonths[$d->month] . ' ' . $d->year;
+        };
+
+        // ── Header: Date label ────────────────────────────────────────────────
+        if (!empty($filters['date_from']) && !empty($filters['date_to'])) {
+            $dateLabel = $filters['date_from'] === $filters['date_to']
+                ? $formatDate($filters['date_from'])
+                : $formatDate($filters['date_from']) . ' – ' . $formatDate($filters['date_to']);
+        } elseif (!empty($filters['date_from'])) {
+            $dateLabel = 'Mulai ' . $formatDate($filters['date_from']);
+        } elseif (!empty($filters['date_to'])) {
+            $dateLabel = 'S.d. ' . $formatDate($filters['date_to']);
+        } else {
+            $dateLabel = 'Semua Tanggal';
+        }
+
+        // ── Header: Department label ──────────────────────────────────────────
+        $deptLabel = null;
+        if (!empty($filters['department'])) {
+            $dept = \App\Models\Department::find($filters['department']);
+            $deptLabel = $dept ? $dept->name : null;
+        } elseif ($reports->isNotEmpty() && $reports->first()->department) {
+            $firstDept = $reports->first()->department->name;
+            $deptLabel = $reports->every(fn($r) => optional($r->department)->name === $firstDept)
+                ? $firstDept
+                : 'Semua Departemen';
+        }
+
+        // ── Header: JobSite label ─────────────────────────────────────────────
+        $siteLabel = null;
+        if ($reports->isNotEmpty() && $reports->first()->jobSite) {
+            $firstSite = $reports->first()->jobSite->name;
+            $siteLabel = $reports->every(fn($r) => optional($r->jobSite)->name === $firstSite)
+                ? $firstSite
+                : null;
+        }
+
+        $typeLabel    = $reportType === 'approved' ? '✅ Disetujui' : '❌ Ditolak';
+        $displayTotal = $total > 30 ? "30 dari {$total}" : (string) $total;
+
+        // ── Build header block ────────────────────────────────────────────────
+        $lines   = [];
+        $lines[] = '*📋 SiGAP (Sistem Giat Aktivitas Pekerjaan) Daily Reports*';
+        $lines[] = '';
+        $lines[] = '📅 *Periode:* ' . $dateLabel;
+        if ($deptLabel) {
+            $lines[] = '🏢 *Departemen:* ' . $deptLabel;
+        }
+        if ($siteLabel) {
+            $lines[] = '📍 *Job Site:* ' . $siteLabel;
+        }
+        $lines[] = '📊 *Status:* ' . $typeLabel;
+        $lines[] = '🗂 *Total:* ' . $displayTotal . ' Laporan';
+
+        // ── Build each report entry ───────────────────────────────────────────
+        foreach ($reports as $i => $report) {
+            $lines[] = '';
+
+            // Number + Job Name (bold)
+            $lines[] = '*' . ($i + 1) . '. ' . $report->job_name . '*';
+
+            // Approval & work status on one line
+            $approvalBadge = match ($report->approval_status) {
+                'approved' => '✅ Disetujui',
+                'rejected' => '❌ Ditolak',
+                default    => '⏳ Pending',
+            };
+            $statusBadge = match ($report->status) {
+                'completed'   => '✅ Selesai',
+                'in_progress' => '❌ Dalam Proses',
+                default       => '⏳ Belum Mulai',
+            };
+            $lines[] = $approvalBadge . '  │  ' . $statusBadge;
+
+            // Detail lines with tree characters
+            $picName     = optional($report->pic)->name ?? '-';
+            $creatorName = optional($report->user)->name ?? '-';
+            $sectionName = optional($report->section)->name ?? '-';
+
+            $lines[] = '┌ 👤 *PIC:* ' . $picName;
+            $lines[] = '├ 👷 *Dibuat oleh:* ' . $creatorName;
+            $lines[] = '└ 📂 *Section:* ' . $sectionName;
+
+            // Attachments — each URL on its own line so WhatsApp renders it as a clickable link
+            $attachmentPaths = array_filter([
+                $report->attachment_path,
+                $report->attachment_path_2,
+                $report->attachment_path_3,
+            ]);
+
+            if (!empty($attachmentPaths)) {
+                $attIndex = 1;
+                foreach ($attachmentPaths as $path) {
+                    $url     = url('/storage/attachments/' . basename($path));
+                    $label   = 'Attachment ' . str_pad((string) $attIndex, 2, '0', STR_PAD_LEFT);
+                    $lines[] = '📎 *' . $label . ':*';
+                    $lines[] = $url;
+                    $attIndex++;
+                }
+            }
+        }
+
+        $lines[] = '';
+        $lines[] = '_*SiGAP* 2026 - Managed by super team HRGA_';
+
+        return implode("\n", $lines);
+    }
 }
