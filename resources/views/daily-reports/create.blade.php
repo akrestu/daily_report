@@ -96,29 +96,24 @@
                         </div>
                         
                         <div class="row mb-4">
-                            <!-- Job Department -->
+                            <!-- Job Department (auto-filled, read-only) -->
                             <div class="col-lg-6 col-md-12 mb-3 mb-lg-0">
-                                <label for="department_id_0" class="form-label fw-medium">Department <span class="text-danger">*</span></label>
+                                <label class="form-label fw-medium">Department</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-white"><i class="fas fa-building text-primary"></i></span>
-                                    <select
-                                        class="form-select department-select @error('reports.0.department_id') is-invalid @enderror"
-                                        id="department_id_0"
-                                        name="reports[0][department_id]"
-                                        data-index="0"
-                                        required
+                                    <input
+                                        type="text"
+                                        class="form-control bg-light department-display"
+                                        value="{{ auth()->user()->department->name ?? '-' }}"
+                                        readonly
                                     >
-                                        <option value="">Select department</option>
-                                        @foreach ($departments ?? [] as $id => $name)
-                                            <option value="{{ $id }}" {{ old('reports.0.department_id', auth()->user()->department_id ?? '') == $id ? 'selected' : '' }}>
-                                                {{ $name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
+                                    <input
+                                        type="hidden"
+                                        name="reports[0][department_id]"
+                                        value="{{ auth()->user()->department_id }}"
+                                        class="department-id-hidden"
+                                    >
                                 </div>
-                                @error('reports.0.department_id')
-                                <div class="text-danger small mt-1">{{ $message }}</div>
-                                @enderror
                             </div>
 
                             <!-- Job Site -->
@@ -475,141 +470,76 @@
             const spinner = document.getElementById('saveSpinner');
 
             form.addEventListener('submit', function() {
-                // Show spinner
                 spinner.classList.remove('d-none');
-
-                // Disable button to prevent double submission
                 saveButton.disabled = true;
             });
 
-            // Function to load sections based on department
-            function loadSections(departmentId, sectionSelect) {
-                if (!departmentId) {
-                    sectionSelect.innerHTML = '<option value="">Select section (optional)</option>';
-                    return;
-                }
-
-                fetch(`{{ route('sections.by-department') }}?department_id=${departmentId}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        sectionSelect.innerHTML = '<option value="">Select section (optional)</option>';
-                        data.forEach(section => {
-                            const option = document.createElement('option');
-                            option.value = section.id;
-                            option.textContent = section.name;
-                            sectionSelect.appendChild(option);
-                        });
-                    })
-                    .catch(error => {
-                        console.error('Error loading sections:', error);
-                        sectionSelect.innerHTML = '<option value="">Select section (optional)</option>';
-                    });
-            }
-
-            // Setup department change listeners
-            function setupDepartmentListener(departmentSelect) {
-                departmentSelect.addEventListener('change', function() {
-                    const index = this.getAttribute('data-index');
-                    const sectionSelect = document.getElementById(`section_id_${index}`);
-                    if (sectionSelect) {
-                        loadSections(this.value, sectionSelect);
-                    }
-                });
-            }
-
-            // Setup all existing department selects
-            document.querySelectorAll('.department-select').forEach(setupDepartmentListener);
-            
             // Add new report form
             addButton.addEventListener('click', function() {
                 reportIndex++;
                 const newIndex = reportIndex;
-                
+
                 // Clone the first form as a template
                 const template = document.querySelector('.report-form').cloneNode(true);
-                
-                // Update form index and titles
+
+                // Update form index and title (preserve icon)
                 template.setAttribute('data-index', newIndex);
-                template.querySelector('.report-title').textContent = `Report #${newIndex + 1}`;
-                
-                // Enable remove button for all but the first form
+                template.querySelector('.report-title').innerHTML =
+                    `<i class="fas fa-clipboard-list me-2"></i>Report #${newIndex + 1}`;
+
+                // Enable remove button
                 const removeButton = template.querySelector('.remove-form');
                 removeButton.classList.remove('d-none');
-                
+
                 // Update all input names and ids
                 template.querySelectorAll('input, select, textarea').forEach(function(input) {
                     const name = input.getAttribute('name');
                     if (name) {
                         input.setAttribute('name', name.replace(/\[0\]/g, `[${newIndex}]`));
                     }
-                    
+
                     const id = input.getAttribute('id');
                     if (id) {
                         const newId = id.replace(/_0$/, `_${newIndex}`);
                         input.setAttribute('id', newId);
-                        
-                        // Update associated labels
+
                         const label = template.querySelector(`label[for="${id}"]`);
                         if (label) {
                             label.setAttribute('for', newId);
                         }
                     }
-                    
-                    // Clear values except for status
-                    if (!input.getAttribute('name').includes('[status]')) {
+
+                    // Clear values except status and hidden department id
+                    const currentName = input.getAttribute('name') || '';
+                    if (!currentName.includes('[status]')) {
                         if (input.tagName === 'SELECT') {
                             input.selectedIndex = 0;
                         } else if (input.type === 'radio') {
-                            if (input.value === 'pending') {
-                                input.checked = true;
-                            } else {
-                                input.checked = false;
-                            }
-                        } else if (input.type !== 'hidden' && input.type !== 'radio') {
+                            input.checked = (input.value === 'pending');
+                        } else if (input.type === 'file') {
+                            // file inputs cannot be cleared programmatically (browser restriction)
+                        } else if (input.type !== 'hidden' && !input.readOnly) {
                             input.value = '';
                         }
                     }
                 });
-                
+
                 // Set default report date
                 const reportDateInput = template.querySelector(`input[name="reports[${newIndex}][report_date]"]`);
                 if (reportDateInput) {
                     reportDateInput.value = new Date().toISOString().split('T')[0];
                 }
-                
-                // Make sure status buttons have the same classes for responsiveness
+
+                // Make sure status buttons have responsive classes
                 template.querySelectorAll('.btn-outline-warning, .btn-outline-info, .btn-outline-success').forEach(function(btn) {
                     if (btn.classList.contains('py-3')) {
                         btn.classList.remove('py-3');
                         btn.classList.add('py-2', 'py-md-3');
                     }
                 });
-                
-                // Ensure the job status container has responsive classes
-                const statusContainer = template.querySelector('.d-flex:not(.align-items-center):not(.justify-content-between)');
-                if (statusContainer && !statusContainer.classList.contains('flex-column')) {
-                    statusContainer.classList.remove('gap-3');
-                    statusContainer.classList.add('flex-column', 'flex-md-row', 'gap-2', 'gap-md-3');
-                }
-
-                // Update data-index for department and section selects
-                const departmentSelect = template.querySelector('.department-select');
-                if (departmentSelect) {
-                    departmentSelect.setAttribute('data-index', newIndex);
-                }
-
-                const sectionSelect = template.querySelector('.section-select');
-                if (sectionSelect) {
-                    sectionSelect.setAttribute('data-index', newIndex);
-                }
 
                 // Add to container
                 container.appendChild(template);
-
-                // Setup department change listener for new form
-                if (departmentSelect) {
-                    setupDepartmentListener(departmentSelect);
-                }
 
                 // Scroll to the new form
                 template.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -617,7 +547,7 @@
                 // Setup remove button
                 setupRemoveButton(template.querySelector('.remove-form'));
             });
-            
+
             // Setup remove buttons function
             function setupRemoveButton(button) {
                 button.addEventListener('click', function() {
@@ -625,7 +555,7 @@
                     deleteModal.show();
                 });
             }
-            
+
             // Handle confirm delete
             document.getElementById('confirmRemoveReport').addEventListener('click', function() {
                 if (formToDelete) {
@@ -634,7 +564,7 @@
                     deleteModal.hide();
                 }
             });
-            
+
             // Setup existing remove buttons
             document.querySelectorAll('.remove-form').forEach(setupRemoveButton);
         });

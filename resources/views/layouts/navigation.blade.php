@@ -51,6 +51,7 @@
                 </a>
             </li>
             
+            @if(!auth()->user()->isAdmin())
             <li class="nav-item mb-3">
                 <span class="sidebar-heading px-3 py-2 text-uppercase fw-bold text-white-50 small d-block">Reports</span>
             </li>
@@ -65,7 +66,7 @@
             </li>
             @endif
 
-            @if(auth()->user()->isAdmin() || auth()->user()->getRoleLevel() >= 2)
+            @if(auth()->user()->getRoleLevel() >= 2)
             <li class="nav-item mb-2">
                 <a class="nav-link rounded-pill {{ request()->routeIs('daily-reports.pending') ? 'active bg-white text-primary' : 'text-white' }}"
                    href="{{ route('daily-reports.pending') }}">
@@ -75,7 +76,7 @@
             </li>
             @endif
 
-            @if(auth()->user()->isAdmin() || auth()->user()->getRoleLevel() >= 2)
+            @if(auth()->user()->getRoleLevel() >= 2)
             <li class="nav-item mb-2">
                 <a class="nav-link rounded-pill {{ request()->routeIs('daily-reports.assigned-jobs') ? 'active bg-white text-primary' : 'text-white' }}"
                    href="{{ route('daily-reports.assigned-jobs') }}">
@@ -102,7 +103,7 @@
                     <span>All Reports</span>
                 </a>
             </li>
-            
+
             @if(!auth()->user()->isLevel8())
             <li class="nav-item mb-3">
                 <span class="sidebar-heading px-3 py-2 text-uppercase fw-bold text-white-50 small d-block">Organization</span>
@@ -115,6 +116,7 @@
                     <span>Team Structure</span>
                 </a>
             </li>
+            @endif
             @endif
 
             @if(auth()->check() && auth()->user()->isAdmin())

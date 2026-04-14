@@ -151,13 +151,29 @@ class DailyReportForm extends Component
         // Get role IDs for eligible slugs
         $eligibleRoleIds = Role::whereIn('slug', $eligibleRoleSlugs)->pluck('id');
 
-        // Get users with eligible roles from the SAME DEPARTMENT, excluding self (no self-PIC)
-        $query = User::whereIn('role_id', $eligibleRoleIds)
-            ->where('id', '!=', $user->id)
-            ->where('department_id', $user->department_id) // Filter by same department
-            ->get();
+        // Level 8 users can be selected cross-department (same job_site only)
+        $hasLevel8Eligible = in_array('level8', $eligibleRoleSlugs);
+        $level8RoleId = $hasLevel8Eligible ? Role::where('slug', 'level8')->value('id') : null;
 
-        $this->eligiblePics = $query;
+        // Get users with eligible roles, excluding self (no self-PIC)
+        $this->eligiblePics = User::whereIn('role_id', $eligibleRoleIds)
+            ->where('id', '!=', $user->id)
+            ->where(function ($q) use ($user, $hasLevel8Eligible, $level8RoleId) {
+                if ($hasLevel8Eligible && $level8RoleId) {
+                    // Level 8 PICs: same job_site, any department
+                    $q->where(function ($q2) use ($user, $level8RoleId) {
+                        $q2->where('role_id', $level8RoleId)
+                           ->where('job_site_id', $user->job_site_id);
+                    })->orWhere(function ($q2) use ($user, $level8RoleId) {
+                        // Non-Level 8 PICs: same department only
+                        $q2->where('role_id', '!=', $level8RoleId)
+                           ->where('department_id', $user->department_id);
+                    });
+                } else {
+                    $q->where('department_id', $user->department_id);
+                }
+            })
+            ->get();
 
         // If we have a current PIC and they're not in the eligible list, add them
         if ($currentPicId) {

@@ -38,7 +38,8 @@
       "Bash(del:*)",
       "Read(//d/COMPANY_DATA/**)",
       "Bash(_DATABASE/04_APPLICATION/SiGAP/bootstrap -name \"*.php\" -type f)",
-      "Bash(wc -l app/Models/*.php)"
+      "Bash(wc -l app/Models/*.php)",
+      "Bash(_DATABASE/04_APPLICATION/SiGAP -type f -name \"*.php\")"
     ],
     "deny": [],
     "ask": []

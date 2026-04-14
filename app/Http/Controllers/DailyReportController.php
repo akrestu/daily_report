@@ -636,11 +636,11 @@ class DailyReportController extends Controller
                     }
                 }
 
-                // Create the report
+                // Create the report (department_id always from authenticated user, not request)
                 DailyReport::create([
                     'user_id' => $user->id,
                     'job_name' => $reportData['job_name'],
-                    'department_id' => $reportData['department_id'],
+                    'department_id' => $user->department_id,
                     'job_site_id' => $reportData['job_site_id'] ?? null,
                     'section_id' => $reportData['section_id'] ?? null,
                     'job_pic' => $reportData['job_pic'],
@@ -956,27 +956,8 @@ class DailyReportController extends Controller
 
             $dailyReport->approved_by = Auth::id();
             $dailyReport->save();
-            
-            // Create notification for the report owner
-            if ($reportOwner) {
-                $notificationType = $validated['status'] === 'approved' ? 'job_approved' : 'job_rejected';
-                $message = $validated['status'] === 'approved' 
-                    ? "Your job report '{$dailyReport->job_name}' has been approved by {$user->name}."
-                    : "Your job report '{$dailyReport->job_name}' has been rejected by {$user->name}.";
-                
-                if ($validated['status'] === 'rejected' && isset($validated['rejection_reason'])) {
-                    $message .= " Reason: {$validated['rejection_reason']}";
-                }
-                
-                Notification::create([
-                    'user_id' => $reportOwner->id,
-                    'daily_report_id' => $dailyReport->id,
-                    'type' => $notificationType,
-                    'message' => $message,
-                    'is_read' => false,
-                ]);
-            }
-            
+            // Notification is handled automatically by DailyReportObserver
+
             DB::commit();
 
             $successMessage = 'Daily report ' . $validated['status'] . ' successfully.';
@@ -1273,17 +1254,7 @@ class DailyReportController extends Controller
                         'rejection_reason' => null, // Clear any rejection reason
                         'status' => 'completed' // Update job status to completed when approved
                     ]);
-
-                    // Create notification for report owner
-                    if ($report->user_id) {
-                        Notification::create([
-                            'user_id' => $report->user_id,
-                            'daily_report_id' => $report->id,
-                            'type' => 'job_approved',
-                            'message' => "Your job report '{$report->job_name}' has been approved by {$user->name}.",
-                            'is_read' => false,
-                        ]);
-                    }
+                    // Notification is handled automatically by DailyReportObserver
 
                     // Audit log
                     Log::info('Batch approval: Report approved', [
@@ -1443,17 +1414,7 @@ class DailyReportController extends Controller
                         'approved_by' => $user->id,
                         'rejection_reason' => $rejectionReason
                     ]);
-
-                    // Create notification for report owner
-                    if ($report->user_id) {
-                        Notification::create([
-                            'user_id' => $report->user_id,
-                            'daily_report_id' => $report->id,
-                            'type' => 'job_rejected',
-                            'message' => "Your job report '{$report->job_name}' has been rejected by {$user->name}. Reason: {$rejectionReason}",
-                            'is_read' => false,
-                        ]);
-                    }
+                    // Notification is handled automatically by DailyReportObserver
 
                     // Audit log
                     Log::info('Batch rejection: Report rejected', [

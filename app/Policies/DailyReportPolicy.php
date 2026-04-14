@@ -84,9 +84,9 @@ class DailyReportPolicy
 
             // Level 1 can only view:
             // 1. Their own reports (already checked above)
-            // 2. Completed/approved reports in their department (for reference)
+            // 2. Approved reports in their department (for reference)
             if ($user->isLevel1()) {
-                return in_array($dailyReport->approval_status, ['approved_by_department_head', 'completed']);
+                return $dailyReport->approval_status === 'approved';
             }
         }
 
@@ -161,12 +161,12 @@ class DailyReportPolicy
         if ($user->isLevel8()) {
             // Must be in the same job site
             if ($user->job_site_id && $user->job_site_id === $dailyReport->job_site_id) {
-                // Can approve Level 7 reports
-                return $dailyReport->user?->isLevel7();
+                // Can approve Level 6 and Level 7 reports
+                return $dailyReport->user?->isLevel7() || $dailyReport->user?->isLevel6();
             }
             return false;
         }
 
-        return $user->canApprove($dailyReport->user);
+        return $dailyReport->user && $user->canApprove($dailyReport->user);
     }
 }

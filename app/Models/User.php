@@ -203,14 +203,18 @@ class User extends Authenticatable
             return false;
         }
 
-        // Level 8 can approve Level 6 and Level 7
+        // Level 8 can approve Level 6 and Level 7 (2 levels below)
         if ($approverLevel === 8) {
             return $userLevel === 6 || $userLevel === 7;
         }
 
-        // Level 2-7 can approve reports from one level below
+        // Level 2-7 can approve reports from 1 or 2 levels below
+        // Level 2 only approves Level 1 (no Level 0 exists)
         if ($approverLevel >= 2 && $approverLevel <= 7) {
-            return $userLevel === ($approverLevel - 1);
+            return $userLevel > 0 && (
+                $userLevel === ($approverLevel - 1) ||
+                $userLevel === ($approverLevel - 2)
+            );
         }
 
         return false;
@@ -222,38 +226,37 @@ class User extends Authenticatable
      */
     public function getEligiblePicRoles(): array
     {
-        // Admin cannot be selected as PIC
-        // Level 1: can only select Level 2
+        // Level 1: can select Level 2 and Level 3
         if ($this->isLevel1()) {
-            return ['level2'];
+            return ['level2', 'level3'];
         }
 
-        // Level 2: can only select Level 3
+        // Level 2: can select Level 3 and Level 4
         if ($this->isLevel2()) {
-            return ['level3'];
+            return ['level3', 'level4'];
         }
 
-        // Level 3: can only select Level 4
+        // Level 3: can select Level 4 and Level 5
         if ($this->isLevel3()) {
-            return ['level4'];
+            return ['level4', 'level5'];
         }
 
-        // Level 4: can only select Level 5
+        // Level 4: can select Level 5 and Level 6
         if ($this->isLevel4()) {
-            return ['level5'];
+            return ['level5', 'level6'];
         }
 
-        // Level 5: can only select Level 6
+        // Level 5: can select Level 6 and Level 7
         if ($this->isLevel5()) {
-            return ['level6'];
+            return ['level6', 'level7'];
         }
 
-        // Level 6: can select Level 7 or Level 8 (within same job site)
+        // Level 6: can select Level 7 and Level 8 (Level 8 is cross-department, same job site)
         if ($this->isLevel6()) {
             return ['level7', 'level8'];
         }
 
-        // Level 7: can select Level 8 (within same job site)
+        // Level 7: can select Level 8 (cross-department, same job site)
         if ($this->isLevel7()) {
             return ['level8'];
         }

@@ -82,14 +82,12 @@ class DailyReportObserver
      */
     private function notifyApprovers(DailyReport $dailyReport): void
     {
-        // Get role IDs for permission checking
+        // Get admin role ID for fallback notification
         $adminRoleId = Role::where('slug', 'admin')->pluck('id')->first() ?? 1;
-        $departmentHeadRoleId = Role::where('slug', 'department_head')->pluck('id')->first() ?? 2;
-        $leaderRoleId = Role::where('slug', 'leader')->pluck('id')->first() ?? 3;
 
         $approvers = collect();
 
-        // Only notify the assigned PIC (job_pic)
+        // Notify the assigned PIC (job_pic) if set
         if ($dailyReport->job_pic) {
             $picUser = User::find($dailyReport->job_pic);
             if ($picUser && $picUser->id !== $dailyReport->user_id) {
@@ -97,25 +95,7 @@ class DailyReportObserver
             }
         }
 
-        // If PIC is not available or is a staff, also notify leaders in the same department
-        $picUser = User::find($dailyReport->job_pic);
-        if (!$picUser || $picUser->hasRole('staff')) {
-            $departmentLeaders = User::where('role_id', $leaderRoleId)
-                ->where('department_id', $dailyReport->department_id)
-                ->where('id', '!=', $dailyReport->user_id)
-                ->get();
-
-            foreach ($departmentLeaders as $leader) {
-                if (!$approvers->contains('id', $leader->id)) {
-                    $approvers->push($leader);
-                }
-            }
-        }
-
-        // Only notify admin if:
-        // 1. There's no PIC assigned, OR
-        // 2. The PIC is not available (user doesn't exist), OR
-        // 3. It's an escalation scenario (could be added later)
+        // If no PIC assigned, notify admin as fallback
         if (!$dailyReport->job_pic || !User::find($dailyReport->job_pic)) {
             $admins = User::where('role_id', $adminRoleId)
                 ->where('id', '!=', $dailyReport->user_id)
