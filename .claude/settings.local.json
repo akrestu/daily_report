@@ -35,7 +35,10 @@
       "Bash(cmd /c \"if exist public\\storage (echo Storage symlink exists) else (echo Storage symlink NOT exists)\")",
       "Bash(cmd /c \"if exist storage\\app\\public\\attachments (echo Attachments folder exists) else (echo Attachments folder NOT exists)\")",
       "Bash(rm:*)",
-      "Bash(del:*)"
+      "Bash(del:*)",
+      "Read(//d/COMPANY_DATA/**)",
+      "Bash(_DATABASE/04_APPLICATION/SiGAP/bootstrap -name \"*.php\" -type f)",
+      "Bash(wc -l app/Models/*.php)"
     ],
     "deny": [],
     "ask": []

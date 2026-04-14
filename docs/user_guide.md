@@ -1,195 +1,412 @@
-# SiGAP - User Guide
+# SiGAP — Panduan Pengguna
 
-## Introduction
+> Panduan untuk semua pengguna berdasarkan role masing-masing.
 
-SiGAP (Sistem Informasi Giat Aktivitas Pekerjaan) is a web-based application designed to streamline the process of creating, submitting, and tracking daily work activities and reports within your organization. This guide will help you navigate the system and understand how to use its features effectively.
+---
 
-## Getting Started
+## Daftar Isi
 
-### Logging In
-1. Open your web browser and navigate to the application URL
-2. Enter your email address and password
-3. Click the "Login" button
-4. If you've forgotten your password, click "Forgot Password" to reset it
+1. [Login & Awal Penggunaan](#1-login--awal-penggunaan)
+2. [Dashboard](#2-dashboard)
+3. [Panduan per Role](#3-panduan-per-role)
+4. [Membuat Laporan Harian](#4-membuat-laporan-harian)
+5. [Melihat & Mengelola Laporan](#5-melihat--mengelola-laporan)
+6. [Approval Laporan](#6-approval-laporan)
+7. [Komentar pada Laporan](#7-komentar-pada-laporan)
+8. [Notifikasi](#8-notifikasi)
+9. [Organization Chart](#9-organization-chart)
+10. [Import & Export Excel](#10-import--export-excel)
+11. [Profil & Pengaturan](#11-profil--pengaturan)
 
-### Dashboard
-After logging in, you'll be taken to the dashboard, which provides:
-- Summary of your reports (pending, approved, rejected)
-- Recent activity
-- Quick access to common functions
-- Notifications indicator
+---
 
-## Daily Reports
+## 1. Login & Awal Penggunaan
 
-### Creating a New Report
-1. Click on "Daily Reports" in the navigation menu
-2. Click "Create New Report" button
-3. Fill in the required fields:
-   - Job Name
-   - Department
-   - Report Date
-   - Due Date
-   - Person In Charge (PIC)
-   - Description
-   - Status (Pending, In Progress, Completed)
-4. Optionally add remarks and attach a file
-5. Click "Submit" to create the report
+1. Buka browser dan akses URL aplikasi SiGAP
+2. Masukkan **Email** dan **Password**
+3. Klik tombol **Login**
 
-### Viewing Your Reports
-1. Go to "Daily Reports" → "My Jobs"
-2. Use filters to narrow down results by date, status, etc.
-3. Click on a report to view its details
+Setelah login, Anda akan diarahkan ke **Dashboard** yang menampilkan ringkasan aktivitas sesuai role Anda.
 
-### Viewing Report Details
-When you open a report, you'll see:
-- **Report Header**: Job name, department, dates, and status badges
-- **Report Information**: PIC, creator, dates, and action buttons
-- **Tabbed Content** (in order):
-  1. **Desc**: Full description of the work activity
-  2. **Remarks**: Additional notes or remarks about the report
-  3. **Comments**: Discussion thread where users can post and view comments
-  4. **Reject** (if applicable): Rejection reason when a report has been rejected
-- **Attachments**: Download section for any uploaded files (up to 3 files)
-- **Approval Actions**: Approve/reject buttons (visible only to authorized users)
+### Pengaturan Awal yang Disarankan
 
-### Editing a Report
-1. Open the report you wish to edit
-2. Click the "Edit" button (only available for pending reports)
-3. Make your changes
-4. Click "Update" to save
+Setelah pertama kali login:
+1. Update profil Anda: klik nama/avatar di pojok kanan atas → **Profile**
+2. Atur foto profil (opsional)
+3. Atur preferensi notifikasi sesuai kebutuhan
 
-### Deleting a Report
-1. Open the report you wish to delete
-2. Click the "Delete" button (only available for pending reports)
-3. Confirm the deletion
+---
 
-## Approvals
+## 2. Dashboard
 
-### Submitting for Approval
-Reports are automatically submitted for approval upon creation.
+Dashboard menampilkan informasi berbeda berdasarkan role:
 
-### Approving Reports (for Department Heads and Leaders)
-1. Go to "Daily Reports" → "Pending Approvals"
-2. Review the reports awaiting your approval
-3. Click "Approve" or "Reject" for each report
-4. If rejecting, provide a reason for rejection
+| Informasi | Level 1-4 | Level 5-7 | Level 8 | Admin |
+|-----------|-----------|-----------|---------|-------|
+| Statistik laporan pribadi | ✓ | ✓ | ✓ | ✓ |
+| Statistik departemen | — | ✓ | — | ✓ |
+| Statistik seluruh sistem | — | — | — | ✓ |
+| Laporan mendesak (due date) | ✓ | ✓ | ✓ | ✓ |
+| Chart tren laporan | ✓ | ✓ | ✓ | ✓ |
+| Top performers | — | ✓ | ✓ | ✓ |
 
-### Batch Approvals
-1. Go to "Daily Reports" → "Pending Approvals"
-2. Select multiple reports using the checkboxes
-3. Click "Batch Approve" or "Batch Reject"
-4. Confirm your action
+---
 
-## Organization Chart
+## 3. Panduan per Role
 
-### Viewing Team Structure
-1. Click on "Organization" → "Team Structure" in the navigation menu
-2. View your department's organizational hierarchy
-3. The chart displays:
-   - User names and profile pictures
-   - Hierarchical levels (Level 5 down to Level 1)
-   - Visual connections showing reporting lines
-   - Color-coded role indicators
+### Level 1 — Pelaksana / Field Worker
 
-### Understanding Role Levels
-The organization chart uses a color-coded legend:
-- **Level 5 (Blue)**: Highest approval authority in the department
-- **Level 4 (Cyan)**: Mid-high management level
-- **Level 3 (Yellow)**: Mid-level management
-- **Level 2 (Green)**: Team leaders
-- **Level 1 (Gray)**: Entry-level staff
+**Bisa:**
+- Membuat laporan harian dan menugaskan PIC ke Level 2
+- Melihat laporan milik sendiri
+- Melihat laporan yang sudah completed/approved di departemen (referensi)
+- Mengedit/menghapus laporan sendiri yang masih `pending`
+- Menambahkan komentar pada laporan yang bisa dilihat
 
-**Note**: System administrators are not shown in the organizational hierarchy as they manage the system rather than operational workflows.
+**Tidak bisa:**
+- Meng-approve laporan siapapun
+- Menjadi PIC (Level 1 tidak bisa jadi PIC)
+- Melihat laporan milik Level 2 ke atas
 
-## Comments
+---
 
-### Adding Comments to Reports
-1. Open the report
-2. Click on the "Comments" tab
-3. Type your comment in the text box
-4. Click "Post Comment"
-5. Your comment will appear immediately in the comments section
+### Level 2 — Supervisor / Koordinator
 
-### Deleting Comments
-1. Find your comment in the comments section
-2. Click the delete icon (trash can)
-3. Confirm deletion
+**Bisa:**
+- Membuat laporan dan menugaskan PIC ke Level 3
+- Meng-approve laporan dari Level 1
+- Melihat semua laporan Level 1 di departemen yang sama
+- Batch approve/reject laporan Level 1
 
-## Import and Export
+**Tidak bisa:**
+- Meng-approve laporan Level 2 ke atas
+- Melihat laporan Level 3 ke atas
 
-### Exporting Reports
-1. Go to "Daily Reports"
-2. Use filters to select the reports you want to export
-3. Click "Export" button
-4. Select your preferred export format
-5. The file will be downloaded to your computer
+---
 
-### Importing Reports
-1. Go to "Daily Reports" → "Import"
-2. Download the import template if needed
-3. Prepare your data in the template format
-4. Click "Choose File" and select your file
-5. Click "Import"
-6. Review any errors or warnings
+### Level 3 — Senior Supervisor
 
-## Profile Management
+**Bisa:**
+- Membuat laporan dan menugaskan PIC ke Level 4
+- Meng-approve laporan dari Level 2
+- Melihat semua laporan Level 1 dan Level 2 di departemen
 
-### Updating Your Profile
-1. Click on your name in the top-right corner
-2. Select "Profile"
-3. Update your information
-4. Click "Save Changes"
+---
 
-### Changing Your Password
-1. Go to your profile
-2. Click "Change Password"
-3. Enter your current password
-4. Enter and confirm your new password
-5. Click "Update Password"
+### Level 4 — Manager Tingkat Pertama
 
-### Updating Profile Picture
-1. Go to your profile
-2. Click on the profile picture or "Change Picture"
-3. Select a new image
-4. Crop if necessary
-5. Click "Save"
+**Bisa:**
+- Membuat laporan dan menugaskan PIC ke Level 5
+- Meng-approve laporan dari Level 3
+- Melihat semua laporan dalam departemen
 
-## Notifications
+---
 
-### Viewing Notifications
-1. Click the bell icon in the top navigation bar
-2. View your notifications in the dropdown
-3. Click "View All" to see all notifications
+### Level 5 — Manager Senior / Kepala Seksi
 
-### Managing Notifications
-1. Click on a notification to go to the related item
-2. Click "Mark as Read" to clear a notification
-3. Click "Mark All as Read" to clear all notifications
+**Bisa:**
+- Membuat laporan dan menugaskan PIC ke Level 6
+- Meng-approve laporan dari Level 4
+- Melihat semua laporan dalam departemen
+- **Batch delete** laporan dalam departemen
 
-## Admin Functions
+---
 
-### User Management (Admin Only)
-1. Go to "Admin" → "Users"
-2. View, create, edit, or delete users
-3. Assign roles and departments
+### Level 6 — Manager Departemen
 
-### Department Management (Admin Only)
-1. Go to "Admin" → "Departments"
-2. View, create, edit, or delete departments
+**Bisa:**
+- Membuat laporan dan menugaskan PIC ke Level 7 atau Level 8
+- Meng-approve laporan dari Level 5
+- Melihat semua laporan dalam departemen
+- Batch delete laporan dalam departemen
 
-## Tips and Best Practices
+---
 
-1. **Regular Updates**: Update your reports regularly to reflect the current status
-2. **Detailed Descriptions**: Provide clear and detailed descriptions for better understanding
-3. **File Attachments**: Attach relevant documents or screenshots when needed
-4. **Comments**: Use comments for clarifications and updates
-5. **Timely Submissions**: Submit reports by the end of each workday
-6. **Check Notifications**: Regularly check your notifications for updates
+### Level 7 — Kepala Departemen
 
-## Troubleshooting
+**Bisa:**
+- Membuat laporan dan menugaskan PIC ke Level 8
+- Meng-approve laporan dari Level 6
+- Melihat semua laporan dalam departemen
+- Batch delete laporan dalam departemen
 
-### Common Issues
-1. **Can't submit a report**: Ensure all required fields are filled in
-2. **File upload error**: Check that your file is under the size limit (5MB) and in an accepted format
-3. **Can't see certain reports**: Verify you have the appropriate permissions
-4. **Report not appearing in exports**: Check your filter settings 
+---
+
+### Level 8 — Direktur / Site Manager
+
+**Bisa:**
+- Meng-approve laporan dari Level 6 DAN Level 7
+- Melihat semua laporan dalam job site yang sama (lintas departemen)
+- Batch delete laporan dalam job site yang sama
+
+**Tidak bisa:**
+- **Membuat laporan baru** (Level 8 adalah role monitoring/approval saja)
+
+> Level 8 memiliki visibilitas lintas departemen selama berada di job site yang sama.
+
+---
+
+### Admin — Administrator Sistem
+
+**Bisa:**
+- Semua yang bisa dilakukan Level 8
+- Meng-approve laporan siapapun
+- Mengelola user, departemen, job site, seksi
+- Mengakses panel admin (`/admin`)
+- Melihat dan menghapus semua laporan di sistem
+- Melakukan cleanup laporan lama
+
+---
+
+## 4. Membuat Laporan Harian
+
+**Catatan:** Level 8 tidak dapat membuat laporan.
+
+### Langkah-langkah
+
+1. Klik **Laporan Harian** di menu sidebar
+2. Klik tombol **Buat Laporan Baru**
+3. Isi form laporan:
+
+| Field | Wajib | Keterangan |
+|-------|-------|------------|
+| Nama Pekerjaan | ✓ | Judul singkat pekerjaan |
+| Departemen | ✓ | Departemen Anda |
+| Job Site | — | Lokasi pekerjaan (opsional) |
+| Seksi | — | Seksi dalam departemen (opsional) |
+| Tanggal Laporan | ✓ | Tanggal pekerjaan |
+| Tanggal Target | ✓ | Deadline (tidak boleh sebelum tanggal laporan) |
+| PIC | ✓ | Person In Charge (atasan Anda) |
+| Status | ✓ | `Pending`, `In Progress`, atau `Completed` |
+| Deskripsi | ✓ | Penjelasan detail pekerjaan |
+| Catatan | — | Catatan tambahan (opsional) |
+| Attachment 1-3 | — | File pendukung (maks 5MB per file) |
+
+4. Klik **Simpan**
+
+### Format Attachment yang Didukung
+
+- Gambar: `.jpg`, `.jpeg`, `.png`, `.gif`, `.svg`
+- Dokumen: `.pdf`, `.doc`, `.docx`
+- Spreadsheet: `.xls`, `.xlsx`
+- Maks ukuran: **5 MB per file**
+- Gambar otomatis dikompresi saat upload
+
+### Membuat Banyak Laporan Sekaligus
+
+Klik **Tambah Laporan Lagi** untuk menambahkan form laporan kedua, ketiga, dst. Semua akan disimpan sekaligus saat klik **Simpan Semua**.
+
+---
+
+## 5. Melihat & Mengelola Laporan
+
+### Tampilan Daftar Laporan
+
+Tersedia beberapa tampilan daftar:
+
+| Menu | Isi |
+|------|-----|
+| **Semua Laporan** | Semua laporan yang bisa Anda lihat (sesuai role) |
+| **Laporan Pending** | Laporan yang menunggu approval dari Anda |
+| **Laporan Saya** | Laporan yang Anda buat |
+| **Laporan Ditugaskan** | Laporan di mana Anda adalah PIC |
+
+### Filter & Pencarian
+
+Di halaman daftar laporan, Anda bisa:
+- **Cari**: berdasarkan nama pekerjaan, deskripsi, atau catatan
+- **Filter Status**: pending, in_progress, completed, rejected
+- **Filter Departemen**: pilih departemen tertentu
+- **Filter Tanggal**: rentang tanggal laporan
+
+### Detail Laporan
+
+Klik nama laporan untuk melihat detail. Halaman detail memiliki tab:
+1. **Deskripsi** — informasi lengkap laporan
+2. **Catatan** — remark tambahan
+3. **Komentar** — diskusi dan komunikasi
+
+### Edit Laporan
+
+Laporan hanya bisa diedit jika:
+- Anda adalah pemilik laporan, DAN
+- Status approval masih `pending`
+
+### Hapus Laporan
+
+- Level 1–4: hanya bisa hapus laporan sendiri yang masih `pending`
+- Level 5–7: bisa hapus laporan dalam departemen sendiri
+- Level 8: bisa hapus laporan dalam job site yang sama
+- Admin: bisa hapus semua laporan
+
+---
+
+## 6. Approval Laporan
+
+### Melihat Laporan yang Perlu Diapprove
+
+Klik **Laporan Pending** di sidebar untuk melihat laporan yang menunggu approval dari Anda.
+
+> Anda hanya akan melihat laporan dari pengguna yang berada **satu level di bawah Anda**.
+> Level 8 melihat laporan dari Level 6 dan Level 7.
+
+### Meng-Approve Laporan
+
+**Cara 1 — Dari halaman detail:**
+1. Buka laporan yang ingin diapprove
+2. Klik tombol **Setujui** (hijau) atau **Tolak** (merah)
+3. Jika menolak, isi alasan penolakan
+4. Konfirmasi
+
+**Cara 2 — Batch Approve:**
+1. Di halaman daftar laporan, centang laporan yang ingin diapprove
+2. Klik **Setujui Terpilih** atau **Tolak Terpilih**
+3. Untuk penolakan massal, isi alasan yang sama untuk semua
+
+### Status Setelah Approval
+
+| Aksi | approval_status | status |
+|------|-----------------|--------|
+| Disetujui | `approved` | `completed` |
+| Ditolak | `rejected` | Tidak berubah |
+
+Pemilik laporan akan menerima notifikasi otomatis.
+
+---
+
+## 7. Komentar pada Laporan
+
+### Menambahkan Komentar
+
+1. Buka halaman detail laporan
+2. Klik tab **Komentar**
+3. Ketik komentar di kolom yang tersedia
+4. Klik **Kirim**
+
+Semua komentar bersifat **publik** — dapat dilihat oleh siapapun yang bisa melihat laporan tersebut.
+
+### Menghapus Komentar
+
+Hanya pemilik komentar atau admin yang bisa menghapus komentar.
+
+### Notifikasi Komentar
+
+Saat Anda menambahkan komentar, notifikasi akan dikirim ke:
+- Pemilik laporan (jika bukan Anda)
+- PIC laporan (jika berbeda dengan pemilik dan Anda)
+- Pengguna yang pernah berkomentar di laporan yang sama (jika belum dinotifikasi)
+
+---
+
+## 8. Notifikasi
+
+### Melihat Notifikasi
+
+Klik ikon **lonceng** di navbar untuk melihat notifikasi terbaru. Badge merah menunjukkan jumlah notifikasi yang belum dibaca.
+
+Klik **Lihat Semua** untuk halaman notifikasi lengkap.
+
+### Tipe Notifikasi
+
+| Tipe | Kapan Diterima |
+|------|----------------|
+| **Laporan Disetujui** | Laporan Anda disetujui atasan |
+| **Laporan Ditolak** | Laporan Anda ditolak atasan |
+| **Menunggu Approval** | Ada laporan baru yang perlu Anda approve |
+| **Komentar Baru** | Ada komentar baru di laporan terkait |
+
+### Mengatur Preferensi Notifikasi
+
+1. Klik nama/avatar Anda di navbar
+2. Pilih **Preferensi Notifikasi**
+3. Aktifkan/nonaktifkan tipe notifikasi yang diinginkan
+4. Klik **Simpan**
+
+Notifikasi email saat ini dalam pengembangan (default: nonaktif).
+
+### Mengelola Notifikasi
+
+- **Tandai Dibaca**: klik satu notifikasi atau "Tandai Semua Dibaca"
+- **Hapus Semua**: klik "Hapus Semua Notifikasi"
+
+---
+
+## 9. Organization Chart
+
+Klik **Org Chart** di sidebar untuk melihat struktur organisasi.
+
+Chart menampilkan:
+- Hierarki Level 1 sampai Level 7 dalam departemen Anda
+- Nama dan role setiap anggota tim
+- Badge warna berbeda per level
+
+> Level 8 dan Admin tidak ditampilkan dalam org chart (bersifat lintas departemen / administratif).
+
+---
+
+## 10. Import & Export Excel
+
+### Export Laporan
+
+**Export laporan Anda:**
+1. Buka halaman **Semua Laporan**
+2. Atur filter jika diperlukan
+3. Klik **Export** untuk export laporan yang ter-filter
+4. Klik **Export Semua** untuk semua laporan
+
+**Format export:** Excel (`.xlsx`) dengan heading dan styling.
+
+### Import Laporan dari Excel
+
+1. Download template terlebih dahulu: klik **Download Template**
+2. Isi template sesuai instruksi pada kolom header
+3. Klik **Import**, pilih file Excel
+4. Klik **Upload**
+
+**Panduan mengisi template:**
+
+| Kolom | Keterangan |
+|-------|------------|
+| `job_name` | Nama pekerjaan (wajib) |
+| `department` | Nama departemen persis seperti di sistem |
+| `job_site` | Nama job site (opsional) |
+| `section` | Nama seksi (opsional) |
+| `status` | `pending`, `in_progress`, atau `completed` |
+| `report_date` | Format: DD/MM/YYYY |
+| `due_date` | Format: DD/MM/YYYY, harus >= report_date |
+| `description` | Deskripsi pekerjaan (wajib) |
+| `remark` | Catatan tambahan (opsional) |
+| `user_id` | User ID dari PIC (lihat daftar user di admin) |
+
+---
+
+## 11. Profil & Pengaturan
+
+### Mengupdate Profil
+
+1. Klik nama/avatar Anda di navbar
+2. Pilih **Profil**
+3. Update nama atau email
+4. Klik **Simpan**
+
+### Upload Foto Profil
+
+1. Di halaman profil, klik area foto profil
+2. Pilih file gambar (JPG, PNG, dll)
+3. Klik **Upload Foto**
+
+Jika tidak ada foto profil, sistem akan menampilkan avatar default berdasarkan inisial nama Anda.
+
+### Mengubah Password
+
+1. Di halaman profil, scroll ke bagian **Ubah Password**
+2. Isi password lama dan password baru (minimal 8 karakter)
+3. Konfirmasi password baru
+4. Klik **Simpan**
+
+### Menghapus Akun
+
+1. Di halaman profil, scroll ke bagian **Hapus Akun**
+2. Klik **Hapus Akun**
+3. Masukkan password untuk konfirmasi
+4. Data Anda akan dihapus permanen

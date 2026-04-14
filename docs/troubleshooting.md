@@ -1,567 +1,606 @@
-# SiGAP - Troubleshooting Guide
+# SiGAP — Troubleshooting
 
-This guide covers common issues you might encounter with SiGAP (Sistem Informasi Giat Aktivitas Pekerjaan) and their solutions.
-
-## Asset Loading Issues
-
-### Issue: Error Loading Resources from Vite Server (port 5173)
-
-**Error Message:**
-```
-GET http://[::1]:5173/resources/css/app.css net::ERR_CONNECTION_REFUSED
-GET http://[::1]:5173/@vite/client net::ERR_CONNECTION_REFUSED
-GET http://[::1]:5173/resources/js/app.js net::ERR_CONNECTION_REFUSED
-```
-
-**Solution:**
-1. **Start the Vite Development Server:**
-   ```bash
-   npm run dev
-   ```
-   This will start the Vite development server on port 5173.
-
-2. **OR Use Production Build:**
-   ```bash
-   npm run build
-   ```
-   Then modify your `.env` file with `APP_ENV=production`
-
-3. **Clear Caches:**
-   ```bash
-   php artisan view:clear
-   php artisan cache:clear
-   php artisan config:clear
-   ```
-   
-### Issue: Assets Not Loading in Production Mode
-
-**Error Message:**
-```
-GET http://example.com/build/assets/app.css net::ERR_ABORTED 404 (Not Found)
-GET http://example.com/build/assets/app.js net::ERR_ABORTED 404 (Not Found)
-```
-
-**Solution:**
-1. **Verify the Build Files Exist:**
-   Check that the files exist in `public/build/assets/` directory
-   
-2. **Rebuild Assets:**
-   ```bash
-   npm run build
-   ```
-   
-3. **Check File Permissions:**
-   Ensure web server has read access to the `public/build` directory
-
-4. **Verify Manifest File:**
-   Check that `public/build/manifest.json` exists and contains the correct paths
-
-## Chart.js Errors
-
-### Issue: Chart Canvas Already in Use
-
-**Error Message:**
-```
-Error initializing trend chart: Error: Canvas is already in use. Chart with ID '0' must be destroyed before the canvas with ID 'reportTrendChart' can be reused.
-```
-
-**Solution:**
-1. **Ensure Single Initialization:**
-   Use a flag to prevent multiple chart initializations:
-   ```javascript
-   if (window.chartInitialized) return;
-   window.chartInitialized = true;
-   ```
-   
-2. **Destroy Existing Charts:**
-   Before creating a new chart, destroy any existing ones:
-   ```javascript
-   const existingChart = Chart.getChart(canvasElement);
-   if (existingChart) {
-       existingChart.destroy();
-   }
-   ```
-   
-3. **Clear Browser Cache:**
-   Hard-refresh your browser (Ctrl+F5 or Command+Shift+R)
-
-### Issue: Chart Elements Not Found
-
-**Error Message:**
-```
-statusChart canvas element not found
-departmentChart canvas element not found
-```
-
-**Solution:**
-1. **Check Element IDs:**
-   Ensure the HTML elements with these IDs exist in your templates
-   
-2. **Delay Chart Initialization:**
-   Wait for DOM to fully load before initializing charts:
-   ```javascript
-   window.addEventListener('DOMContentLoaded', function() {
-       setTimeout(initializeCharts, 300);
-   });
-   ```
-
-## Alpine.js Errors
-
-### Issue: Multiple Instances of Alpine Running
-
-**Error Message:**
-```
-Detected multiple instances of Alpine running
-```
-
-**Solution:**
-1. **Add Alpine Initialization Flag:**
-   ```javascript
-   <script>
-       window.alpineInitialized = false;
-   </script>
-   ```
-   
-2. **Check for Duplicate Alpine.js Imports:**
-   Ensure Alpine.js is only imported once in your application
-   
-3. **Use Livewire Event Handlers:**
-   ```javascript
-   document.addEventListener('livewire:initialized', function() {
-       if (!window.alpineInitialized) {
-           window.alpineInitialized = true;
-       }
-   });
-   ```
-
-## Database Connection Issues
-
-### Issue: Could Not Connect to Database
-
-**Error Message:**
-```
-SQLSTATE[HY000] [2002] Connection refused
-```
-
-**Solution:**
-1. **Check Database Credentials:**
-   Verify credentials in `.env` file
-   
-2. **Ensure Database Server is Running:**
-   Check that MySQL/PostgreSQL service is active
-   
-3. **Check Host and Port:**
-   Verify `DB_HOST` and `DB_PORT` in `.env` file
-
-## File Upload Issues
-
-### Issue: Unable to Upload Files
-
-**Error Message:**
-```
-Post Content Too Large
-```
-
-**Solution:**
-1. **Check PHP Configuration:**
-   Increase limits in php.ini:
-   ```
-   upload_max_filesize = 10M
-   post_max_size = 10M
-   ```
-   
-2. **Check Storage Permissions:**
-   Ensure `storage` directory is writable by web server
-   
-3. **Verify Symbolic Links:**
-   Run `php artisan storage:link` to create symbolic links
-
-## Performance Issues
-
-### Issue: Slow Dashboard Loading
-
-**Solution:**
-1. **Optimize Database Queries:**
-   Check for N+1 query issues and add proper indexing
-   
-2. **Enable Caching:**
-   Implement Redis or Memcached for query caching
-   
-3. **Optimize Asset Loading:**
-   Use production builds to minimize and combine assets
-   
-4. **Enable OPcache:**
-   Enable OPcache in php.ini for better PHP performance
-
-## Cache-Related Issues
-
-### Issue: Changes Not Reflecting After Update
-
-**Solution:**
-1. **Clear All Caches:**
-   ```bash
-   php artisan optimize:clear
-   ```
-   This clears all Laravel caches at once
-   
-2. **Clear Browser Cache:**
-   Hard-refresh your browser (Ctrl+F5 or Command+Shift+R)
-
-## 🖼️ Image Processing Issues
-
-### Error: "GD PHP extension must be installed to use this driver"
-
-This error occurs when the GD extension is not installed or enabled in PHP, which is required for image processing and compression.
-
-#### **Solution 1: Enable GD Extension in XAMPP**
-
-1. **Open php.ini file**:
-   - Location: `C:\xampp\php\php.ini`
-   - Or through XAMPP Control Panel → Apache → Config → PHP (php.ini)
-
-2. **Find and uncomment the GD extension**:
-   ```ini
-   # Find this line (use Ctrl+F):
-   ;extension=gd
-   
-   # Remove the semicolon to enable it:
-   extension=gd
-   ```
-
-3. **Save the file and restart Apache** in XAMPP Control Panel
-
-4. **Verify the extension is loaded**:
-   ```bash
-   php -m | findstr -i gd
-   ```
-
-#### **Solution 2: Alternative PHP Installations**
-
-For other PHP installations:
-
-**Windows (using Chocolatey):**
-```bash
-choco install php --params="/InstallDir:C:\php /EnableGd"
-```
-
-**Linux (Ubuntu/Debian):**
-```bash
-sudo apt-get install php-gd
-sudo systemctl restart apache2
-```
-
-**macOS (using Homebrew):**
-```bash
-brew install php
-# GD is typically included by default
-```
-
-#### **Verification Commands**
-
-After enabling GD extension:
-
-```bash
-# Check if GD is loaded
-php -m | grep -i gd
-
-# Check GD version and supported formats
-php -r "print_r(gd_info());"
-
-# Check specific function availability
-php -r "echo function_exists('imagecreatetruecolor') ? 'GD Available' : 'GD Not Available';"
-```
-
-#### **Fallback Behavior**
-
-The system now includes automatic fallback when GD is not available:
-
-- **With GD**: Images are compressed and resized (max 1920px, 60% quality)
-- **Without GD**: Images are stored as-is without processing
-- **Warning logged**: Check `storage/logs/laravel.log` for fallback notifications
-
-#### **Production Recommendations**
-
-For production environments:
-
-1. **Always enable GD extension** for optimal performance
-2. **Monitor logs** for fallback warnings:
-   ```bash
-   tail -f storage/logs/laravel.log | grep "Image processing failed"
-   ```
-3. **Consider alternative image drivers** if GD is not available:
-   ```php
-   // In config/image.php (if needed)
-   'driver' => env('IMAGE_DRIVER', 'imagick'), // Alternative: imagick
-   ```
-
-## 📁 File Upload Issues
-
-### Large File Upload Problems
-
-If experiencing issues with large file uploads:
-
-1. **Check PHP configuration** in `php.ini`:
-   ```ini
-   upload_max_filesize = 10M
-   post_max_size = 10M
-   max_execution_time = 300
-   memory_limit = 256M
-   ```
-
-2. **Check web server limits** (Apache/Nginx)
-
-3. **Verify Laravel configuration** in `config/filesystems.php`
-
-### Permission Issues
-
-If files cannot be stored:
-
-1. **Check storage permissions**:
-   ```bash
-   # Windows (PowerShell as Administrator)
-   icacls "storage" /grant "IIS_IUSRS:(F)" /t
-   
-   # Linux/Mac
-   chmod -R 755 storage/app/public
-   chown -R www-data:www-data storage/app/public
-   ```
-
-2. **Create symbolic link**:
-   ```bash
-   php artisan storage:link
-   ```
-
-## 🔧 Development Environment Issues
-
-### XAMPP Setup Problems
-
-Common XAMPP issues and solutions:
-
-1. **Port conflicts** (Apache/MySQL already running)
-2. **Permission issues** with htdocs directory
-3. **PHP version compatibility** with Laravel 12
-
-### Node.js and NPM Issues
-
-For frontend compilation problems:
-
-```bash
-# Clear npm cache
-npm cache clean --force
-
-# Remove node_modules and reinstall
-rm -rf node_modules package-lock.json
-npm install
-
-# Verify Node.js version (Laravel 12 requires Node 18+)
-node --version
-```
-
-## 🗄️ Database Issues
-
-### Migration Problems
-
-Common database migration issues:
-
-```bash
-# Reset migrations (CAUTION: This will delete all data)
-php artisan migrate:fresh --seed
-
-# Check migration status
-php artisan migrate:status
-
-# Rollback specific migration
-php artisan migrate:rollback --step=1
-```
-
-### Connection Issues
-
-Database connection problems:
-
-1. **Check `.env` configuration**
-2. **Verify database server is running**
-3. **Test connection manually**:
-   ```bash
-   php artisan tinker
-   DB::connection()->getPdo();
-   ```
-
-## 📧 Email and Notification Issues
-
-### Email Configuration
-
-For email sending problems:
-
-1. **Check mail configuration** in `.env`
-2. **Test email sending**:
-   ```bash
-   php artisan tinker
-   Mail::raw('Test email', function($msg) { $msg->to('test@example.com')->subject('Test'); });
-   ```
-
-### Notification System Issues
-
-If notifications are not working:
-
-1. **Check queue configuration**
-2. **Run queue worker**:
-   ```bash
-   php artisan queue:work
-   ```
-3. **Check notification preferences** in user settings
-
-## 🔍 Performance Issues
-
-### Slow Query Detection
-
-The system automatically logs slow queries (>500ms). Check logs:
-
-```bash
-tail -f storage/logs/laravel.log | grep "Slow query"
-```
-
-### Optimization Commands
-
-Regular maintenance commands:
-
-```bash
-# Clear all caches
-composer run optimize:clear
-
-# Optimize for production
-composer run optimize
-
-# Clear specific caches
-php artisan config:clear
-php artisan route:clear
-php artisan view:clear
-```
-
-## 🔐 Authentication Issues
-
-### User Login Problems
-
-Common authentication issues:
-
-1. **Check user credentials**
-2. **Verify user is active** and has proper role
-3. **Check session configuration**
-
-### Permission Denied Errors
-
-For authorization issues:
-
-1. **Check user roles** and permissions
-2. **Verify middleware** is properly configured
-3. **Check policy definitions**
-
-## 🧪 Testing and Debugging
-
-### Debug Mode
-
-Enable debug mode for development:
-
-```env
-APP_DEBUG=true
-APP_ENV=local
-```
-
-### Log Monitoring
-
-Monitor application logs:
-
-```bash
-# Real-time log monitoring
-tail -f storage/logs/laravel.log
-
-# Search for specific errors
-grep -i "error" storage/logs/laravel.log
-
-# Check slow queries
-grep "Slow query" storage/logs/laravel.log
-```
-
-### Common Error Messages
-
-**"Class not found"**:
-```bash
-composer dump-autoload
-```
-
-**"Route not found"**:
-```bash
-php artisan route:clear
-php artisan route:cache
-```
-
-**"View not found"**:
-```bash
-php artisan view:clear
-```
-
-## 🆘 Getting Help
-
-### Debug Information Collection
-
-When reporting issues, include:
-
-1. **PHP version**: `php --version`
-2. **Laravel version**: `php artisan --version`
-3. **Composer version**: `composer --version`
-4. **Node.js version**: `node --version`
-5. **Error logs**: Check `storage/logs/laravel.log`
-6. **Browser console errors** (for frontend issues)
-
-### Log Analysis
-
-Key areas to check:
-
-- Application logs: `storage/logs/laravel.log`
-- Web server logs: XAMPP logs directory
-- Database logs: Check database server logs
-- PHP error logs: Check PHP error log location
+> Panduan diagnosis dan solusi masalah umum pada aplikasi SiGAP.
 
 ---
 
-## Quick Reference Commands
+## Daftar Isi
+
+1. [Notifikasi Tidak Terkirim](#1-notifikasi-tidak-terkirim)
+2. [File Upload Gagal / Gambar Tidak Terkompresi](#2-file-upload-gagal--gambar-tidak-terkompresi)
+3. [Foto Profil Tampil sebagai Avatar Default](#3-foto-profil-tampil-sebagai-avatar-default)
+4. [Tombol Approve Tidak Muncul / Unauthorized](#4-tombol-approve-tidak-muncul--unauthorized)
+5. [Laporan Tidak Terlihat oleh Atasan](#5-laporan-tidak-terlihat-oleh-atasan)
+6. [Dropdown Seksi Kosong di Form Laporan](#6-dropdown-seksi-kosong-di-form-laporan)
+7. [Masalah Login & Sesi](#7-masalah-login--sesi)
+8. [Masalah Chart Dashboard](#8-masalah-chart-dashboard)
+9. [Masalah PWA & Service Worker](#9-masalah-pwa--service-worker)
+10. [Masalah Import Excel](#10-masalah-import-excel)
+11. [Masalah Database & Migrasi](#11-masalah-database--migrasi)
+12. [Masalah Performa](#12-masalah-performa)
+13. [Catatan Keamanan](#13-catatan-keamanan)
+14. [Debug Routes](#14-debug-routes)
+15. [Perintah Cepat](#15-perintah-cepat)
+
+---
+
+## 1. Notifikasi Tidak Terkirim
+
+### Gejala
+- Approval/rejection laporan tidak menghasilkan notifikasi
+- Komentar baru tidak menghasilkan notifikasi
+- Badge notifikasi tidak update
+
+### Penyebab Utama
+
+**Queue worker tidak berjalan**
 
 ```bash
-# Development
-composer run dev              # Start all dev servers
-composer run test            # Run tests
+# Cek apakah queue worker aktif
+php artisan queue:monitor
 
-# Production
-composer run optimize        # Cache everything
-composer run optimize:clear  # Clear all caches
+# Jalankan queue worker
+php artisan queue:listen --tries=1
 
-# Troubleshooting
-php artisan config:clear     # Clear config cache
-php artisan route:clear      # Clear route cache
-php artisan view:clear       # Clear view cache
-php artisan cache:clear      # Clear application cache
-
-# File permissions (Linux/Mac)
-chmod -R 755 storage bootstrap/cache
-chown -R www-data:www-data storage bootstrap/cache
-
-# Database
-php artisan migrate          # Run migrations
-php artisan migrate:fresh --seed  # Fresh start with sample data
+# Cek job yang gagal
+php artisan queue:failed
 ```
 
-## How to Report Issues
+**Konfigurasi queue salah**
 
-If you encounter issues not covered in this guide:
+Pastikan `.env` berisi:
+```env
+QUEUE_CONNECTION=database
+```
 
-1. **Check Laravel Logs:**
-   Look at `storage/logs/laravel.log` for detailed error information
-   
-2. **Check Browser Console:**
-   Open browser's developer tools (F12) and look at the Console tab
-   
-3. **Provide Details When Reporting:**
-   - Laravel version
-   - PHP version
-   - Browser and version
-   - Complete error message
-   - Steps to reproduce 
+Bukan `sync` (sync menjalankan job sekarang tapi sering timeout) atau `null` (ignore semua job).
+
+**User memiliki preferensi notifikasi nonaktif**
+
+Cek preferensi notifikasi user di:
+- UI: klik nama user → Preferensi Notifikasi
+- DB: `SELECT notification_preferences FROM users WHERE id = ?`
+
+Default preferences:
+```json
+{
+    "job_approved": true,
+    "job_rejected": true,
+    "pending_approval": true,
+    "new_comment": true,
+    "email_notifications": false
+}
+```
+
+**Job gagal di queue**
+
+```bash
+# Lihat failed jobs
+php artisan queue:failed
+
+# Retry semua failed jobs
+php artisan queue:retry all
+
+# Clear failed jobs
+php artisan queue:flush
+```
+
+---
+
+## 2. File Upload Gagal / Gambar Tidak Terkompresi
+
+### Gejala
+- Error saat upload file attachment atau foto profil
+- Gambar tersimpan tanpa kompresi (ukuran file besar)
+
+### Cek Ekstensi GD
+
+```bash
+php -m | grep -i gd
+```
+
+Jika tidak ada output, ekstensi GD tidak aktif.
+
+**XAMPP (Windows):**
+1. Buka `php.ini` (biasanya di `C:\xampp\php\php.ini`)
+2. Cari baris `;extension=gd` dan hapus titik koma
+3. Restart Apache
+
+**Linux (Ubuntu/Debian):**
+```bash
+sudo apt-get install php8.2-gd
+sudo systemctl restart php8.2-fpm
+```
+
+**Verifikasi:**
+```bash
+php -r "echo extension_loaded('gd') ? 'GD aktif' : 'GD tidak aktif';"
+```
+
+### Cek Permission Storage
+
+```bash
+# Storage harus writable
+ls -la storage/app/public/
+
+# Set permission
+chmod -R 775 storage/
+chmod -R 775 bootstrap/cache/
+
+# Untuk Linux dengan web server (sesuaikan user)
+chown -R www-data:www-data storage/ bootstrap/cache/
+```
+
+### Cek Symlink Storage
+
+```bash
+ls -la public/storage
+# Harus: public/storage -> ../storage/app/public
+
+# Jika tidak ada, buat symlink
+php artisan storage:link
+```
+
+### Batas Ukuran Upload PHP
+
+Jika muncul error "file terlalu besar", cek `php.ini`:
+```ini
+upload_max_filesize = 10M   ; minimum 5M (batas SiGAP 5MB per file)
+post_max_size = 30M         ; harus lebih besar dari upload_max_filesize * 3
+memory_limit = 256M
+```
+
+---
+
+## 3. Foto Profil Tampil sebagai Avatar Default
+
+### Gejala
+- User sudah upload foto tapi tetap tampil avatar inisial
+- Gambar menunjukkan URL valid tapi file tidak ditemukan (404)
+
+### Penyebab
+
+File foto dihapus dari storage tapi referensi di database masih ada.
+
+### Solusi
+
+```bash
+# Preview: lihat referensi foto profil yang file-nya hilang
+php artisan cleanup:orphaned-profile-pictures --dry-run
+
+# Eksekusi: set profile_picture = null untuk yang hilang
+php artisan cleanup:orphaned-profile-pictures
+```
+
+Command ini **tidak** menghapus file — hanya membersihkan referensi database yang stale.
+
+### Catatan Kode
+
+`User::getProfilePictureUrlAttribute()` mencatat warning di log jika file tidak ditemukan:
+```
+WARNING: Profile picture file not found for user {id}: {path}
+```
+
+Accessor ini bersifat read-only — tidak memodifikasi database secara otomatis.
+
+---
+
+## 4. Tombol Approve Tidak Muncul / Unauthorized
+
+### Gejala
+- Tombol "Setujui" tidak muncul di halaman laporan
+- Muncul error 403 Forbidden saat mencoba approve
+
+### Diagnosis
+
+**Cek level user vs level pemilik laporan:**
+
+- Level N hanya bisa approve laporan dari Level N-1
+- Level 8 hanya approve Level 6 dan Level 7 (bukan Level 1-5)
+- Level 1 tidak bisa approve siapapun
+- Admin bisa approve semua
+
+Contoh:
+```
+User Level 3 mencoba approve laporan dari Level 3 → GAGAL (harus beda level)
+User Level 3 mencoba approve laporan dari Level 1 → GAGAL (harus Level N-1, bukan lebih rendah)
+User Level 3 mencoba approve laporan dari Level 2 → BERHASIL ✓
+```
+
+**Cek job_site_id untuk Level 8:**
+
+Level 8 hanya bisa approve laporan yang `job_site_id` sama dengan job_site user tersebut. Jika salah satu null, approval akan gagal.
+
+```sql
+-- Cek job_site user dan laporan
+SELECT u.name, u.job_site_id, dr.id, dr.job_site_id
+FROM users u
+JOIN daily_reports dr ON dr.user_id = ?
+WHERE u.id = ? -- approver
+```
+
+**Debug via `/debug/roles`:**
+
+```
+GET /debug/roles
+```
+
+Menampilkan semua role dan level untuk membantu diagnosis.
+
+---
+
+## 5. Laporan Tidak Terlihat oleh Atasan
+
+### Gejala
+- Atasan tidak bisa menemukan laporan bawahan
+- Halaman daftar laporan kosong atau laporan tidak ada
+
+### Penyebab & Solusi
+
+**`department_id` tidak di-set pada user atau laporan:**
+
+```sql
+-- Cek apakah user punya department_id
+SELECT id, name, department_id, role_id FROM users WHERE id = ?;
+
+-- Cek apakah laporan punya department_id
+SELECT id, job_name, department_id, user_id FROM daily_reports WHERE id = ?;
+```
+
+Solusi: isi `department_id` untuk kedua user (atasan dan bawahan) dan pastikan laporan memiliki `department_id` yang benar.
+
+**Level visibility tidak sesuai:**
+
+| Atasan | Yang Bisa Dilihat |
+|--------|-------------------|
+| Level 2 | Hanya Level 1 di dept yang sama |
+| Level 3 | Level 1 dan 2 di dept yang sama |
+| Level 4 | Semua laporan di dept yang sama |
+| Level 5–7 | Semua laporan di dept yang sama |
+| Level 8 | Semua laporan di job_site yang sama (lintas dept) |
+
+Level 1-4 TIDAK bisa melihat laporan dari Level 5 ke atas.
+
+---
+
+## 6. Dropdown Seksi Kosong di Form Laporan
+
+### Gejala
+- Pilih departemen di form laporan tapi dropdown seksi tetap kosong
+- AJAX request ke `/sections/by-department` gagal atau kosong
+
+### Penyebab
+
+1. **Belum ada seksi untuk departemen tersebut**: Buat seksi di `/admin/sections`
+2. **Seksi tidak aktif**: Aktifkan seksi di admin panel (field `is_active`)
+3. **AJAX gagal**: Buka DevTools → Network, cek response dari `/sections/by-department?department_id=N`
+4. **JavaScript error**: Cek Console tab di DevTools
+
+### Verifikasi via Database
+
+```sql
+SELECT s.id, s.name, s.is_active, d.name as dept
+FROM sections s
+JOIN departments d ON s.department_id = d.id
+WHERE s.department_id = ?;
+```
+
+---
+
+## 7. Masalah Login & Sesi
+
+### Tidak Bisa Login
+
+```bash
+# Clear session dan cache
+php artisan cache:clear
+php artisan session:flush  # jika ada
+
+# Cek tabel session ada
+php artisan migrate:status | grep session
+```
+
+**Session driver:**
+- `SESSION_DRIVER=database` memerlukan tabel `sessions`
+- Jalankan `php artisan migrate` jika tabel belum ada
+
+### Sesi Sering Expired
+
+Edit `.env`:
+```env
+SESSION_LIFETIME=240   # 4 jam (default: 120 menit)
+```
+
+### CSRF Token Mismatch
+
+- Pastikan form menggunakan `@csrf` directive Blade
+- Jika AJAX, pastikan header `X-XSRF-TOKEN` dikirim (Axios melakukan ini otomatis)
+- Clear browser cache jika masalah muncul di form lama
+
+---
+
+## 8. Masalah Chart Dashboard
+
+### Gejala
+- Chart tidak muncul di dashboard
+- Error "Canvas is already in use" di console
+- Grafik tampil kosong
+
+### Solusi
+
+**Canvas already in use:**
+
+Ini terjadi ketika komponen Livewire reload tanpa destroy chart sebelumnya. Solusi ada di `public/js/`:
+
+```javascript
+// Sebelum inisialisasi chart baru, destroy yang lama
+if (window.myChart) {
+    window.myChart.destroy();
+}
+window.myChart = new Chart(ctx, {...});
+```
+
+**Chart tidak muncul setelah navigate:**
+
+Alpine.js dan Chart.js perlu diinisialisasi ulang saat komponen mount. Pastikan inisialisasi chart ada di dalam `x-init` atau Livewire lifecycle hook.
+
+---
+
+## 9. Masalah PWA & Service Worker
+
+### PWA Tidak Bisa Diinstall
+
+1. Aplikasi harus diakses via **HTTPS** (Chrome tidak izinkan install dari HTTP)
+2. `site.webmanifest` harus bisa diakses dan valid
+3. Cek DevTools → Application → Manifest: tidak boleh ada error
+
+### Icon PWA Tidak Muncul
+
+**Cek route fallback aktif:**
+```bash
+php artisan route:list | grep icons
+# Harus ada: GET /icons/{filename}
+```
+
+**Force update cache service worker:**
+
+1. Increment `CACHE_VERSION` di `public/sw.js`:
+   ```javascript
+   const CACHE_VERSION = 'v3.1.0'; // naikkan versi
+   ```
+2. Deploy ulang
+3. User buka aplikasi → service worker baru akan terdeteksi
+4. Klik "Update" pada banner yang muncul, atau:
+   - DevTools → Application → Service Workers → klik "Update"
+   - Hard refresh: `Ctrl+Shift+R`
+
+**Unregister service worker (untuk testing):**
+```
+DevTools → Application → Service Workers → Unregister
+```
+
+### Cache Lama Setelah Deploy
+
+```bash
+# Hapus cache public build
+php artisan view:clear
+npm run build  # rebuild assets dengan hash baru
+```
+
+User yang masih menggunakan SW lama akan mendapat update otomatis saat service worker baru terdeteksi.
+
+---
+
+## 10. Masalah Import Excel
+
+### Error Saat Upload Template
+
+**Format tanggal tidak dikenali:**
+
+Template menggunakan format `DD/MM/YYYY`. Import juga mendukung:
+- `YYYY-MM-DD`
+- `DD-MM-YYYY`
+- `YYYY/MM/DD`
+- Angka Excel (serial date)
+
+**Nama departemen tidak ditemukan:**
+
+Nama departemen di template harus **persis sama** (case-sensitive) dengan nama di database.
+
+```sql
+SELECT name FROM departments;
+```
+
+**User ID tidak ditemukan:**
+
+Field `user_id` di template mengacu pada kolom `user_id` di tabel `users` (bukan `id`). Ambil dari export user admin.
+
+### Download Template Gagal
+
+```bash
+# Cek ekstensi zip PHP (dibutuhkan PhpSpreadsheet)
+php -m | grep zip
+
+# Jika tidak ada (Ubuntu):
+sudo apt-get install php8.2-zip
+```
+
+---
+
+## 11. Masalah Database & Migrasi
+
+### Migration Error
+
+```bash
+# Cek status migrasi
+php artisan migrate:status
+
+# Rollback dan coba lagi
+php artisan migrate:rollback
+php artisan migrate
+```
+
+**File migrasi disabled:**
+
+File `2025_04_21_090550_add_department_id_to_daily_reports_table.php.disabled` sengaja dinonaktifkan (ekstensi `.disabled`). Jangan ubah nama file ini.
+
+### Fresh Install
+
+```bash
+# Hapus semua tabel dan seed ulang
+php artisan migrate:fresh --seed
+```
+
+> Peringatan: `migrate:fresh` akan menghapus SEMUA data.
+
+### Koneksi Database Gagal
+
+```bash
+# Test koneksi
+php artisan db:show
+
+# Cek konfigurasi
+php artisan config:show database
+```
+
+---
+
+## 12. Masalah Performa
+
+### Dashboard Lambat
+
+**Aktifkan query caching:**
+
+```bash
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+```
+
+**Cek slow queries di log:**
+
+Slow queries (>500ms) dicatat otomatis di environment lokal:
+```bash
+grep "Slow query" storage/logs/laravel.log
+```
+
+**Eager loading untuk N+1:**
+
+Pastikan query laporan selalu eager load:
+```php
+DailyReport::with(['user', 'department', 'pic', 'approver', 'jobSite', 'section'])->get()
+```
+
+### Performance Indexes
+
+Indexes yang sudah ada (dari migration `2025_11_13_145552`):
+
+| Tabel | Index | Kolom |
+|-------|-------|-------|
+| `daily_reports` | `idx_user_status` | `(user_id, status)` |
+| `daily_reports` | `idx_dept_approval` | `(department_id, approval_status)` |
+| `daily_reports` | `idx_report_date` | `(report_date, status)` |
+| `notifications` | `idx_user_read_date` | `(user_id, is_read, created_at)` |
+| `job_comments` | `idx_report_id` | `(daily_report_id)` |
+
+Jika performa masih lambat, verifikasi index aktif:
+```sql
+SHOW INDEX FROM daily_reports;
+SHOW INDEX FROM notifications;
+```
+
+---
+
+## 13. Catatan Keamanan
+
+### Path Traversal
+
+Route `GET /storage/attachments/{filename}` menggunakan `basename($filename)` untuk mencegah path traversal. Jangan ubah logika ini.
+
+### MIME Whitelist
+
+Hanya MIME type tertentu yang ditampilkan inline di browser. File lain di-force download untuk mencegah XSS via SVG atau HTML upload.
+
+### Mass Assignment
+
+Semua model menggunakan `$fillable` eksplisit. Jangan ganti dengan `$guarded = []`.
+
+### Debug Routes di Produksi
+
+Route berikut harus dihapus atau dilindungi di produksi:
+
+```
+GET /debug/roles
+GET /debug/comments/{reportId}
+GET /test-create-user
+GET /test-chart
+```
+
+Cara aman: bungkus dalam middleware atau hapus dari `routes/web.php`.
+
+---
+
+## 14. Debug Routes
+
+> Hanya gunakan di environment lokal/development.
+
+| Route | Fungsi |
+|-------|--------|
+| `GET /debug/roles` | Tampilkan semua role dan level-nya (JSON) |
+| `GET /debug/comments/{reportId}` | Info komentar untuk laporan tertentu (JSON) |
+| `GET /test-create-user` | Test buat user (TestController) |
+
+Semua memerlukan autentikasi (middleware `auth`).
+
+---
+
+## 15. Perintah Cepat
+
+### Development
+
+```bash
+composer run dev          # Start Laravel + Queue + Vite sekaligus
+php artisan serve         # Hanya Laravel server
+php artisan queue:listen --tries=1  # Hanya queue worker
+npm run dev               # Hanya Vite HMR
+php artisan pail          # Stream logs real-time
+```
+
+### Database
+
+```bash
+php artisan migrate                  # Jalankan migrasi baru
+php artisan migrate:fresh --seed     # Reset + seed (hapus semua data!)
+php artisan migrate:status           # Status semua migrasi
+php artisan db:show                  # Info koneksi database
+```
+
+### Cache & Optimasi
+
+```bash
+php artisan optimize         # Cache semua (produksi)
+php artisan optimize:clear   # Hapus semua cache
+php artisan config:clear     # Hapus config cache saja
+php artisan route:clear      # Hapus route cache saja
+php artisan view:clear       # Hapus view cache saja
+```
+
+### Maintenance
+
+```bash
+php artisan reports:cleanup --dry-run    # Preview cleanup laporan
+php artisan notifications:cleanup --dry-run  # Preview cleanup notifikasi
+php artisan cleanup:orphaned-profile-pictures --dry-run
+php artisan list:users
+php artisan route:list       # Daftar semua route
+```
+
+### Queue
+
+```bash
+php artisan queue:monitor    # Status queue
+php artisan queue:failed     # Lihat failed jobs
+php artisan queue:retry all  # Retry semua failed jobs
+php artisan queue:flush      # Hapus semua failed jobs
+php artisan queue:restart    # Restart worker (setelah deploy)
+```

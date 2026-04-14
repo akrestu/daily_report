@@ -98,29 +98,47 @@ php artisan pail
 ## Architecture
 
 ### Role-Based System
-The system has 4 user roles with distinct permissions:
-- **Admin**: Full system access, user management, department management, system settings
-- **Department Head**: Department-level approval authority, can approve reports from their department
-- **Leader**: Team-level approval authority, can approve reports from staff in their department
-- **Staff**: Can create and submit reports, view assigned tasks
+The system has **9 roles** defined in `database/seeders/RolesSeeder.php`:
+- **admin**: Full system access, can approve any report
+- **level1**: Lowest level. Can create reports, assign PIC to Level 2. Cannot approve anyone
+- **level2**: Can approve Level 1 reports, assign PIC to Level 3
+- **level3**: Can approve Level 2 reports, assign PIC to Level 4
+- **level4**: Can approve Level 3 reports, assign PIC to Level 5
+- **level5**: Can approve Level 4 reports, assign PIC to Level 6. Can batch-delete dept reports
+- **level6**: Can approve Level 5 reports, assign PIC to Level 7/8
+- **level7**: Can approve Level 6 reports, assign PIC to Level 8
+- **level8**: **Cannot create reports**. Approves Level 6 AND Level 7. Cross-department within same job_site
 
-Role hierarchy flows: Staff → Leader → Department Head → Admin
+Role hierarchy (operational): Level 1 → Level 2 → Level 3 → Level 4 → Level 5 → Level 6 → Level 7 → Level 8
+
+Role level is determined by `User::getRoleLevel()` which returns 1-8 for level roles, 0 for admin.
+Approval rule: Level N can approve Level N-1 (via `User::canApprove()`). Level 8 exception: approves Level 6 AND Level 7.
+
+> Note: legacy slugs `department_head`, `leader`, `staff` exist only for backward-compatibility and are NOT seeded.
+> Full documentation: `docs/architecture.md`
 
 ### Approval Workflow
-Daily reports follow a hierarchical approval workflow:
-1. Staff creates report (status: `pending`)
-2. Leader reviews and approves/rejects (approval_status: `approved_by_leader` or `rejected`)
-3. Department Head reviews and approves/rejects (approval_status: `approved_by_department_head` or `rejected`)
-4. Final status becomes `completed` when fully approved
+Daily reports follow a level-based approval workflow:
+1. Level 1 creates report (`approval_status: pending`)
+2. Level 2 approves Level 1 reports (`approval_status: approved`, `status: completed`)
+3. Each level approves the level directly below (Level N approves Level N-1)
+4. Level 8 is a special case: approves both Level 6 and Level 7
+5. Rejection sets `approval_status: rejected` and records `rejection_reason`
 
-Rejection at any level sends the report back with a rejection reason.
+**Two separate status columns** (commonly confused):
+- `approval_status`: tracks approval chain — `pending` | `approved` | `rejected`
+- `status`: tracks work progress — `pending` | `in_progress` | `completed`
+
+When approved: both `approval_status = 'approved'` AND `status = 'completed'` are set simultaneously.
 
 ### Model Relationships
 Core models and their relationships:
-- **User**: `belongsTo(Role, Department)`, `hasMany(DailyReport, Notification, JobComment)`
-- **DailyReport**: `belongsTo(User, Department, User as approver)`, `hasMany(JobComment)`
+- **User**: `belongsTo(Role, Department, JobSite)`, `hasMany(DailyReport, Notification, JobComment)`
+- **DailyReport**: `belongsTo(User, Department, JobSite, Section, User as approver, User as pic)`, `hasMany(JobComment)`
 - **JobComment**: `belongsTo(User, DailyReport)`
-- **Notification**: `belongsTo(User)`, uses `notifiable_type` and `notifiable_id` for polymorphic relation
+- **Notification**: Custom model (`app/Models/Notification.php`), NOT Laravel built-in. `belongsTo(User, DailyReport, JobComment)`. Types: `job_approved`, `job_rejected`, `pending_approval`, `new_comment`
+- **JobSite**: `hasMany(DailyReport, User)`, has `is_active` scope
+- **Section**: `belongsTo(Department)`, `hasMany(DailyReport)`, has `is_active` scope
 
 ### Observers Pattern
 The system uses Laravel Observers for cross-cutting concerns:
