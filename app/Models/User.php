@@ -82,6 +82,16 @@ class User extends Authenticatable
         return $this->hasMany(DailyReport::class, 'approved_by');
     }
 
+    public function createdJobPlans(): HasMany
+    {
+        return $this->hasMany(JobPlan::class, 'creator_id');
+    }
+
+    public function assignedJobPlans(): HasMany
+    {
+        return $this->hasMany(JobPlan::class, 'assignee_id');
+    }
+
     /**
      * Get the notifications for the user.
      */
@@ -368,10 +378,12 @@ class User extends Authenticatable
         }
         
         return array_merge([
-            'job_approved' => true,
-            'job_rejected' => true,
-            'pending_approval' => true,
-            'new_comment' => true,
+            'job_approved'       => true,
+            'job_rejected'       => true,
+            'pending_approval'   => true,
+            'new_comment'        => true,
+            'job_plan_assigned'  => true,
+            'job_plan_updated'   => true,
             'email_notifications' => false,
         ], $preferences ?? []);
     }

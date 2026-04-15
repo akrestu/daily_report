@@ -498,13 +498,37 @@
                         <p class="mt-2 text-muted">Menyiapkan pesan...</p>
                     </div>
                     <div id="waShareContent" style="display:none;">
+                        <!-- Format Mode Toggle -->
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <span class="text-muted small fw-semibold">Format:</span>
+                            <button type="button" id="waModeDetail"
+                                class="btn btn-sm btn-success rounded-pill px-3"
+                                onclick="setWaFormat('detail')">
+                                <i class="fas fa-list me-1"></i>Detail
+                            </button>
+                            <button type="button" id="waModeRingkasan"
+                                class="btn btn-sm btn-outline-success rounded-pill px-3"
+                                onclick="setWaFormat('ringkasan')">
+                                <i class="fas fa-align-left me-1"></i>Ringkasan
+                            </button>
+                            <span class="text-muted ms-auto" style="font-size:0.72rem;">
+                                <i class="fas fa-info-circle me-1"></i>Ringkasan: semua laporan tanpa batas
+                            </span>
+                        </div>
+                        <!-- Limit Alert -->
                         <div id="waShareLimitAlert" class="alert alert-warning border-0 py-2 mb-3" style="display:none;">
                             <i class="fas fa-info-circle me-1"></i>
                             <span id="waShareLimitText"></span>
                         </div>
+                        <!-- Preview -->
                         <label class="form-label fw-semibold text-muted small mb-1">Preview Pesan:</label>
-                        <textarea id="waShareText" class="form-control font-monospace" rows="14" readonly
+                        <textarea id="waShareText" class="form-control font-monospace" rows="12" readonly
                             style="font-size:0.78rem; background:#f8f9fa; resize:none; white-space:pre;"></textarea>
+                        <!-- Character Counter -->
+                        <div class="d-flex justify-content-between align-items-center mt-1">
+                            <small class="text-muted">Maks. 65.536 karakter</small>
+                            <small id="waCharCount" class="fw-semibold text-muted">0 karakter</small>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer bg-light">
@@ -1161,14 +1185,50 @@
 
         // ─── WhatsApp Share ───────────────────────────────────────────────────
 
+        let currentWaFormat = 'detail';
+
         function openShareWhatsApp() {
-            // Show modal in loading state
+            // Reset format to detail on every fresh open
+            currentWaFormat = 'detail';
+            updateWaFormatButtons();
+
             const modal = new bootstrap.Modal(document.getElementById('whatsappShareModal'));
+            modal.show();
+            fetchWaShare();
+        }
+
+        function setWaFormat(format) {
+            if (format === currentWaFormat) return;
+            currentWaFormat = format;
+            updateWaFormatButtons();
+            fetchWaShare();
+        }
+
+        function updateWaFormatButtons() {
+            const detailBtn    = document.getElementById('waModeDetail');
+            const ringkasanBtn = document.getElementById('waModeRingkasan');
+            if (currentWaFormat === 'detail') {
+                detailBtn.classList.add('btn-success');
+                detailBtn.classList.remove('btn-outline-success');
+                ringkasanBtn.classList.add('btn-outline-success');
+                ringkasanBtn.classList.remove('btn-success');
+            } else {
+                ringkasanBtn.classList.add('btn-success');
+                ringkasanBtn.classList.remove('btn-outline-success');
+                detailBtn.classList.add('btn-outline-success');
+                detailBtn.classList.remove('btn-success');
+            }
+        }
+
+        function fetchWaShare() {
+            // Reset and show loading state
+            document.getElementById('waShareLoading').innerHTML =
+                '<div class="spinner-border text-success" role="status"><span class="visually-hidden">Loading...</span></div>' +
+                '<p class="mt-2 text-muted">Menyiapkan pesan...</p>';
             document.getElementById('waShareLoading').style.display = 'block';
             document.getElementById('waShareContent').style.display = 'none';
             document.getElementById('waCopyBtn').style.display = 'none';
             document.getElementById('waOpenBtn').style.display = 'none';
-            modal.show();
 
             // Collect current filter values from the filter form
             const filterForm = document.querySelector('form[action*="daily-reports"]');
@@ -1187,6 +1247,12 @@
                 const urlType = new URLSearchParams(window.location.search).get('type');
                 if (urlType) params.set('type', urlType);
             }
+            // Default date to today if no date filter is active
+            const today = new Date().toISOString().split('T')[0];
+            if (!params.get('date_from')) params.set('date_from', today);
+            if (!params.get('date_to'))   params.set('date_to', today);
+            // Pass format mode
+            params.set('format', currentWaFormat);
 
             fetch('{{ route("daily-reports.whatsapp-share") }}?' + params.toString(), {
                 headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
@@ -1197,10 +1263,11 @@
             })
             .then(function(data) {
                 document.getElementById('waShareText').value = data.text;
+                updateCharCount();
 
                 if (data.limited) {
                     document.getElementById('waShareLimitText').textContent =
-                        'Menampilkan 30 dari ' + data.count + ' laporan. Gunakan filter lebih spesifik untuk hasil lengkap.';
+                        'Menampilkan 30 dari ' + data.count + ' laporan. Gunakan filter lebih spesifik atau beralih ke mode Ringkasan.';
                     document.getElementById('waShareLimitAlert').style.display = 'block';
                 } else {
                     document.getElementById('waShareLimitAlert').style.display = 'none';
@@ -1218,6 +1285,20 @@
                 document.getElementById('waShareLoading').innerHTML =
                     '<div class="alert alert-danger border-0"><i class="fas fa-exclamation-circle me-2"></i>' + err.message + '</div>';
             });
+        }
+
+        function updateCharCount() {
+            const text  = document.getElementById('waShareText').value;
+            const count = text.length;
+            const el    = document.getElementById('waCharCount');
+            el.textContent = count.toLocaleString('id-ID') + ' / 65.536 karakter';
+            if (count > 58000) {
+                el.className = 'fw-semibold text-danger';
+            } else if (count > 45000) {
+                el.className = 'fw-semibold text-warning';
+            } else {
+                el.className = 'fw-semibold text-success';
+            }
         }
 
         function copyWaText() {
@@ -1251,6 +1332,7 @@
         // Make functions accessible globally
         window.openShareWhatsApp = openShareWhatsApp;
         window.copyWaText = copyWaText;
+        window.setWaFormat = setWaFormat;
     </script>
     @endpush
 </x-app-layout>

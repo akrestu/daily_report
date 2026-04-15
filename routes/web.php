@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\DailyReportController;
+use App\Http\Controllers\JobPlanController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DebugController;
 use App\Http\Controllers\ProfileController;
@@ -194,6 +195,12 @@ Route::middleware('auth')->group(function () {
         ->middleware('web')
         ->name('daily-reports.store-multiple');
     
+    // Job Plans Routes (custom routes BEFORE resource to avoid wildcard collision)
+    Route::get('/job-plans/whatsapp-share', [JobPlanController::class, 'whatsappShare'])->name('job-plans.whatsapp-share');
+    Route::get('/job-plans/assigned-to-me', [JobPlanController::class, 'assignedToMe'])->name('job-plans.assigned-to-me');
+    Route::get('/job-plans/{jobPlan}/convert', [JobPlanController::class, 'convert'])->name('job-plans.convert');
+    Route::resource('job-plans', JobPlanController::class);
+
     // Job Comments Routes
     Route::get('/daily-reports/{reportId}/comments', [\App\Http\Controllers\JobCommentController::class, 'getComments'])->name('job-comments.index');
     Route::post('/daily-reports/{reportId}/comments', [\App\Http\Controllers\JobCommentController::class, 'store'])->name('job-comments.store');

@@ -96,6 +96,12 @@
                                                     case 'welcome':
                                                         $iconClass = 'fas fa-user-plus';
                                                         break;
+                                                    case 'job_plan_assigned':
+                                                        $iconClass = 'fas fa-clipboard-check';
+                                                        break;
+                                                    case 'job_plan_updated':
+                                                        $iconClass = 'fas fa-edit';
+                                                        break;
                                                 }
                                             @endphp
                                             <i class="{{ $iconClass }}"></i>
@@ -115,7 +121,13 @@
                                                             <i class="fas fa-file-alt me-1"></i> View Report
                                                         </a>
                                                     @endif
-                                                    
+
+                                                    @if($notification->job_plan_id && $notification->jobPlan)
+                                                        <a href="{{ route('job-plans.show', $notification->jobPlan->id) }}" class="text-decoration-none">
+                                                            <i class="fas fa-clipboard-check me-1"></i> Lihat Job Plan
+                                                        </a>
+                                                    @endif
+
                                                     @if($notification->type === 'pending_approval')
                                                         <a href="/dashboard/pending-approvals" class="text-decoration-none">
                                                             <i class="fas fa-tasks me-1"></i> View Approval Queue

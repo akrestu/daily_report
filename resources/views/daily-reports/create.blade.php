@@ -44,6 +44,21 @@
                 <div id="report-container">
                     <!-- First Report Form (Initial) -->
                     <div class="report-form mb-4 pb-4 border-bottom" data-index="0">
+
+                        {{-- Pre-fill banner when converting from a Job Plan --}}
+                        @if($fromPlan ?? null)
+                        <input type="hidden" name="reports[0][job_plan_id]" value="{{ $fromPlan->id }}">
+                        <div class="alert alert-info border-0 shadow-sm mb-4">
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-clipboard-check fa-lg me-3 mt-1 text-info"></i>
+                                <div>
+                                    <h6 class="mb-1 fw-bold">Membuat Laporan dari Job Plan</h6>
+                                    <p class="mb-0">Form ini telah diisi otomatis dari job plan <strong>{{ $fromPlan->job_name }}</strong> yang ditugaskan oleh <strong>{{ $fromPlan->creator->name }}</strong>. Periksa dan sesuaikan data sebelum menyimpan.</p>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h5 class="report-title mb-0 fw-bold text-primary">
                                 <i class="fas fa-clipboard-list me-2"></i>Report #1
@@ -66,7 +81,7 @@
                                             id="job_name_0" 
                                             name="reports[0][job_name]" 
                                             placeholder="Enter job name" 
-                                            value="{{ old('reports.0.job_name') }}" 
+                                            value="{{ old('reports.0.job_name', isset($fromPlan) ? $fromPlan->job_name : '') }}"
                                             required
                                         >
                                         <label for="job_name_0">Job Name <span class="text-danger">*</span></label>
@@ -88,7 +103,7 @@
                                     required
                                     placeholder="Enter detailed job description"
                                     style="border-radius: 0.375rem;"
-                                >{{ old('reports.0.description') }}</textarea>
+                                >{{ old('reports.0.description', isset($fromPlan) ? $fromPlan->description : '') }}</textarea>
                                 @error('reports.0.description')
                                 <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -128,7 +143,7 @@
                                     >
                                         <option value="">Select job site (optional)</option>
                                         @foreach ($jobSites ?? [] as $jobSite)
-                                            <option value="{{ $jobSite->id }}" {{ old('reports.0.job_site_id') == $jobSite->id ? 'selected' : '' }}>
+                                            <option value="{{ $jobSite->id }}" {{ old('reports.0.job_site_id', isset($fromPlan) ? $fromPlan->job_site_id : '') == $jobSite->id ? 'selected' : '' }}>
                                                 {{ $jobSite->name }}
                                             </option>
                                         @endforeach
@@ -155,7 +170,7 @@
                                         <option value="">Select section (optional)</option>
                                         @if(isset($sections) && $sections->count() > 0)
                                             @foreach ($sections as $section)
-                                                <option value="{{ $section->id }}" {{ old('reports.0.section_id') == $section->id ? 'selected' : '' }}>
+                                                <option value="{{ $section->id }}" {{ old('reports.0.section_id', isset($fromPlan) ? $fromPlan->section_id : '') == $section->id ? 'selected' : '' }}>
                                                     {{ $section->name }}
                                                 </option>
                                             @endforeach
@@ -180,7 +195,7 @@
                                     >
                                         <option value="">Select person in charge</option>
                                         @foreach ($eligiblePics ?? [] as $id => $name)
-                                            <option value="{{ $id }}" {{ old('reports.0.job_pic') == $id ? 'selected' : '' }}>
+                                            <option value="{{ $id }}" {{ old('reports.0.job_pic', isset($fromPlan) ? $fromPlan->creator_id : '') == $id ? 'selected' : '' }}>
                                                 {{ $name }}
                                             </option>
                                         @endforeach
@@ -203,7 +218,7 @@
                                         class="form-control @error('reports.0.report_date') is-invalid @enderror" 
                                         id="report_date_0" 
                                         name="reports[0][report_date]" 
-                                        value="{{ old('reports.0.report_date', date('Y-m-d')) }}" 
+                                        value="{{ old('reports.0.report_date', isset($fromPlan) ? $fromPlan->planned_date->format('Y-m-d') : date('Y-m-d')) }}"
                                         required
                                     >
                                 </div>
@@ -222,7 +237,7 @@
                                         class="form-control @error('reports.0.due_date') is-invalid @enderror" 
                                         id="due_date_0" 
                                         name="reports[0][due_date]" 
-                                        value="{{ old('reports.0.due_date') }}" 
+                                        value="{{ old('reports.0.due_date', isset($fromPlan) ? $fromPlan->due_date->format('Y-m-d') : '') }}"
                                         required
                                     >
                                 </div>
@@ -277,7 +292,7 @@
                                 rows="3"
                                 placeholder="Additional information or notes about the job"
                                 style="border-radius: 0.375rem;"
-                            >{{ old('reports.0.remark') }}</textarea>
+                            >{{ old('reports.0.remark', isset($fromPlan) ? $fromPlan->remark : '') }}</textarea>
                             @error('reports.0.remark')
                             <div class="invalid-feedback">{{ $message }}</div>
                             @enderror

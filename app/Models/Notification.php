@@ -13,6 +13,7 @@ class Notification extends Model
     protected $fillable = [
         'user_id',
         'daily_report_id',
+        'job_plan_id',
         'comment_id',
         'type',
         'message',
@@ -48,5 +49,13 @@ class Notification extends Model
     public function comment(): BelongsTo
     {
         return $this->belongsTo(JobComment::class, 'comment_id');
+    }
+
+    /**
+     * Get the job plan associated with the notification.
+     */
+    public function jobPlan(): BelongsTo
+    {
+        return $this->belongsTo(JobPlan::class);
     }
 }

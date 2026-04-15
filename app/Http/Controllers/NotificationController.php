@@ -24,9 +24,10 @@ class NotificationController extends Controller
             ->with([
                 'dailyReport:id,job_name,user_id',
                 'comment:id,daily_report_id,user_id,comment',
-                'comment.user:id,name'
+                'comment.user:id,name',
+                'jobPlan:id,job_name,creator_id',
             ])
-            ->select(['id', 'user_id', 'daily_report_id', 'comment_id', 'type', 'message', 'is_read', 'created_at'])
+            ->select(['id', 'user_id', 'daily_report_id', 'comment_id', 'job_plan_id', 'type', 'message', 'is_read', 'created_at'])
             ->orderBy('created_at', 'desc')
             ->take(10)
             ->get();
@@ -111,9 +112,10 @@ class NotificationController extends Controller
             ->with([
                 'dailyReport:id,job_name,user_id',
                 'comment:id,daily_report_id,user_id,comment',
-                'comment.user:id,name'
+                'comment.user:id,name',
+                'jobPlan:id,job_name,creator_id',
             ])
-            ->select(['id', 'user_id', 'daily_report_id', 'comment_id', 'type', 'message', 'is_read', 'created_at'])
+            ->select(['id', 'user_id', 'daily_report_id', 'comment_id', 'job_plan_id', 'type', 'message', 'is_read', 'created_at'])
             ->orderBy('created_at', 'desc')
             ->paginate(25);
             
@@ -159,17 +161,21 @@ class NotificationController extends Controller
             'pending_approval' => 'boolean',
             'new_comment' => 'boolean',
             'email_notifications' => 'boolean',
+            'job_plan_assigned' => 'boolean',
+            'job_plan_updated' => 'boolean',
         ]);
-        
+
         /** @var User $user */
         $user = Auth::user();
-        
+
         $user->updateNotificationPreferences($request->only([
             'job_approved',
-            'job_rejected', 
+            'job_rejected',
             'pending_approval',
             'new_comment',
-            'email_notifications'
+            'email_notifications',
+            'job_plan_assigned',
+            'job_plan_updated',
         ]));
         
         return response()->json([

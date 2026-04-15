@@ -104,6 +104,44 @@
                 </a>
             </li>
 
+            {{-- Job Plans section --}}
+            @php
+                $activeJobPlanCount = \App\Models\JobPlan::where('assignee_id', auth()->id())->where('status', 'assigned')->count();
+            @endphp
+            <li class="nav-item mb-3">
+                <span class="sidebar-heading px-3 py-2 text-uppercase fw-bold text-white-50 small d-block">Job Plans</span>
+            </li>
+
+            @if(auth()->user()->getRoleLevel() >= 3 || auth()->user()->isAdmin())
+            <li class="nav-item mb-2">
+                <a class="nav-link rounded-pill {{ request()->routeIs('job-plans.create') ? 'active bg-white text-primary' : 'text-white' }}"
+                   href="{{ route('job-plans.create') }}">
+                    <i class="fas fa-plus-circle me-2"></i>
+                    <span>Create Job Plan</span>
+                </a>
+            </li>
+            <li class="nav-item mb-2">
+                <a class="nav-link rounded-pill {{ request()->routeIs('job-plans.index') ? 'active bg-white text-primary' : 'text-white' }}"
+                   href="{{ route('job-plans.index') }}">
+                    <i class="fas fa-clipboard-list me-2"></i>
+                    <span>My Job Plans</span>
+                </a>
+            </li>
+            @endif
+
+            @if(!auth()->user()->isLevel8())
+            <li class="nav-item mb-2">
+                <a class="nav-link rounded-pill {{ request()->routeIs('job-plans.assigned-to-me') ? 'active bg-white text-primary' : 'text-white' }}"
+                   href="{{ route('job-plans.assigned-to-me') }}">
+                    <i class="fas fa-inbox me-2"></i>
+                    <span>Assigned to Me</span>
+                    @if($activeJobPlanCount > 0)
+                        <span class="badge bg-warning text-dark ms-1 small">{{ $activeJobPlanCount }}</span>
+                    @endif
+                </a>
+            </li>
+            @endif
+
             @if(!auth()->user()->isLevel8())
             <li class="nav-item mb-3">
                 <span class="sidebar-heading px-3 py-2 text-uppercase fw-bold text-white-50 small d-block">Organization</span>

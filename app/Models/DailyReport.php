@@ -15,6 +15,7 @@ class DailyReport extends Model
         'department_id',
         'job_site_id',
         'section_id',
+        'job_plan_id',
         'job_name',
         'report_date',
         'due_date',
@@ -69,6 +70,11 @@ class DailyReport extends Model
     public function section(): BelongsTo
     {
         return $this->belongsTo(Section::class);
+    }
+
+    public function jobPlan(): BelongsTo
+    {
+        return $this->belongsTo(JobPlan::class);
     }
 
     /**
