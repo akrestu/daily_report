@@ -19,44 +19,51 @@
         <div class="card-body p-3">
             <form action="{{ route('job-plans.index') }}" method="GET" id="filterForm">
                 <div class="row g-2 align-items-end">
-                    <div class="col-md-3 col-sm-6">
+                    <!-- Search: full width hingga lg -->
+                    <div class="col-12 col-lg-3">
                         <div class="input-group">
                             <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-primary"></i></span>
                             <input type="text" name="search" class="form-control border-start-0 ps-0"
                                 placeholder="Cari nama pekerjaan" value="{{ request('search') }}">
                         </div>
                     </div>
-                    <div class="col-md-2 col-sm-6">
+                    <!-- Tanggal Dari -->
+                    <div class="col-6 col-lg-2">
                         <div class="input-group">
                             <span class="input-group-text bg-white border-end-0"><i class="fas fa-calendar-alt text-primary"></i></span>
                             <input type="date" name="date_from" class="form-control border-start-0 ps-0"
-                                placeholder="Dari" value="{{ request('date_from', date('Y-m-d')) }}">
+                                value="{{ request('date_from', date('Y-m-d')) }}">
                         </div>
                     </div>
-                    <div class="col-md-2 col-sm-6">
+                    <!-- Tanggal Sampai -->
+                    <div class="col-6 col-lg-2">
                         <div class="input-group">
                             <span class="input-group-text bg-white border-end-0"><i class="fas fa-calendar-alt text-primary"></i></span>
                             <input type="date" name="date_to" class="form-control border-start-0 ps-0"
-                                placeholder="Sampai" value="{{ request('date_to', date('Y-m-d')) }}">
+                                value="{{ request('date_to', date('Y-m-d')) }}">
                         </div>
                     </div>
-                    <div class="col-md-2 col-sm-6">
+                    <!-- Status -->
+                    <div class="col-12 col-sm-6 col-lg-2">
                         <select name="status" class="form-select">
                             <option value="">Semua Status</option>
                             <option value="assigned" {{ request('status') === 'assigned' ? 'selected' : '' }}>⏳ Aktif</option>
                             <option value="converted" {{ request('status') === 'converted' ? 'selected' : '' }}>✅ Dikonversi</option>
                         </select>
                     </div>
-                    <div class="col-md-3 col-sm-12 d-flex gap-2">
-                        <button type="submit" class="btn btn-primary rounded-pill px-3 flex-grow-1">
-                            <i class="fas fa-filter me-1"></i> Filter
-                        </button>
-                        <a href="{{ route('job-plans.index') }}" class="btn btn-outline-secondary rounded-pill px-3">
-                            <i class="fas fa-redo"></i>
-                        </a>
-                        <button type="button" class="btn btn-outline-success rounded-pill px-3" onclick="openShareWhatsApp()">
-                            <i class="fab fa-whatsapp me-1"></i> WA
-                        </button>
+                    <!-- Tombol aksi -->
+                    <div class="col-12 col-sm-6 col-lg-3">
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary rounded-pill flex-grow-1">
+                                <i class="fas fa-filter me-1"></i> Filter
+                            </button>
+                            <a href="{{ route('job-plans.index') }}" class="btn btn-outline-secondary rounded-pill px-3" title="Reset Filter">
+                                <i class="fas fa-redo"></i>
+                            </a>
+                            <button type="button" class="btn btn-outline-success rounded-pill px-3" onclick="openShareWhatsApp()" title="Share ke WhatsApp">
+                                <i class="fab fa-whatsapp me-1"></i> WA
+                            </button>
+                        </div>
                     </div>
                 </div>
             </form>
@@ -66,13 +73,13 @@
     <!-- Plans Table Card -->
     <div class="card shadow-sm border-0">
         <div class="card-header bg-white py-3">
-            <div class="d-flex justify-content-between align-items-center">
-                <h5 class="mb-0 fw-bold">
-                    <i class="fas fa-clipboard-check text-primary me-2"></i>Job Plan Saya
+            <div class="d-flex justify-content-between align-items-center gap-2">
+                <h5 class="mb-0 fw-bold text-truncate">
+                    <i class="fas fa-clipboard-check text-primary me-2"></i><span class="d-none d-sm-inline">Job Plan Saya</span><span class="d-sm-none">Job Plans</span>
                     <span class="badge bg-primary ms-1">{{ $plans->total() }}</span>
                 </h5>
-                <a href="{{ route('job-plans.create') }}" class="btn btn-primary rounded-pill px-3">
-                    <i class="fas fa-plus-circle me-1"></i> Buat Plan Baru
+                <a href="{{ route('job-plans.create') }}" class="btn btn-primary rounded-pill px-3 flex-shrink-0">
+                    <i class="fas fa-plus-circle me-1"></i><span class="d-none d-sm-inline"> Buat Plan Baru</span><span class="d-sm-none"> Buat</span>
                 </a>
             </div>
         </div>

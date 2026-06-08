@@ -152,6 +152,11 @@ class DailyReportPolicy
             return true;
         }
 
+        // Level 4 can delete reports from their department
+        if ($user->isLevel4() && $user->department_id === $dailyReport->department_id) {
+            return true;
+        }
+
         return false;
     }
 

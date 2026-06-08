@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Models\JobPlan;
 use App\Models\Notification;
+use App\Models\Ticket;
 
 class JobPlanObserver
 {
@@ -45,6 +46,17 @@ class JobPlanObserver
 
         // Do not notify if plan has already been converted
         if ($jobPlan->status === 'converted') {
+            return;
+        }
+
+        // Auto-resolve linked ticket when job plan is converted
+        if ($jobPlan->wasChanged('status') && $jobPlan->status === 'converted') {
+            $ticket = Ticket::where('job_plan_id', $jobPlan->id)
+                ->whereIn('status', ['open', 'in_progress'])
+                ->first();
+            if ($ticket) {
+                $ticket->update(['status' => 'resolved', 'resolved_at' => now()]);
+            }
             return;
         }
 

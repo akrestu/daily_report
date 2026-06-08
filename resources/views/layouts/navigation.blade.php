@@ -155,6 +155,40 @@
                 </a>
             </li>
             @endif
+
+            @if(auth()->user()->getRoleLevel() >= 4)
+            @php $openTicketCount = \App\Models\Ticket::where('status', 'open')->count(); @endphp
+            <li class="nav-item mb-3">
+                <span class="sidebar-heading px-3 py-2 text-uppercase fw-bold text-white-50 small d-block">Tiket</span>
+            </li>
+            <li class="nav-item mb-2">
+                <a class="nav-link rounded-pill {{ request()->routeIs('tickets.index') || request()->routeIs('tickets.show') ? 'active bg-white text-primary' : 'text-white' }}"
+                   href="{{ route('tickets.index') }}">
+                    <i class="fas fa-ticket-alt me-2"></i>
+                    <span>Tiket Masuk</span>
+                    @if($openTicketCount > 0)
+                        <span class="badge bg-danger ms-1 small">{{ $openTicketCount }}</span>
+                    @endif
+                </a>
+            </li>
+            @endif
+            @endif
+
+            @if(auth()->check() && auth()->user()->isAdmin())
+            @php $openTicketCount = \App\Models\Ticket::where('status', 'open')->count(); @endphp
+            <li class="nav-item mb-3">
+                <span class="sidebar-heading px-3 py-2 text-uppercase fw-bold text-white-50 small d-block">Tiket</span>
+            </li>
+            <li class="nav-item mb-2">
+                <a class="nav-link rounded-pill {{ request()->routeIs('tickets.index') || request()->routeIs('tickets.show') ? 'active bg-white text-primary' : 'text-white' }}"
+                   href="{{ route('tickets.index') }}">
+                    <i class="fas fa-ticket-alt me-2"></i>
+                    <span>Tiket Masuk</span>
+                    @if($openTicketCount > 0)
+                        <span class="badge bg-danger ms-1 small">{{ $openTicketCount }}</span>
+                    @endif
+                </a>
+            </li>
             @endif
 
             @if(auth()->check() && auth()->user()->isAdmin())

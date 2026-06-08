@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             UserIdSeeder::class,
             JobSiteSeeder::class,
             SectionSeeder::class,
+            TicketCategorySeeder::class,
         ]);
 
         // Create admin user

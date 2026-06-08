@@ -40,7 +40,9 @@
       "Bash(_DATABASE/04_APPLICATION/SiGAP/bootstrap -name \"*.php\" -type f)",
       "Bash(wc -l app/Models/*.php)",
       "Bash(_DATABASE/04_APPLICATION/SiGAP -type f -name \"*.php\")",
-      "Bash(_DATABASE/04_APPLICATION/SiGAP -type f -name \"*AllReports*\" -o -name \"*DailyReport*\")"
+      "Bash(_DATABASE/04_APPLICATION/SiGAP -type f -name \"*AllReports*\" -o -name \"*DailyReport*\")",
+      "Bash(Get-ChildItem -Path \"D:\\\\COMPANY_DATA\\\\01_IT_AND_DATABASE\\\\04_APPLICATION\\\\SiGAP\\\\resources\\\\views\" -Recurse -Filter \"*job*plan*.blade.php\")",
+      "Bash(Get-Content storage/logs/laravel.log -Tail 50)"
     ],
     "deny": [],
     "ask": []

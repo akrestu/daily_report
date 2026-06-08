@@ -28,7 +28,7 @@
                             <span>Job Approval</span>
                         </a>
                     </li>
-                    @if(auth()->user()->isDepartmentHead())
+                    @if(auth()->user()->isDepartmentHead() || auth()->user()->isLevel4())
                     <li class="nav-item mobile-tab-item">
                         <a class="nav-link {{ request()->get('view') == 'monitoring' ? 'active' : '' }} rounded-top d-flex align-items-center justify-content-center" href="{{ route('daily-reports.pending', ['view' => 'monitoring']) }}">
                             <i class="fas fa-chart-line me-2 {{ request()->get('view') == 'monitoring' ? 'text-primary' : 'text-muted' }}"></i> 
@@ -41,7 +41,7 @@
         </div>
 
         <div class="card-body px-0 px-md-3">
-        @if(request()->get('view') == 'monitoring' && auth()->user()->isDepartmentHead())
+        @if(request()->get('view') == 'monitoring' && (auth()->user()->isDepartmentHead() || auth()->user()->isLevel4()))
             <!-- Monitoring View -->
             <div class="d-block d-md-none mobile-card-view px-3">
                 <div class="form-check mb-3">

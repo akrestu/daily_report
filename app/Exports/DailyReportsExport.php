@@ -8,10 +8,13 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use PhpOffice\PhpSpreadsheet\Cell\Hyperlink;
 use Illuminate\Support\Facades\Auth;
 
-class DailyReportsExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles
+class DailyReportsExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles, WithEvents
 {
     protected $filters;
     protected $isAllReports;
@@ -134,10 +137,40 @@ class DailyReportsExport implements FromCollection, WithHeadings, WithMapping, S
             ucfirst(str_replace('_', ' ', $report->approval_status)),
             $report->approver->name ?? 'N/A',
             $report->rejection_reason ?? '',
-            $report->attachment_original_name ?? '',
-            $report->attachment_original_name_2 ?? '',
-            $report->attachment_original_name_3 ?? '',
+            $report->attachment_path ? url('storage/attachments/' . basename($report->attachment_path)) : '',
+            $report->attachment_path_2 ? url('storage/attachments/' . basename($report->attachment_path_2)) : '',
+            $report->attachment_path_3 ? url('storage/attachments/' . basename($report->attachment_path_3)) : '',
             $report->created_at->format('Y-m-d H:i:s')
+        ];
+    }
+
+    public function registerEvents(): array
+    {
+        return [
+            AfterSheet::class => function (AfterSheet $event) {
+                $sheet = $event->sheet->getDelegate();
+                $highestRow = $sheet->getHighestRow();
+
+                // Columns P, Q, R = Attachment 1, 2, 3 (index 16, 17, 18)
+                $attachmentCols = ['P', 'Q', 'R'];
+
+                for ($row = 2; $row <= $highestRow; $row++) {
+                    foreach ($attachmentCols as $col) {
+                        $cell = $sheet->getCell("{$col}{$row}");
+                        $url = $cell->getValue();
+
+                        if (!empty($url)) {
+                            $cell->setHyperlink(new Hyperlink($url, $url));
+                            $sheet->getStyle("{$col}{$row}")->applyFromArray([
+                                'font' => [
+                                    'color' => ['rgb' => '0563C1'],
+                                    'underline' => true,
+                                ],
+                            ]);
+                        }
+                    }
+                }
+            },
         ];
     }
 

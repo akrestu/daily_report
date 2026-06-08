@@ -378,12 +378,13 @@ class User extends Authenticatable
         }
         
         return array_merge([
-            'job_approved'       => true,
-            'job_rejected'       => true,
-            'pending_approval'   => true,
-            'new_comment'        => true,
-            'job_plan_assigned'  => true,
-            'job_plan_updated'   => true,
+            'job_approved'        => true,
+            'job_rejected'        => true,
+            'pending_approval'    => true,
+            'new_comment'         => true,
+            'job_plan_assigned'   => true,
+            'job_plan_updated'    => true,
+            'ticket_created'      => true,
             'email_notifications' => false,
         ], $preferences ?? []);
     }

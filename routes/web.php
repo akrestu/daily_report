@@ -6,7 +6,9 @@ use App\Http\Controllers\JobPlanController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DebugController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PublicTicketController;
 use App\Http\Controllers\TestController;
+use App\Http\Controllers\TicketController;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -131,6 +133,11 @@ Route::get('/screenshots/{filename}', function ($filename) {
     ]);
 })->where('filename', '.*\.(png|jpg|jpeg)$');
 
+// ===== PUBLIC TICKET ROUTES (tanpa auth) =====
+Route::get('/request', [PublicTicketController::class, 'showForm'])->name('tickets.public.form');
+Route::post('/request', [PublicTicketController::class, 'store'])->name('tickets.public.store');
+Route::get('/request/success', [PublicTicketController::class, 'success'])->name('tickets.public.success');
+
 // Redirect root to dashboard or login page
 Route::get('/', function () {
     if (Auth::check()) {
@@ -205,6 +212,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/daily-reports/{reportId}/comments', [\App\Http\Controllers\JobCommentController::class, 'getComments'])->name('job-comments.index');
     Route::post('/daily-reports/{reportId}/comments', [\App\Http\Controllers\JobCommentController::class, 'store'])->name('job-comments.store');
     Route::delete('/comments/{commentId}', [\App\Http\Controllers\JobCommentController::class, 'destroy'])->name('job-comments.destroy');
+
+    // Ticket Routes (internal dashboard)
+    Route::resource('tickets', TicketController::class)->only(['index', 'show', 'destroy']);
+    Route::post('tickets/{ticket}/assign', [TicketController::class, 'assign'])->name('tickets.assign');
+    Route::post('tickets/{ticket}/status', [TicketController::class, 'updateStatus'])->name('tickets.update-status');
+    Route::post('tickets/{ticket}/comment', [TicketController::class, 'addComment'])->name('tickets.comment');
+    Route::delete('tickets-batch', [TicketController::class, 'batchDelete'])->name('tickets.batch-delete');
 
     // Sections by department (for dropdown in daily report form)
     Route::get('/sections/by-department', [\App\Http\Controllers\Admin\SectionController::class, 'getByDepartment'])->name('sections.by-department');

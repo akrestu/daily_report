@@ -3,7 +3,9 @@
 namespace App\Providers;
 
 use App\Models\DailyReport;
+use App\Models\Ticket;
 use App\Policies\DailyReportPolicy;
+use App\Policies\TicketPolicy;
 use App\Models\User;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
@@ -17,6 +19,7 @@ class AuthServiceProvider extends ServiceProvider
      */
     protected $policies = [
         DailyReport::class => DailyReportPolicy::class,
+        Ticket::class      => TicketPolicy::class,
     ];
 
     /**

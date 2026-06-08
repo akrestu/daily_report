@@ -288,6 +288,11 @@ class DailyReportController extends Controller
                     return true;
                 }
 
+                // Level 4 can delete reports from their department
+                if ($user->isLevel4() && $user->department_id === $report->department_id) {
+                    return true;
+                }
+
                 return false;
 
             default:
@@ -1025,7 +1030,7 @@ class DailyReportController extends Controller
             ->whereNull('approved_by');
 
         // For monitoring view - Level 5-8 and Admin can monitor all pending reports
-        if ($view === 'monitoring' && ($user->isLevel5() || $user->isLevel6() || $user->isLevel7() || $user->isLevel8() || $user->isAdmin())) {
+        if ($view === 'monitoring' && ($user->isLevel4() || $user->isLevel5() || $user->isLevel6() || $user->isLevel7() || $user->isLevel8() || $user->isAdmin())) {
             $monitoringQuery = DailyReport::where('approval_status', 'pending')
                 ->whereNull('approved_by')
                 ->with(['user', 'approver', 'department', 'pic']);
@@ -1487,8 +1492,8 @@ class DailyReportController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        // Only Admin and Level 5-8 can batch delete
-        if (!$user->isAdmin() && !$user->isLevel5() && !$user->isLevel6() && !$user->isLevel7() && !$user->isLevel8()) {
+        // Only Admin and Level 4-8 can batch delete
+        if (!$user->isAdmin() && !$user->isLevel4() && !$user->isLevel5() && !$user->isLevel6() && !$user->isLevel7() && !$user->isLevel8()) {
             return redirect()->back()->with('error', 'Unauthorized action.');
         }
 
