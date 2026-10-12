@@ -124,9 +124,11 @@ class ReportCleanupController extends Controller
             }
             
         } catch (\Exception $e) {
+            report($e);
+
             return response()->json([
                 'success' => false,
-                'message' => 'An error occurred during cleanup: ' . $e->getMessage()
+                'message' => 'An error occurred during cleanup. Please try again or contact the administrator.'
             ], 500);
         }
     }
@@ -167,8 +169,8 @@ class ReportCleanupController extends Controller
         $totalSize = 0;
         
         foreach ($reports as $report) {
-            if ($report->attachment_path && Storage::disk('public')->exists($report->attachment_path)) {
-                $totalSize += Storage::disk('public')->size($report->attachment_path);
+            if ($report->attachment_path && Storage::disk('attachments')->exists($report->attachment_path)) {
+                $totalSize += Storage::disk('attachments')->size($report->attachment_path);
             }
         }
         
@@ -184,10 +186,10 @@ class ReportCleanupController extends Controller
         $attachmentPath = 'attachments';
         
         try {
-            if (Storage::disk('public')->exists($attachmentPath)) {
-                $files = Storage::disk('public')->allFiles($attachmentPath);
+            if (Storage::disk('attachments')->exists($attachmentPath)) {
+                $files = Storage::disk('attachments')->allFiles($attachmentPath);
                 foreach ($files as $file) {
-                    $totalSize += Storage::disk('public')->size($file);
+                    $totalSize += Storage::disk('attachments')->size($file);
                 }
             }
         } catch (\Exception $e) {

@@ -1,103 +1,15 @@
 <?php
 
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\DailyReportController;
 use App\Http\Controllers\JobPlanController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\DebugController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicTicketController;
-use App\Http\Controllers\TestController;
 use App\Http\Controllers\TicketController;
-use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Storage;
-
-// ===== PWA MANIFEST ROUTE (DYNAMIC) =====
-// Generate manifest dynamically to support different deployment environments
-// This ensures manifest works correctly on localhost, Plesk, or any other server
-// NOTE: Route DISABLED - Using static files instead (see public/site.webmanifest)
-// Route::get('/web/site.webmanifest', function () {
-/*
-    // Generate version timestamp to force cache refresh when icons change
-    // Increment this when icons or manifest changes
-    $version = '3.1';
-
-    // Build icons array - only include icons that exist
-    $icons = [];
-    $iconSizes = ['48x48', '72x72', '96x96', '144x144', '180x180', '192x192', '512x512'];
-
-    foreach ($iconSizes as $size) {
-        $iconPath = public_path("icons/icon-{$size}.png");
-        if (file_exists($iconPath)) {
-            $purpose = in_array($size, ['192x192', '512x512']) ? 'any maskable' : 'any';
-            $icons[] = [
-                "src" => "/icons/icon-{$size}.png?v=" . $version,
-                "sizes" => $size,
-                "type" => "image/png",
-                "purpose" => $purpose
-            ];
-        }
-    }
-
-    // Add Sigap.png if exists
-    if (file_exists(public_path('Sigap.png'))) {
-        $icons[] = [
-            "src" => "/Sigap.png?v=" . $version,
-            "sizes" => "512x512",
-            "type" => "image/png",
-            "purpose" => "any"
-        ];
-    }
-
-    $manifest = [
-        "name" => "SiGAP - Sistem Informasi Giat Aktivitas Pekerjaan",
-        "short_name" => "SiGAP",
-        "description" => "Sistem Informasi Giat Aktivitas Pekerjaan - Daily Work Activity Reporting System",
-        "icons" => $icons,
-        "theme_color" => "#0d6efd",
-        "background_color" => "#ffffff",
-        "display" => "standalone",
-        "start_url" => "/",
-        "scope" => "/",
-        "orientation" => "portrait-primary",
-        "id" => "/"
-    ];
-
-    // Add screenshots only if they exist
-    $screenshots = [];
-    if (file_exists(public_path('screenshots/desktop-screenshot.png'))) {
-        $screenshots[] = [
-            "src" => "/screenshots/desktop-screenshot.png",
-            "sizes" => "1280x720",
-            "type" => "image/png",
-            "form_factor" => "wide",
-            "label" => "SiGAP Dashboard - Desktop View"
-        ];
-    }
-
-    if (file_exists(public_path('screenshots/mobile-screenshot.png'))) {
-        $screenshots[] = [
-            "src" => "/screenshots/mobile-screenshot.png",
-            "sizes" => "750x1334",
-            "type" => "image/png",
-            "label" => "SiGAP Dashboard - Mobile View"
-        ];
-    }
-
-    // Only add screenshots key if we have screenshots
-    if (!empty($screenshots)) {
-        $manifest['screenshots'] = $screenshots;
-    }
-
-    return response()->json($manifest)
-        ->header('Content-Type', 'application/manifest+json')
-        ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
-        ->header('Pragma', 'no-cache')
-        ->header('Expires', '0');
-})->name('pwa.manifest');
-*/
 
 // ===== STATIC ASSET ROUTES (FALLBACK FOR SERVERS WHERE .htaccess DOESN'T WORK) =====
 // Serve PWA icons directly via Laravel routes
@@ -135,7 +47,9 @@ Route::get('/screenshots/{filename}', function ($filename) {
 
 // ===== PUBLIC TICKET ROUTES (tanpa auth) =====
 Route::get('/request', [PublicTicketController::class, 'showForm'])->name('tickets.public.form');
-Route::post('/request', [PublicTicketController::class, 'store'])->name('tickets.public.store');
+Route::post('/request', [PublicTicketController::class, 'store'])
+    ->middleware('throttle:5,10')
+    ->name('tickets.public.store');
 Route::get('/request/success', [PublicTicketController::class, 'success'])->name('tickets.public.success');
 
 // Redirect root to dashboard or login page
@@ -146,18 +60,10 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
-Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('auth')->name('dashboard');
 Route::post('/dashboard/toggle-sidebar', [DashboardController::class, 'toggleSidebar'])->middleware(['auth'])->name('dashboard.toggle-sidebar');
 
-// Test Chart Route
-Route::get('/test-chart', function() {
-    return view('test-chart');
-})->middleware(['auth'])->name('test-chart');
-
 Route::middleware('auth')->group(function () {
-    // Test Route for User Creation
-    Route::get('/test-create-user', [TestController::class, 'testCreateUser'])->name('test.create-user');
-    
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -218,35 +124,12 @@ Route::middleware('auth')->group(function () {
     Route::post('tickets/{ticket}/assign', [TicketController::class, 'assign'])->name('tickets.assign');
     Route::post('tickets/{ticket}/status', [TicketController::class, 'updateStatus'])->name('tickets.update-status');
     Route::post('tickets/{ticket}/comment', [TicketController::class, 'addComment'])->name('tickets.comment');
+    Route::get('tickets/{ticket}/attachment', [AttachmentController::class, 'ticket'])->name('tickets.attachment');
     Route::delete('tickets-batch', [TicketController::class, 'batchDelete'])->name('tickets.batch-delete');
 
     // Sections by department (for dropdown in daily report form)
     Route::get('/sections/by-department', [\App\Http\Controllers\Admin\SectionController::class, 'getByDepartment'])->name('sections.by-department');
 
-    // Debug route for comments
-    Route::get('/debug/comments/{reportId}', function($reportId) {
-        if (Auth::check()) {
-            $report = \App\Models\DailyReport::findOrFail($reportId);
-            $comments = $report->comments()->with('user')->orderBy('created_at', 'desc')->get();
-            
-            return response()->json([
-                'report' => $report->only(['id', 'job_name']),
-                'comments_count' => $comments->count(),
-                'comments' => $comments->map(function($comment) {
-                    return [
-                        'id' => $comment->id,
-                        'user' => $comment->user->name,
-                        'comment' => $comment->comment,
-                        'visibility' => $comment->visibility,
-                        'created_at' => $comment->created_at->format('Y-m-d H:i:s'),
-                    ];
-                })
-            ]);
-        }
-        
-        return response()->json(['error' => 'Unauthorized'], 401);
-    })->middleware('auth');
-    
     // Admin Routes (only accessible by admin)
     Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => 'admin.only'], function () {
         // Admin dashboard route
@@ -291,107 +174,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/reports/cleanup/preview', [\App\Http\Controllers\Admin\ReportCleanupController::class, 'preview'])->name('reports.cleanup.preview');
         Route::post('/reports/cleanup/execute', [\App\Http\Controllers\Admin\ReportCleanupController::class, 'execute'])->name('reports.cleanup.execute');
     });
-    
-    // Debug Routes
-    Route::get('/debug/roles', [DebugController::class, 'debugRoles'])->name('debug.roles');
 });
 
-// Add file attachment route
-Route::get('/storage/attachments/{filename}', function ($filename) {
-    /** @var User|null $user */
-    $user = Auth::user();
-    if (!$user) {
-        abort(403);
-    }
-
-    // Sanitize filename to prevent path traversal
-    $filename = basename($filename);
-    $path = 'attachments/' . $filename;
-
-    // Check if file exists
-    if (!Storage::disk('public')->exists($path)) {
-        abort(404);
-    }
-
-    // Escape LIKE wildcards to prevent SQL injection
-    $escapedFilename = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $filename);
-
-    // Check if user has access to this attachment
-    // Look for the attachment in any of the three attachment fields
-    $report = \App\Models\DailyReport::where(function($query) use ($path, $escapedFilename) {
-        $query->where('attachment_path', $path)
-              ->orWhere('attachment_path', 'LIKE', '%' . $escapedFilename . '%')
-              ->orWhere('attachment_path_2', $path)
-              ->orWhere('attachment_path_2', 'LIKE', '%' . $escapedFilename . '%')
-              ->orWhere('attachment_path_3', $path)
-              ->orWhere('attachment_path_3', 'LIKE', '%' . $escapedFilename . '%');
-    })->first();
-
-    if (!$report) {
-        abort(404);
-    }
-
-    // Check access permissions
-    // Allow access if:
-    // 1. User is admin
-    // 2. User is the report creator
-    // 3. User is the PIC (job_pic)
-    // 4. User is in the same department (any level: Level 1-5)
-    // This allows all department members to view attachments for transparency
-    if (!($user->isAdmin() ||
-          $user->id === $report->user_id ||
-          $user->id === $report->job_pic ||
-          $user->department_id === $report->department_id)) {
-        abort(403);
-    }
-
-    // Return file with appropriate headers and content-type validation
-    $filePath = storage_path('app/public/' . $path);
-    $mimeType = mime_content_type($filePath);
-
-    // Define whitelist of safe MIME types that can be displayed inline
-    // Only images, PDFs, and plain text are considered safe
-    $safeMimeTypes = [
-        // Images
-        'image/jpeg',
-        'image/jpg',
-        'image/png',
-        'image/gif',
-        'image/webp',
-        'image/svg+xml',
-        // Documents
-        'application/pdf',
-        // Text files
-        'text/plain',
-    ];
-
-    // Validate MIME type against whitelist
-    $isSafeType = in_array($mimeType, $safeMimeTypes);
-
-    // Determine content disposition based on safety
-    // Safe types: display inline in browser
-    // Unsafe types: force download to prevent XSS
-    $disposition = $isSafeType ? 'inline' : 'attachment';
-
-    // Security headers to prevent XSS attacks
-    $headers = [
-        'Content-Type' => $mimeType,
-        'Content-Disposition' => $disposition . '; filename="' . basename($filename) . '"',
-        'X-Content-Type-Options' => 'nosniff', // Prevent MIME sniffing
-        'Content-Security-Policy' => "default-src 'none'; img-src 'self'; style-src 'unsafe-inline';", // Restrict what can execute
-    ];
-
-    // Log suspicious file types for security monitoring
-    if (!$isSafeType) {
-        Log::warning('Unsafe file type downloaded', [
-            'filename' => $filename,
-            'mime_type' => $mimeType,
-            'user_id' => $user->id,
-            'report_id' => $report->id,
-        ]);
-    }
-
-    return response()->file($filePath, $headers);
-})->name('attachments.show')->middleware('auth');
+// Attachments are stored on a private disk and only served after a policy check
+Route::get('/storage/attachments/{filename}', [AttachmentController::class, 'report'])
+    ->middleware('auth')
+    ->name('attachments.show');
 
 require __DIR__.'/auth.php';

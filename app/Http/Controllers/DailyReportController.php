@@ -143,13 +143,13 @@ class DailyReportController extends Controller
         $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_BASENAME);
         $originalName = preg_replace('/[^a-zA-Z0-9\._-]/', '_', $originalName);
 
-        $extension = $file->getClientOriginalExtension();
+        $extension = $file->extension() ?: 'bin';
         $filename = uniqid('attachment_', true) . '_' . time() . '.' . $extension;
         $path = 'attachments/' . $filename;
 
         // Create attachments directory if it doesn't exist
-        if (!Storage::disk('public')->exists('attachments')) {
-            Storage::disk('public')->makeDirectory('attachments');
+        if (!Storage::disk('attachments')->exists('attachments')) {
+            Storage::disk('attachments')->makeDirectory('attachments');
         }
 
         // DON'T delete old file here - let caller handle it after successful transaction
@@ -172,16 +172,16 @@ class DailyReportController extends Controller
                 // Resize if width or height is greater than 1920px while maintaining aspect ratio
                 $image->scaleDown(1920, 1920);
                 
-                // Save compressed image to public disk with higher compression (60% quality instead of 80%)
-                Storage::disk('public')->put($path, $image->toJpeg(60));
+                // Save compressed image to private attachments disk with higher compression (60% quality instead of 80%)
+                Storage::disk('attachments')->put($path, $image->toJpeg(60));
             } catch (\Exception $e) {
                 // Fallback: Store image without processing if GD is not available
                 Log::warning('Image processing failed, storing without compression: ' . $e->getMessage());
-                Storage::disk('public')->putFileAs('attachments', $file, $filename);
+                Storage::disk('attachments')->putFileAs('attachments', $file, $filename);
             }
         } else {
-            // For non-image files, store as is in public disk under attachments directory
-            Storage::disk('public')->putFileAs('attachments', $file, $filename);
+            // For non-image files, store as is on the private attachments disk
+            Storage::disk('attachments')->putFileAs('attachments', $file, $filename);
         }
         
         return [
@@ -515,13 +515,13 @@ class DailyReportController extends Controller
 
             // Delete uploaded files if they exist
             if ($attachmentPath) {
-                Storage::disk('public')->delete($attachmentPath);
+                Storage::disk('attachments')->delete($attachmentPath);
             }
             if ($attachmentPath2) {
-                Storage::disk('public')->delete($attachmentPath2);
+                Storage::disk('attachments')->delete($attachmentPath2);
             }
             if ($attachmentPath3) {
-                Storage::disk('public')->delete($attachmentPath3);
+                Storage::disk('attachments')->delete($attachmentPath3);
             }
 
             return redirect()->back()
@@ -700,11 +700,11 @@ class DailyReportController extends Controller
             
             // Delete all created attachments
             foreach ($createdAttachments as $path) {
-                Storage::disk('public')->delete($path);
+                Storage::disk('attachments')->delete($path);
             }
             
             return redirect()->back()
-                ->with('error', 'Failed to create reports: ' . $e->getMessage())
+                ->with('error', 'Failed to create reports. Please try again or contact the administrator.')
                 ->withInput();
         }
     }
@@ -863,7 +863,7 @@ class DailyReportController extends Controller
             // This prevents data loss if transaction fails
             foreach ($oldAttachments as $oldPath) {
                 try {
-                    Storage::disk('public')->delete($oldPath);
+                    Storage::disk('attachments')->delete($oldPath);
                 } catch (\Exception $e) {
                     // Log but don't fail - old file cleanup is not critical
                     Log::warning('Failed to delete old attachment after update: ' . $e->getMessage(), [
@@ -905,13 +905,13 @@ class DailyReportController extends Controller
         try {
             // Delete all attachments if they exist
             if ($dailyReport->attachment_path) {
-                Storage::disk('public')->delete($dailyReport->attachment_path);
+                Storage::disk('attachments')->delete($dailyReport->attachment_path);
             }
             if ($dailyReport->attachment_path_2) {
-                Storage::disk('public')->delete($dailyReport->attachment_path_2);
+                Storage::disk('attachments')->delete($dailyReport->attachment_path_2);
             }
             if ($dailyReport->attachment_path_3) {
-                Storage::disk('public')->delete($dailyReport->attachment_path_3);
+                Storage::disk('attachments')->delete($dailyReport->attachment_path_3);
             }
 
             $dailyReport->delete();
@@ -944,14 +944,12 @@ class DailyReportController extends Controller
         if (!$user->isAdmin()) {
             // Level 8 can approve cross-department within same job site
             if ($user->isLevel8()) {
-                if ($user->job_site_id && $dailyReport->job_site_id) {
-                    if ($dailyReport->job_site_id !== $user->job_site_id) {
-                        abort(403, 'Unauthorized action. You can only approve reports from your job site.');
-                    }
+                if (!$user->job_site_id || $dailyReport->job_site_id !== $user->job_site_id) {
+                    abort(403, 'Unauthorized action. You can only approve reports from your job site.');
                 }
             } else {
-                // Other users can only approve within same department
-                if ($user->department_id && $dailyReport->department_id !== $user->department_id) {
+                // Other users can only approve within same department (a user without department approves nothing)
+                if (!$user->department_id || $dailyReport->department_id !== $user->department_id) {
                     abort(403, 'Unauthorized action. You can only approve reports from your department.');
                 }
             }
@@ -1205,7 +1203,8 @@ class DailyReportController extends Controller
             }
 
             // Level 8 can approve cross-department within same job site
-            if ($user->isLevel8() && $user->job_site_id) {
+            if ($user->isLevel8()) {
+                // A Level 8 user without a job site matches nothing
                 $query->where('job_site_id', $user->job_site_id);
             }
 
@@ -1312,7 +1311,7 @@ class DailyReportController extends Controller
                     'trace' => $e->getTraceAsString()
                 ]);
 
-                return redirect()->back()->with('error', 'An error occurred while approving the reports: ' . $e->getMessage());
+                return redirect()->back()->with('error', 'An error occurred while approving the reports. Please try again or contact the administrator.');
             }
         } catch (\Exception $e) {
             Log::error('Error in batch approval', [
@@ -1321,7 +1320,7 @@ class DailyReportController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
 
-            return redirect()->back()->with('error', 'Error processing request: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Error processing request. Please try again or contact the administrator.');
         }
     }
 
@@ -1368,7 +1367,8 @@ class DailyReportController extends Controller
             }
 
             // Level 8 can reject cross-department within same job site
-            if ($user->isLevel8() && $user->job_site_id) {
+            if ($user->isLevel8()) {
+                // A Level 8 user without a job site matches nothing
                 $query->where('job_site_id', $user->job_site_id);
             }
 
@@ -1474,7 +1474,7 @@ class DailyReportController extends Controller
                     'trace' => $e->getTraceAsString()
                 ]);
 
-                return redirect()->back()->with('error', 'An error occurred while rejecting the reports: ' . $e->getMessage());
+                return redirect()->back()->with('error', 'An error occurred while rejecting the reports. Please try again or contact the administrator.');
             }
         } catch (\Exception $e) {
             Log::error('Error in batch rejection', [
@@ -1483,7 +1483,7 @@ class DailyReportController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
 
-            return redirect()->back()->with('error', 'Error processing request: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Error processing request. Please try again or contact the administrator.');
         }
     }
 
@@ -1546,7 +1546,7 @@ class DailyReportController extends Controller
                 
                 // Delete attachments
                 foreach ($attachmentPaths as $path) {
-                    Storage::disk('public')->delete($path);
+                    Storage::disk('attachments')->delete($path);
                 }
                 
                 DB::commit();
@@ -1559,7 +1559,7 @@ class DailyReportController extends Controller
                     'trace' => $e->getTraceAsString()
                 ]);
                 
-                return redirect()->back()->with('error', 'An error occurred while deleting the reports: ' . $e->getMessage());
+                return redirect()->back()->with('error', 'An error occurred while deleting the reports. Please try again or contact the administrator.');
             }
         } catch (\Exception $e) {
             Log::error('Error in batch deletion', [
@@ -1567,7 +1567,7 @@ class DailyReportController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
             
-            return redirect()->back()->with('error', 'Error processing request: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Error processing request. Please try again or contact the administrator.');
         }
     }
     
@@ -1651,8 +1651,14 @@ class DailyReportController extends Controller
             'file' => 'required|mimes:xlsx,xls,csv|max:2048',
         ]);
 
+        $this->authorize('create', DailyReport::class);
+
+        /** @var User $user */
+        $user = Auth::user();
+        $eligiblePicIds = array_map('intval', $this->getEligiblePics($user));
+
         try {
-            Excel::import(new DailyReportsImport, $request->file('file'));
+            Excel::import(new DailyReportsImport($eligiblePicIds), $request->file('file'));
             
             return redirect()->route('daily-reports.user-jobs')
                 ->with('success', 'Reports imported successfully.');
@@ -1669,7 +1675,7 @@ class DailyReportController extends Controller
             Log::error('Error importing reports', ['error' => $e->getMessage()]);
             
             return redirect()->back()
-                ->with('error', 'Error importing reports: ' . $e->getMessage());
+                ->with('error', 'Error importing reports. Please try again or contact the administrator.');
         }
     }
 

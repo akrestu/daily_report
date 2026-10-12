@@ -22,8 +22,7 @@ class JobCommentController extends Controller
         // Log the incoming request
         Log::info('Comment store request', [
             'reportId' => $reportId,
-            'user_id' => Auth::id(),
-            'request_data' => $request->all()
+            'user_id' => Auth::id()
         ]);
 
         $request->validate([
@@ -78,11 +77,11 @@ class JobCommentController extends Controller
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Error saving comment: ' . $e->getMessage()
+                    'message' => 'Error saving comment. Please try again or contact the administrator.'
                 ], 500);
             }
 
-            return redirect()->back()->with('error', 'Error adding comment: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Error adding comment. Please try again or contact the administrator.');
         }
     }
     
@@ -144,11 +143,11 @@ class JobCommentController extends Controller
             if (request()->expectsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Error fetching comments: ' . $e->getMessage()
+                    'message' => 'Error fetching comments. Please try again or contact the administrator.'
                 ], 500);
             }
 
-            return redirect()->back()->with('error', 'Error fetching comments: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Error fetching comments. Please try again or contact the administrator.');
         }
     }
     
@@ -201,11 +200,11 @@ class JobCommentController extends Controller
             if (request()->expectsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Error deleting comment: ' . $e->getMessage()
+                    'message' => 'Error deleting comment. Please try again or contact the administrator.'
                 ], 500);
             }
 
-            return redirect()->back()->with('error', 'Error deleting comment: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Error deleting comment. Please try again or contact the administrator.');
         }
     }
 }

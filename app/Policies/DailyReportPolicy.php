@@ -172,6 +172,12 @@ class DailyReportPolicy
             return false;
         }
 
-        return $dailyReport->user && $user->canApprove($dailyReport->user);
+        if (!$dailyReport->user || !$user->canApprove($dailyReport->user)) {
+            return false;
+        }
+
+        // Non-admin approvers are limited to their own department
+        return $user->isAdmin()
+            || ($user->department_id && $user->department_id === $dailyReport->department_id);
     }
 }

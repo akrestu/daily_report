@@ -5,6 +5,9 @@
 
     RewriteEngine On
 
+    # Never serve uploaded attachments directly; they go through the authorized route
+    RewriteRule ^storage/attachments/ index.php [L]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]

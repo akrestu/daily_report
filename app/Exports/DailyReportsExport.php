@@ -45,13 +45,15 @@ class DailyReportsExport implements FromCollection, WithHeadings, WithMapping, S
                 $query->where('user_id', $user->id);
             }
         } else {
-            // For all reports, apply department filter if user is not admin
-            if (!($user->role && $user->role->slug === 'admin') && $user->department_id) {
+            // Pre-filter by scope; per-report visibility is enforced by the policy below
+            if ($user->isLevel8()) {
+                $query->where('job_site_id', $user->job_site_id);
+            } elseif (!$user->isAdmin()) {
                 $query->where('department_id', $user->department_id);
             }
 
             // Filter by approval status type
-            if (isset($this->filters['type'])) {
+            if (in_array($this->filters['type'] ?? null, ['approved', 'pending', 'rejected'], true)) {
                 $query->where('approval_status', $this->filters['type']);
             }
         }
@@ -83,7 +85,13 @@ class DailyReportsExport implements FromCollection, WithHeadings, WithMapping, S
             $query->whereDate('report_date', '<=', $this->filters['date_to']);
         }
         
-        return $query->orderBy('created_at', 'desc')->get();
+        $reports = $query->orderBy('created_at', 'desc')->get();
+
+        if (!$this->isAllReports) {
+            return $reports;
+        }
+
+        return $reports->filter(fn (DailyReport $report) => $user->can('view', $report))->values();
     }
 
     /**

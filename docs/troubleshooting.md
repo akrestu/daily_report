@@ -195,7 +195,7 @@ Accessor ini bersifat read-only — tidak memodifikasi database secara otomatis.
 
 **Cek level user vs level pemilik laporan:**
 
-- Level N hanya bisa approve laporan dari Level N-1
+- Level N hanya bisa approve laporan dari Level N-1 dan N-2, di departemen yang sama
 - Level 8 hanya approve Level 6 dan Level 7 (bukan Level 1-5)
 - Level 1 tidak bisa approve siapapun
 - Admin bisa approve semua
@@ -203,7 +203,8 @@ Accessor ini bersifat read-only — tidak memodifikasi database secara otomatis.
 Contoh:
 ```
 User Level 3 mencoba approve laporan dari Level 3 → GAGAL (harus beda level)
-User Level 3 mencoba approve laporan dari Level 1 → GAGAL (harus Level N-1, bukan lebih rendah)
+User Level 3 mencoba approve laporan dari Level 1 → BERHASIL ✓ (N-2)
+User Level 4 mencoba approve laporan dari Level 1 → GAGAL (N-3, terlalu jauh)
 User Level 3 mencoba approve laporan dari Level 2 → BERHASIL ✓
 ```
 

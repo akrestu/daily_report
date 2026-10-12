@@ -189,8 +189,8 @@ class CleanupDailyReports extends Command
     private function deleteAttachmentFile($attachmentPath)
     {
         try {
-            if (Storage::disk('public')->exists($attachmentPath)) {
-                Storage::disk('public')->delete($attachmentPath);
+            if (Storage::disk('attachments')->exists($attachmentPath)) {
+                Storage::disk('attachments')->delete($attachmentPath);
                 $this->line("Deleted attachment: {$attachmentPath}", null, 'vv');
             }
         } catch (\Exception $e) {

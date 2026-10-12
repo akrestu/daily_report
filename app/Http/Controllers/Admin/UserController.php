@@ -110,7 +110,7 @@ class UserController extends Controller
                 
                 return redirect()->back()
                     ->withInput()
-                    ->with('error', 'Error creating user: ' . $e->getMessage());
+                    ->with('error', 'Error creating user. Please try again or contact the administrator.');
             }
         } catch (\Exception $e) {
             // Log validation or other errors
@@ -121,7 +121,7 @@ class UserController extends Controller
             
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Error: ' . $e->getMessage());
+                ->with('error', 'Error. Please try again or contact the administrator.');
         }
     }
 
@@ -229,7 +229,7 @@ class UserController extends Controller
             Log::error('Error deleting user', ['user_id' => $id, 'error' => $e->getMessage()]);
             
             return redirect()->route('admin.users.index')
-                ->with('error', 'Error deleting user: ' . $e->getMessage());
+                ->with('error', 'Error deleting user. Please try again or contact the administrator.');
         }
     }
 
@@ -278,7 +278,7 @@ class UserController extends Controller
             Log::error('Error in batch delete', ['error' => $e->getMessage()]);
             
             return redirect()->route('admin.users.index')
-                ->with('error', 'Error deleting users: ' . $e->getMessage());
+                ->with('error', 'Error deleting users. Please try again or contact the administrator.');
         }
     }
 
@@ -325,7 +325,7 @@ class UserController extends Controller
             Log::error('Error importing users', ['error' => $e->getMessage()]);
             
             return redirect()->back()
-                ->with('error', 'Error importing users: ' . $e->getMessage());
+                ->with('error', 'Error importing users. Please try again or contact the administrator.');
         }
     }
 

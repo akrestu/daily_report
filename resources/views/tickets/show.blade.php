@@ -57,7 +57,7 @@
                     @if($ticket->attachment_path)
                     <div class="mb-4">
                         <p class="fw-semibold small text-uppercase text-muted mb-1">Lampiran</p>
-                        <a href="{{ Storage::url($ticket->attachment_path) }}" target="_blank"
+                        <a href="{{ route('tickets.attachment', $ticket) }}" target="_blank"
                             class="btn btn-sm btn-outline-primary">
                             <i class="fas fa-paperclip me-1"></i>{{ $ticket->attachment_original_name ?? 'Lihat Lampiran' }}
                         </a>

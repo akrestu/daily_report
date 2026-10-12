@@ -73,17 +73,17 @@ $user->getRoleLevel()   // returns 0-8 (0 untuk admin/non-level roles)
 
 ### Aturan Umum
 
-Approval mengikuti hierarki level: **Level N bisa meng-approve laporan dari Level N-1**.
+Approval mengikuti hierarki level: **Level N bisa meng-approve laporan dari Level N-1 dan Level N-2**, di departemen yang sama.
 
 ```
 Level 1 → (submit) →
 Level 2 → (approve Level 1) →
-Level 3 → (approve Level 2) →
-Level 4 → (approve Level 3) →
-Level 5 → (approve Level 4) →
-Level 6 → (approve Level 5) →
-Level 7 → (approve Level 6) →
-Level 8 → (approve Level 6 DAN Level 7)
+Level 3 → (approve Level 2, Level 1) →
+Level 4 → (approve Level 3, Level 2) →
+Level 5 → (approve Level 4, Level 3) →
+Level 6 → (approve Level 5, Level 4) →
+Level 7 → (approve Level 6, Level 5) →
+Level 8 → (approve Level 6 DAN Level 7, lintas departemen dalam job site yang sama)
 Admin   → (approve siapapun)
 ```
 

@@ -21,6 +21,13 @@ use Exception;
 class DailyReportsImport extends StringValueBinder implements ToModel, WithHeadingRow, WithValidation, SkipsEmptyRows, WithCustomValueBinder
 {
     /**
+     * @param array<int> $eligiblePicIds User IDs the importing user may assign as PIC
+     */
+    public function __construct(private array $eligiblePicIds = [])
+    {
+    }
+
+    /**
     * @param array $row
     *
     * @return \Illuminate\Database\Eloquent\Model|null
@@ -34,6 +41,11 @@ class DailyReportsImport extends StringValueBinder implements ToModel, WithHeadi
         $department = Department::where('name', $row['department'])->first();
         if (!$department) {
             // Skip this row if department doesn't exist
+            return null;
+        }
+
+        // Non-admins may only import reports into their own department
+        if (!$user->isAdmin() && $department->id !== $user->department_id) {
             return null;
         }
 
@@ -64,6 +76,11 @@ class DailyReportsImport extends StringValueBinder implements ToModel, WithHeadi
         $pic = User::where('user_id', $row['user_id'])->first();
         if (!$pic) {
             // Skip this row if PIC doesn't exist
+            return null;
+        }
+
+        // PIC must be one the importing user is allowed to assign (same rules as the form)
+        if (!$user->isAdmin() && !in_array($pic->id, $this->eligiblePicIds, true)) {
             return null;
         }
 

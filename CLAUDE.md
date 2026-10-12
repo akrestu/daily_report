@@ -102,17 +102,17 @@ The system has **9 roles** defined in `database/seeders/RolesSeeder.php`:
 - **admin**: Full system access, can approve any report
 - **level1**: Lowest level. Can create reports, assign PIC to Level 2. Cannot approve anyone
 - **level2**: Can approve Level 1 reports, assign PIC to Level 3
-- **level3**: Can approve Level 2 reports, assign PIC to Level 4
-- **level4**: Can approve Level 3 reports, assign PIC to Level 5
-- **level5**: Can approve Level 4 reports, assign PIC to Level 6. Can batch-delete dept reports
-- **level6**: Can approve Level 5 reports, assign PIC to Level 7/8
-- **level7**: Can approve Level 6 reports, assign PIC to Level 8
+- **level3**: Can approve Level 2 and Level 1 reports, assign PIC to Level 4
+- **level4**: Can approve Level 3 and Level 2 reports, assign PIC to Level 5
+- **level5**: Can approve Level 4 and Level 3 reports, assign PIC to Level 6. Can batch-delete dept reports
+- **level6**: Can approve Level 5 and Level 4 reports, assign PIC to Level 7/8
+- **level7**: Can approve Level 6 and Level 5 reports, assign PIC to Level 8
 - **level8**: **Cannot create reports**. Approves Level 6 AND Level 7. Cross-department within same job_site
 
 Role hierarchy (operational): Level 1 → Level 2 → Level 3 → Level 4 → Level 5 → Level 6 → Level 7 → Level 8
 
 Role level is determined by `User::getRoleLevel()` which returns 1-8 for level roles, 0 for admin.
-Approval rule: Level N can approve Level N-1 (via `User::canApprove()`). Level 8 exception: approves Level 6 AND Level 7.
+Approval rule: Level N can approve Level N-1 and N-2 (via `User::canApprove()`), within the same department. Level 8 exception: approves Level 6 AND Level 7 within the same job_site.
 
 > Note: legacy slugs `department_head`, `leader`, `staff` exist only for backward-compatibility and are NOT seeded.
 > Full documentation: `docs/architecture.md`
@@ -121,7 +121,7 @@ Approval rule: Level N can approve Level N-1 (via `User::canApprove()`). Level 8
 Daily reports follow a level-based approval workflow:
 1. Level 1 creates report (`approval_status: pending`)
 2. Level 2 approves Level 1 reports (`approval_status: approved`, `status: completed`)
-3. Each level approves the level directly below (Level N approves Level N-1)
+3. Each level approves the one or two levels below (Level N approves Level N-1 and N-2)
 4. Level 8 is a special case: approves both Level 6 and Level 7
 5. Rejection sets `approval_status: rejected` and records `rejection_reason`
 

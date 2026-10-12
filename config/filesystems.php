@@ -36,6 +36,14 @@ return [
             'throw' => false,
         ],
 
+        // Private storage for report/ticket attachments (served only via authorized routes)
+        'attachments' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private'),
+            'visibility' => 'private',
+            'throw' => false,
+        ],
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),

@@ -10,35 +10,12 @@ class PasswordConfirmationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_confirm_password_screen_can_be_rendered(): void
+    // No route requires password confirmation, so the screen is disabled
+    public function test_confirm_password_routes_are_not_available(): void
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->get('/confirm-password');
-
-        $response->assertStatus(200);
-    }
-
-    public function test_password_can_be_confirmed(): void
-    {
-        $user = User::factory()->create();
-
-        $response = $this->actingAs($user)->post('/confirm-password', [
-            'password' => 'password',
-        ]);
-
-        $response->assertRedirect();
-        $response->assertSessionHasNoErrors();
-    }
-
-    public function test_password_is_not_confirmed_with_invalid_password(): void
-    {
-        $user = User::factory()->create();
-
-        $response = $this->actingAs($user)->post('/confirm-password', [
-            'password' => 'wrong-password',
-        ]);
-
-        $response->assertSessionHasErrors();
+        $this->actingAs($user)->get('/confirm-password')->assertNotFound();
+        $this->actingAs($user)->post('/confirm-password', ['password' => 'password'])->assertNotFound();
     }
 }

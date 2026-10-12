@@ -48,8 +48,8 @@ class PublicTicketController extends Controller
         if ($request->hasFile('attachment')) {
             $file                   = $request->file('attachment');
             $attachmentOriginalName = $file->getClientOriginalName();
-            $filename               = 'ticket_' . uniqid() . '_' . time() . '.' . $file->getClientOriginalExtension();
-            $attachmentPath         = $file->storeAs('attachments', $filename, 'public');
+            $filename               = 'ticket_' . uniqid() . '_' . time() . '.' . ($file->extension() ?: 'bin');
+            $attachmentPath         = $file->storeAs('attachments', $filename, 'attachments');
         }
 
         $ticket = Ticket::create([
