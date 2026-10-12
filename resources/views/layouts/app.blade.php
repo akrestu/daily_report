@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>SiGAP - Sistem Informasi Giat Aktivitas Pekerjaan</title>
+    <title>SiGAP - Smart Integrated Gateway for Activity &amp; Performance</title>
 
     <!-- Favicon -->
     <link rel="icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">

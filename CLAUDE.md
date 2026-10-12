@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-SiGAP (Sistem Informasi Giat Aktivitas Pekerjaan) is a Laravel 12-based daily work activity reporting system with multi-level approval workflows. The system handles report creation, approval routing, notifications, comments, and file attachments with role-based access control.
+SiGAP (Smart Integrated Gateway for Activity & Performance) is a Laravel 12-based daily work activity reporting system with multi-level approval workflows. The system handles report creation, approval routing, notifications, comments, and file attachments with role-based access control.
 
 ### Current Version: 1.1.0 (November 2024)
 

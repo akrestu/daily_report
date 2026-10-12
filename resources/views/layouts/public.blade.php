@@ -93,7 +93,7 @@
         <div class="brand-header">
             <img src="{{ asset('Sigap.png') }}" alt="SiGAP Logo" class="brand-logo">
             <div class="brand-title">SiGAP</div>
-            <div class="brand-subtitle">Sistem Informasi Giat Aktivitas Pekerjaan</div>
+            <div class="brand-subtitle">Smart Integrated Gateway for Activity &amp; Performance</div>
         </div>
 
         <div class="form-card">
@@ -101,7 +101,7 @@
         </div>
 
         <p class="copyright">
-            &copy; {{ date('Y') }} SiGAP — Sistem Informasi Giat Aktivitas Pekerjaan
+            &copy; {{ date('Y') }} SiGAP — Smart Integrated Gateway for Activity &amp; Performance
         </p>
     </div>
 

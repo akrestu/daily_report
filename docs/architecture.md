@@ -21,7 +21,7 @@
 
 ## 1. Gambaran Umum
 
-SiGAP (Sistem Informasi Giat Aktivitas Pekerjaan) adalah sistem pelaporan aktivitas kerja harian berbasis web. Sistem ini mengelola pembuatan laporan, alur approval berjenjang, notifikasi otomatis, komentar, dan lampiran file dengan kontrol akses berbasis peran.
+SiGAP (Smart Integrated Gateway for Activity & Performance) adalah sistem pelaporan aktivitas kerja harian berbasis web. Sistem ini mengelola pembuatan laporan, alur approval berjenjang, notifikasi otomatis, komentar, dan lampiran file dengan kontrol akses berbasis peran.
 
 **Tech Stack Ringkas:**
 

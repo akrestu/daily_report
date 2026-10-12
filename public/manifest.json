@@ -1,7 +1,7 @@
 {
-    "name": "SiGAP - Sistem Informasi Giat Aktivitas Pekerjaan",
+    "name": "SiGAP - Smart Integrated Gateway for Activity & Performance",
     "short_name": "SiGAP",
-    "description": "Sistem Informasi Giat Aktivitas Pekerjaan - Daily Work Activity Reporting System",
+    "description": "Smart Integrated Gateway for Activity & Performance - Daily work reporting, planning and multi-level approval",
     "icons": [
         {
             "src": "/icons/icon-48x48.png?v=3.1",

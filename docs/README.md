@@ -1,6 +1,6 @@
 # SiGAP — Dokumentasi
 
-**SiGAP** (Sistem Informasi Giat Aktivitas Pekerjaan) adalah sistem pelaporan aktivitas kerja harian berbasis web dengan alur approval berjenjang multi-level.
+**SiGAP** (Smart Integrated Gateway for Activity & Performance) adalah sistem pelaporan aktivitas kerja harian berbasis web dengan alur approval berjenjang multi-level.
 
 - **Versi**: 1.1.0
 - **Framework**: Laravel 12 / PHP 8.2+

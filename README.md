@@ -1,7 +1,7 @@
-# SiGAP - Sistem Informasi Giat Aktivitas Pekerjaan
+# SiGAP - Smart Integrated Gateway for Activity & Performance
 
 ## Overview
-SiGAP (Sistem Informasi Giat Aktivitas Pekerjaan) is a Laravel-based web application designed to streamline the process of submitting, tracking, and managing daily work activities and reports within an organization. The system supports multiple user roles, departments, and features a comprehensive approval workflow.
+SiGAP (Smart Integrated Gateway for Activity & Performance) is a Laravel-based web application designed to streamline the process of submitting, tracking, and managing daily work activities and reports within an organization. The system supports multiple user roles, departments, and features a comprehensive approval workflow.
 
 ## Key Features
 - **Daily Report Management**: Create, view, edit, and delete daily reports

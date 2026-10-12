@@ -5,7 +5,7 @@
  */
 
 // Cache version for manual updates
-const CACHE_VERSION = 'v3.0.0';
+const CACHE_VERSION = 'v3.1.0';
 
 // Import Workbox from CDN
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.0.0/workbox-sw.js');
