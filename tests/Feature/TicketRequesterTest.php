@@ -45,6 +45,7 @@ class TicketRequesterTest extends TestCase
     private function ticketPayload(array $overrides = []): array
     {
         return $overrides + [
+            'type' => 'incident',
             'category_id' => $this->category->id,
             'title' => 'Laptop tidak menyala',
             'description' => 'Sejak pagi tidak bisa dinyalakan',

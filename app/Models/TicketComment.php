@@ -7,7 +7,19 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TicketComment extends Model
 {
-    protected $fillable = ['ticket_id', 'user_id', 'comment'];
+    protected $fillable = ['ticket_id', 'user_id', 'author_name', 'comment', 'is_internal'];
+
+    protected function casts(): array
+    {
+        return [
+            'is_internal' => 'boolean',
+        ];
+    }
+
+    public function getAuthorDisplayNameAttribute(): string
+    {
+        return $this->user?->name ?? $this->author_name ?? '-';
+    }
 
     public function ticket(): BelongsTo
     {

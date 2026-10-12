@@ -5,6 +5,7 @@ namespace App\Observers;
 use App\Models\JobPlan;
 use App\Models\Notification;
 use App\Models\Ticket;
+use App\Services\TicketWorkflow;
 
 class JobPlanObserver
 {
@@ -37,6 +38,17 @@ class JobPlanObserver
      */
     public function updated(JobPlan $jobPlan): void
     {
+        // Job plan dari tiket dikonversi ke laporan harian → tiket otomatis "resolved".
+        // Harus dicek sebelum guard content fields di bawah, karena di sini hanya status yang berubah.
+        if ($jobPlan->wasChanged('status') && $jobPlan->status === 'converted') {
+            $ticket = Ticket::where('job_plan_id', $jobPlan->id)->first();
+            if ($ticket) {
+                app(TicketWorkflow::class)->resolveFromJobPlan($ticket, $jobPlan);
+            }
+
+            return;
+        }
+
         // Only notify when content fields change, not when status/converted_at change
         $contentFields = ['job_name', 'description', 'planned_date', 'due_date', 'remark'];
 
@@ -46,17 +58,6 @@ class JobPlanObserver
 
         // Do not notify if plan has already been converted
         if ($jobPlan->status === 'converted') {
-            return;
-        }
-
-        // Auto-resolve linked ticket when job plan is converted
-        if ($jobPlan->wasChanged('status') && $jobPlan->status === 'converted') {
-            $ticket = Ticket::where('job_plan_id', $jobPlan->id)
-                ->whereIn('status', ['open', 'in_progress'])
-                ->first();
-            if ($ticket) {
-                $ticket->update(['status' => 'resolved', 'resolved_at' => now()]);
-            }
             return;
         }
 

@@ -759,6 +759,8 @@
                                     window.location.href = `/daily-reports/${notification.daily_report_id}#comment-${notification.comment_id}`;
                                 } else if (notification.daily_report_id) {
                                     window.location.href = `/daily-reports/${notification.daily_report_id}`;
+                                } else if (notification.ticket_id) {
+                                    window.location.href = `/tickets/${notification.ticket_id}`;
                                 } else if (notification.type === 'pending_approval') {
                                     // For pending approval notifications, go to the approval queue
                                     window.location.href = '/dashboard/pending-approvals';

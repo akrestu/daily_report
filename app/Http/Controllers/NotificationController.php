@@ -27,7 +27,7 @@ class NotificationController extends Controller
                 'comment.user:id,name',
                 'jobPlan:id,job_name,creator_id',
             ])
-            ->select(['id', 'user_id', 'daily_report_id', 'comment_id', 'job_plan_id', 'type', 'message', 'is_read', 'created_at'])
+            ->select(['id', 'user_id', 'daily_report_id', 'comment_id', 'job_plan_id', 'ticket_id', 'type', 'message', 'is_read', 'created_at'])
             ->orderBy('created_at', 'desc')
             ->take(10)
             ->get();
@@ -115,7 +115,7 @@ class NotificationController extends Controller
                 'comment.user:id,name',
                 'jobPlan:id,job_name,creator_id',
             ])
-            ->select(['id', 'user_id', 'daily_report_id', 'comment_id', 'job_plan_id', 'type', 'message', 'is_read', 'created_at'])
+            ->select(['id', 'user_id', 'daily_report_id', 'comment_id', 'job_plan_id', 'ticket_id', 'type', 'message', 'is_read', 'created_at'])
             ->orderBy('created_at', 'desc')
             ->paginate(25);
             

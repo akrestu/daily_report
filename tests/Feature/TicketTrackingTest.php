@@ -77,6 +77,7 @@ class TicketTrackingTest extends TestCase
 
         $response = $this->post('/request', [
             'nik' => '0012345',
+            'type' => 'incident',
             'category_id' => $this->category->id,
             'title' => 'Printer rusak',
             'description' => 'Tidak bisa print',
@@ -103,16 +104,22 @@ class TicketTrackingTest extends TestCase
     {
         $ticket = $this->makeTicket();
 
+        // Tanpa lookup, halaman detail tidak bisa dibuka walau nomor tiket diketahui
+        $this->get(route('tickets.public.track.show', $ticket))->assertRedirect(route('tickets.public.track'));
+
         $this->from(route('tickets.public.track'))
-            ->post(route('tickets.public.track.show'), [
+            ->post(route('tickets.public.track.lookup'), [
                 'ticket_number' => $ticket->ticket_number,
                 'token' => 'WRONGTKN',
             ])->assertSessionHasErrors('ticket_number');
 
-        $this->post(route('tickets.public.track.show'), [
+        $this->post(route('tickets.public.track.lookup'), [
             'ticket_number' => strtolower($ticket->ticket_number),
             'token' => strtolower($ticket->tracking_token),
-        ])->assertOk()->assertSee($ticket->title)->assertSee($ticket->status_label);
+        ])->assertRedirect(route('tickets.public.track.show', $ticket));
+
+        $this->get(route('tickets.public.track.show', $ticket))
+            ->assertOk()->assertSee($ticket->title)->assertSee($ticket->status_label);
     }
 
     public function test_only_admin_and_it_level4_plus_are_triagers(): void

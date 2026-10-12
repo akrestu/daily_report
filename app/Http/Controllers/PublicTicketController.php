@@ -2,15 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\TicketWorkflowException;
 use App\Http\Requests\StoreTicketRequest;
 use App\Models\Employee;
 use App\Models\JobSite;
 use App\Models\Ticket;
 use App\Models\TicketCategory;
+use App\Services\TicketWorkflow;
 use Illuminate\Http\Request;
 
 class PublicTicketController extends Controller
 {
+    private const SESSION_KEY = 'tracked_tickets';
+
     public function showForm()
     {
         $categories = TicketCategory::active()->orderBy('name')->get();
@@ -81,8 +85,64 @@ class PublicTicketController extends Controller
                 ->withErrors(['ticket_number' => 'Nomor tiket atau kode akses tidak cocok.']);
         }
 
-        $ticket->load(['category', 'assignedUser']);
+        // Akses ke halaman detail disimpan di session, sehingga kode akses tidak muncul di URL
+        $request->session()->put(self::SESSION_KEY, array_unique([
+            ...$request->session()->get(self::SESSION_KEY, []), $ticket->id,
+        ]));
 
-        return view('tickets.public-track', compact('ticket'));
+        return redirect()->route('tickets.public.track.show', $ticket);
+    }
+
+    public function showTracked(Request $request, Ticket $ticket)
+    {
+        $this->authorizeTracked($request, $ticket);
+
+        $ticket->load(['category', 'assignedUser', 'histories',
+            'comments' => fn ($q) => $q->with('user')->where('is_internal', false)]);
+
+        return view('tickets.public-detail', compact('ticket'));
+    }
+
+    public function comment(Request $request, Ticket $ticket, TicketWorkflow $workflow)
+    {
+        $this->authorizeTracked($request, $ticket);
+
+        $validated = $request->validate(['comment' => 'required|string|max:2000'], [
+            'comment.required' => 'Komentar wajib diisi.',
+        ]);
+
+        if (! $ticket->isActive()) {
+            return back()->with('error', 'Tiket sudah ditutup. Silakan ajukan tiket baru.');
+        }
+
+        $workflow->addComment($ticket, $validated['comment'], null, $ticket->requester_name);
+
+        return back()->with('success', 'Komentar terkirim ke tim IT.');
+    }
+
+    public function respond(Request $request, Ticket $ticket, TicketWorkflow $workflow)
+    {
+        $this->authorizeTracked($request, $ticket);
+
+        $validated = $request->validate([
+            'action' => 'required|in:confirm,reopen,cancel',
+            'reason' => 'nullable|string|max:2000',
+        ]);
+
+        try {
+            $message = $workflow->applyRequesterResponse($ticket, $validated['action'], $validated['reason'] ?? null, null, $ticket->requester_name);
+        } catch (TicketWorkflowException $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', $message);
+    }
+
+    private function authorizeTracked(Request $request, Ticket $ticket): void
+    {
+        if (! in_array($ticket->id, $request->session()->get(self::SESSION_KEY, []), true)) {
+            abort(redirect()->route('tickets.public.track')
+                ->withErrors(['ticket_number' => 'Masukkan nomor tiket dan kode akses untuk melihat tiket.']));
+        }
     }
 }

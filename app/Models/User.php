@@ -385,6 +385,7 @@ class User extends Authenticatable
             'job_plan_assigned'   => true,
             'job_plan_updated'    => true,
             'ticket_created'      => true,
+            'ticket_updated'      => true,
             'email_notifications' => false,
         ], $preferences ?? []);
     }

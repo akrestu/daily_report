@@ -57,7 +57,14 @@ Route::get('/request/employee', [PublicTicketController::class, 'lookupEmployee'
 Route::get('/request/status', [PublicTicketController::class, 'trackForm'])->name('tickets.public.track');
 Route::post('/request/status', [PublicTicketController::class, 'track'])
     ->middleware('throttle:10,1')
-    ->name('tickets.public.track.show');
+    ->name('tickets.public.track.lookup');
+Route::get('/request/status/{ticket:ticket_number}', [PublicTicketController::class, 'showTracked'])->name('tickets.public.track.show');
+Route::post('/request/status/{ticket:ticket_number}/comment', [PublicTicketController::class, 'comment'])
+    ->middleware('throttle:10,1')
+    ->name('tickets.public.comment');
+Route::post('/request/status/{ticket:ticket_number}/respond', [PublicTicketController::class, 'respond'])
+    ->middleware('throttle:10,1')
+    ->name('tickets.public.respond');
 
 // Redirect root to dashboard or login page
 Route::get('/', function () {
@@ -132,6 +139,7 @@ Route::middleware('auth')->group(function () {
     Route::post('tickets/{ticket}/assign', [TicketController::class, 'assign'])->name('tickets.assign');
     Route::post('tickets/{ticket}/status', [TicketController::class, 'updateStatus'])->name('tickets.update-status');
     Route::post('tickets/{ticket}/comment', [TicketController::class, 'addComment'])->name('tickets.comment');
+    Route::post('tickets/{ticket}/respond', [TicketController::class, 'respond'])->name('tickets.respond');
     Route::get('tickets/{ticket}/attachment', [AttachmentController::class, 'ticket'])->name('tickets.attachment');
     Route::delete('tickets-batch', [TicketController::class, 'batchDelete'])->name('tickets.batch-delete');
 

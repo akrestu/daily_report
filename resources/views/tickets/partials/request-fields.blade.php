@@ -1,6 +1,19 @@
     {{-- Detail Permintaan --}}
     <p class="section-title"><i class="fas fa-clipboard-list me-1"></i>Detail Permintaan</p>
     <div class="row g-3 mb-4">
+        <div class="col-12">
+            <label class="form-label fw-semibold small d-block">Jenis Tiket <span class="text-danger">*</span></label>
+            @foreach(\App\Models\Ticket::TYPES as $value => $label)
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="type" id="type_{{ $value }}" value="{{ $value }}"
+                        {{ old('type', 'incident') === $value ? 'checked' : '' }} required>
+                    <label class="form-check-label small" for="type_{{ $value }}">
+                        {{ $label }}
+                        <span class="text-muted">{{ $value === 'incident' ? '(sesuatu rusak / tidak berfungsi)' : '(minta perangkat, akses, instalasi)' }}</span>
+                    </label>
+                </div>
+            @endforeach
+        </div>
         <div class="col-md-6">
             <label class="form-label fw-semibold small">Kategori Bantuan <span class="text-danger">*</span></label>
             <select name="category_id" class="form-select @error('category_id') is-invalid @enderror" required>

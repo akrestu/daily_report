@@ -43,10 +43,9 @@
                 <div class="col-md-2">
                     <select name="status" class="form-select form-select-sm">
                         <option value="">Semua Status</option>
-                        <option value="open"        {{ request('status') == 'open' ? 'selected' : '' }}>Terbuka</option>
-                        <option value="in_progress" {{ request('status') == 'in_progress' ? 'selected' : '' }}>Diproses</option>
-                        <option value="resolved"    {{ request('status') == 'resolved' ? 'selected' : '' }}>Selesai</option>
-                        <option value="closed"      {{ request('status') == 'closed' ? 'selected' : '' }}>Ditutup</option>
+                        @foreach(\App\Models\Ticket::STATUSES as $value => $meta)
+                            <option value="{{ $value }}" {{ request('status') == $value ? 'selected' : '' }}>{{ $meta['label'] }}</option>
+                        @endforeach
                     </select>
                 </div>
                 <div class="col-md-2">

@@ -2,16 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\TicketWorkflowException;
 use App\Http\Requests\StoreTicketRequest;
-use App\Models\JobPlan;
 use App\Models\JobSite;
 use App\Models\Ticket;
 use App\Models\TicketCategory;
-use App\Models\TicketComment;
 use App\Models\User;
+use App\Services\TicketWorkflow;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
 
 class TicketController extends Controller
 {
@@ -20,7 +21,7 @@ class TicketController extends Controller
         $this->authorize('viewAny', Ticket::class);
 
         $query = Ticket::with(['category', 'assignedUser', 'jobPlan'])
-            ->orderByRaw("FIELD(status, 'open', 'in_progress', 'resolved', 'closed')")
+            ->orderByRaw("FIELD(status, 'open', 'assigned', 'in_progress', 'pending', 'resolved', 'closed', 'cancelled')")
             ->orderByRaw("FIELD(priority, 'urgent', 'high', 'medium', 'low')")
             ->orderBy('created_at', 'desc');
 
@@ -88,84 +89,64 @@ class TicketController extends Controller
     {
         $this->authorize('view', $ticket);
 
-        $ticket->load(['category', 'jobSite', 'assignedUser', 'jobPlan.assignee', 'comments.user']);
+        $canViewInternal = Gate::allows('viewInternal', $ticket);
 
-        // Handler tiket: anggota departemen layanan (IT)
-        $eligibleHandlers = User::with('role')
-            ->whereHas('department', fn ($q) => $q->where('code', config('tickets.department_code')))
-            ->orderBy('name')
-            ->get();
+        $ticket->load([
+            'category', 'jobSite', 'assignedUser', 'jobPlan.assignee', 'histories',
+            'comments' => fn ($q) => $q->with('user')->when(! $canViewInternal, fn ($q) => $q->where('is_internal', false)),
+        ]);
 
-        return view('tickets.show', compact('ticket', 'eligibleHandlers'));
+        $eligibleHandlers = Gate::allows('assign', Ticket::class) ? $this->eligibleHandlers()->get() : collect();
+        $transitions = Gate::allows('updateStatus', $ticket) ? TicketWorkflow::staffTransitions($ticket) : [];
+
+        return view('tickets.show', compact('ticket', 'eligibleHandlers', 'transitions', 'canViewInternal'));
     }
 
-    public function assign(Request $request, Ticket $ticket)
+    public function assign(Request $request, Ticket $ticket, TicketWorkflow $workflow)
     {
         $this->authorize('assign', Ticket::class);
 
         $validated = $request->validate([
-            'assigned_to' => 'required|exists:users,id',
+            'assigned_to' => ['required', Rule::in($this->eligibleHandlers()->pluck('id'))],
             'due_date' => 'required|date|after_or_equal:today',
         ], [
             'assigned_to.required' => 'Anggota tim wajib dipilih.',
+            'assigned_to.in' => 'Handler harus anggota tim IT.',
             'due_date.required' => 'Tanggal target selesai wajib diisi.',
             'due_date.after_or_equal' => 'Tanggal tidak boleh sebelum hari ini.',
         ]);
 
-        if ($ticket->status !== 'open') {
-            return redirect()->back()->with('error', 'Tiket ini sudah diproses sebelumnya.');
+        $handler = User::findOrFail($validated['assigned_to']);
+
+        try {
+            $workflow->assign($ticket, $handler, $validated['due_date'], Auth::user());
+        } catch (TicketWorkflowException $e) {
+            return back()->with('error', $e->getMessage());
         }
 
-        $assignedUser = User::findOrFail($validated['assigned_to']);
-        $assignerUser = Auth::user();
-
-        DB::transaction(function () use ($ticket, $assignedUser, $assignerUser, $validated) {
-            $jobPlan = JobPlan::create([
-                'creator_id' => $assignerUser->id,       // A: yang assign = pembuat job plan
-                'assignee_id' => $assignedUser->id,       // C: yang di-assign → Tugas Masuk (Assigned to Me)
-                'department_id' => $assignedUser->department_id,
-                'job_site_id' => $ticket->job_site_id,
-                'job_name' => '['.$ticket->ticket_number.'] '.$ticket->title,
-                'description' => $ticket->description,
-                'remark' => 'Dari Tiket '.$ticket->ticket_number
-                    .' — Pemohon: '.$ticket->requester_name
-                    .' ('.$ticket->requester_department.')',
-                'planned_date' => today(),
-                'due_date' => $validated['due_date'],
-                'status' => 'assigned',
-            ]);
-
-            $ticket->update([
-                'assigned_to' => $assignedUser->id,
-                'status' => 'in_progress',
-                'job_plan_id' => $jobPlan->id,
-            ]);
-        });
-
         return redirect()->route('tickets.show', $ticket)
-            ->with('success', 'Tiket berhasil di-assign. Job plan otomatis masuk ke Tugas Masuk milik '.$assignedUser->name.'.');
+            ->with('success', 'Tiket ditugaskan ke '.$handler->name.'. Job plan otomatis masuk ke Tugas Masuk miliknya.');
     }
 
-    public function updateStatus(Request $request, Ticket $ticket)
+    public function updateStatus(Request $request, Ticket $ticket, TicketWorkflow $workflow)
     {
         $this->authorize('updateStatus', $ticket);
 
         $validated = $request->validate([
-            'status' => 'required|in:open,in_progress,resolved,closed',
+            'status' => ['required', Rule::in(array_keys(Ticket::STATUSES))],
+            'note' => 'nullable|string|max:2000',
         ]);
 
-        $updates = ['status' => $validated['status']];
-
-        if ($validated['status'] === 'resolved' && ! $ticket->resolved_at) {
-            $updates['resolved_at'] = now();
+        try {
+            $workflow->changeStatus($ticket, $validated['status'], Auth::user(), $validated['note'] ?? null);
+        } catch (TicketWorkflowException $e) {
+            return back()->withInput()->with('error', $e->getMessage());
         }
 
-        $ticket->update($updates);
-
-        return redirect()->back()->with('success', 'Status tiket berhasil diperbarui.');
+        return back()->with('success', 'Status tiket diubah menjadi "'.$ticket->status_label.'".');
     }
 
-    public function addComment(Request $request, Ticket $ticket)
+    public function addComment(Request $request, Ticket $ticket, TicketWorkflow $workflow)
     {
         $this->authorize('addComment', $ticket);
 
@@ -173,13 +154,41 @@ class TicketController extends Controller
             'comment' => 'required|string|max:2000',
         ]);
 
-        TicketComment::create([
-            'ticket_id' => $ticket->id,
-            'user_id' => Auth::id(),
-            'comment' => $validated['comment'],
+        // Hanya tim IT yang bisa menulis catatan internal; pemohon selalu publik
+        $internal = $request->boolean('is_internal') && Gate::allows('viewInternal', $ticket);
+
+        $workflow->addComment($ticket, $validated['comment'], Auth::user(), Auth::user()->name, $internal);
+
+        return back()->with('success', $internal ? 'Catatan internal ditambahkan.' : 'Balasan terkirim.');
+    }
+
+    /**
+     * Respons pemohon (user login): konfirmasi selesai, buka kembali, atau batalkan.
+     */
+    public function respond(Request $request, Ticket $ticket, TicketWorkflow $workflow)
+    {
+        $this->authorize('respond', $ticket);
+
+        $validated = $request->validate([
+            'action' => 'required|in:confirm,reopen,cancel',
+            'reason' => 'nullable|string|max:2000',
         ]);
 
-        return redirect()->back()->with('success', 'Komentar berhasil ditambahkan.');
+        try {
+            $message = $workflow->applyRequesterResponse($ticket, $validated['action'], $validated['reason'] ?? null, Auth::user(), Auth::user()->name);
+        } catch (TicketWorkflowException $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', $message);
+    }
+
+    private function eligibleHandlers()
+    {
+        // Handler tiket: anggota departemen layanan (IT)
+        return User::with('role')
+            ->whereHas('department', fn ($q) => $q->where('code', config('tickets.department_code')))
+            ->orderBy('name');
     }
 
     public function destroy(Ticket $ticket)

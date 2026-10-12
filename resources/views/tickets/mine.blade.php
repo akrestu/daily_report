@@ -8,8 +8,8 @@
                 <form method="GET" action="{{ route('tickets.mine') }}">
                     <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
                         <option value="">Semua Status</option>
-                        @foreach(['open' => 'Terbuka', 'in_progress' => 'Diproses', 'resolved' => 'Selesai', 'closed' => 'Ditutup'] as $value => $label)
-                            <option value="{{ $value }}" {{ request('status') == $value ? 'selected' : '' }}>{{ $label }}</option>
+                        @foreach(\App\Models\Ticket::STATUSES as $value => $meta)
+                            <option value="{{ $value }}" {{ request('status') == $value ? 'selected' : '' }}>{{ $meta['label'] }}</option>
                         @endforeach
                     </select>
                 </form>

@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Models\Employee;
 use App\Models\Ticket;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
 /**
@@ -26,6 +27,7 @@ class StoreTicketRequest extends FormRequest
             'nik' => $this->user() ? 'prohibited' : 'required|string|max:30',
             'requester_phone' => 'nullable|string|max:30',
             'job_site_id' => 'nullable|exists:job_sites,id',
+            'type' => ['required', Rule::in(array_keys(Ticket::TYPES))],
             'category_id' => 'required|exists:ticket_categories,id',
             'title' => 'required|string|max:255',
             'description' => 'required|string',
@@ -55,6 +57,7 @@ class StoreTicketRequest extends FormRequest
     {
         return [
             'nik.required' => 'NIK wajib diisi.',
+            'type.required' => 'Jenis tiket wajib dipilih.',
             'category_id.required' => 'Kategori permintaan wajib dipilih.',
             'title.required' => 'Judul permintaan wajib diisi.',
             'description.required' => 'Deskripsi detail wajib diisi.',
@@ -89,6 +92,7 @@ class StoreTicketRequest extends FormRequest
         return $requester + [
             'requester_phone' => $this->input('requester_phone') ?: $this->employee?->phone,
             'job_site_id' => $this->input('job_site_id') ?: ($user?->job_site_id ?? $this->employee?->job_site_id),
+            'type' => $this->input('type'),
             'category_id' => $this->input('category_id'),
             'title' => $this->input('title'),
             'description' => $this->input('description'),

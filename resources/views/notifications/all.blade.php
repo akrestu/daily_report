@@ -128,6 +128,12 @@
                                                         </a>
                                                     @endif
 
+                                                    @if($notification->ticket_id)
+                                                        <a href="{{ route('tickets.show', $notification->ticket_id) }}" class="text-decoration-none">
+                                                            <i class="fas fa-ticket-alt me-1"></i> Lihat Tiket
+                                                        </a>
+                                                    @endif
+
                                                     @if($notification->type === 'pending_approval')
                                                         <a href="/dashboard/pending-approvals" class="text-decoration-none">
                                                             <i class="fas fa-tasks me-1"></i> View Approval Queue

@@ -14,6 +14,7 @@ class Notification extends Model
         'user_id',
         'daily_report_id',
         'job_plan_id',
+        'ticket_id',
         'comment_id',
         'type',
         'message',
@@ -57,5 +58,10 @@ class Notification extends Model
     public function jobPlan(): BelongsTo
     {
         return $this->belongsTo(JobPlan::class);
+    }
+
+    public function ticket(): BelongsTo
+    {
+        return $this->belongsTo(Ticket::class);
     }
 }

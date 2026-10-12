@@ -48,6 +48,18 @@ class TicketPolicy
         return $this->view($user, $ticket);
     }
 
+    /** Tim IT (triager / handler) boleh melihat & menulis catatan internal */
+    public function viewInternal(User $user, Ticket $ticket): bool
+    {
+        return self::isTriager($user) || $ticket->assigned_to === $user->id;
+    }
+
+    /** Pemohon: konfirmasi selesai, buka kembali, atau batalkan tiketnya sendiri */
+    public function respond(User $user, Ticket $ticket): bool
+    {
+        return $ticket->requester_user_id !== null && $ticket->requester_user_id === $user->id;
+    }
+
     public function deleteAny(User $user): bool
     {
         return $user->isAdmin();

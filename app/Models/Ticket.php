@@ -13,6 +13,36 @@ class Ticket extends Model
 {
     use SoftDeletes;
 
+    const STATUS_OPEN = 'open';
+
+    const STATUS_ASSIGNED = 'assigned';
+
+    const STATUS_IN_PROGRESS = 'in_progress';
+
+    const STATUS_PENDING = 'pending';
+
+    const STATUS_RESOLVED = 'resolved';
+
+    const STATUS_CLOSED = 'closed';
+
+    const STATUS_CANCELLED = 'cancelled';
+
+    /** Urutan = urutan tampil di filter & daftar tiket */
+    const STATUSES = [
+        'open' => ['label' => 'Baru', 'badge' => 'bg-primary'],
+        'assigned' => ['label' => 'Ditugaskan', 'badge' => 'bg-info text-dark'],
+        'in_progress' => ['label' => 'Dikerjakan', 'badge' => 'bg-warning text-dark'],
+        'pending' => ['label' => 'Menunggu Pemohon', 'badge' => 'bg-secondary'],
+        'resolved' => ['label' => 'Selesai (menunggu konfirmasi)', 'badge' => 'bg-success'],
+        'closed' => ['label' => 'Ditutup', 'badge' => 'bg-dark'],
+        'cancelled' => ['label' => 'Dibatalkan', 'badge' => 'bg-light text-muted border'],
+    ];
+
+    const TYPES = [
+        'incident' => 'Gangguan / Kerusakan',
+        'service_request' => 'Permintaan Layanan',
+    ];
+
     protected $hidden = ['tracking_token'];
 
     protected static function booted(): void
@@ -41,12 +71,22 @@ class Ticket extends Model
         'attachment_path',
         'attachment_original_name',
         'resolved_at',
+        'type',
+        'assigned_at',
+        'resolution_note',
+        'closed_at',
+        'close_method',
+        'cancelled_at',
+        'reopen_count',
     ];
 
     protected function casts(): array
     {
         return [
             'resolved_at' => 'datetime',
+            'assigned_at' => 'datetime',
+            'closed_at' => 'datetime',
+            'cancelled_at' => 'datetime',
         ];
     }
 
@@ -92,6 +132,27 @@ class Ticket extends Model
     public function jobPlan(): BelongsTo
     {
         return $this->belongsTo(JobPlan::class, 'job_plan_id');
+    }
+
+    public function histories(): HasMany
+    {
+        return $this->hasMany(TicketStatusHistory::class)->orderBy('created_at')->orderBy('id');
+    }
+
+    public function publicComments(): HasMany
+    {
+        return $this->comments()->where('is_internal', false);
+    }
+
+    /** Tiket masih berjalan (belum ditutup / dibatalkan) */
+    public function isActive(): bool
+    {
+        return ! in_array($this->status, [self::STATUS_CLOSED, self::STATUS_CANCELLED], true);
+    }
+
+    public function getTypeLabelAttribute(): string
+    {
+        return self::TYPES[$this->type] ?? '-';
     }
 
     public function comments(): HasMany
@@ -172,13 +233,7 @@ class Ticket extends Model
 
     public function getStatusLabelAttribute(): string
     {
-        return match ($this->status) {
-            'open' => 'Terbuka',
-            'in_progress' => 'Diproses',
-            'resolved' => 'Selesai',
-            'closed' => 'Ditutup',
-            default => $this->status,
-        };
+        return self::STATUSES[$this->status]['label'] ?? (string) $this->status;
     }
 
     public function getPriorityBadgeClassAttribute(): string
@@ -194,12 +249,6 @@ class Ticket extends Model
 
     public function getStatusBadgeClassAttribute(): string
     {
-        return match ($this->status) {
-            'open' => 'bg-primary',
-            'in_progress' => 'bg-warning text-dark',
-            'resolved' => 'bg-success',
-            'closed' => 'bg-secondary',
-            default => 'bg-secondary',
-        };
+        return self::STATUSES[$this->status]['badge'] ?? 'bg-secondary';
     }
 }
