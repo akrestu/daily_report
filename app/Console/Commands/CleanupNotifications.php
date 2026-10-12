@@ -13,7 +13,7 @@ class CleanupNotifications extends Command
      *
      * @var string
      */
-    protected $signature = 'notifications:cleanup {--days=30 : Number of days to keep notifications} {--dry-run : Show what would be deleted without actually deleting}';
+    protected $signature = 'notifications:cleanup {--days=30 : Number of days to keep notifications} {--dry-run : Show what would be deleted without actually deleting} {--force : Skip production confirmation (used by the scheduler)}';
 
     /**
      * The console command description.
@@ -61,8 +61,8 @@ class CleanupNotifications extends Command
             return Command::SUCCESS;
         }
         
-        // Confirm deletion in production
-        if (app()->environment('production')) {
+        // Confirm deletion in production (dilewati oleh scheduler via --force)
+        if (app()->environment('production') && ! $this->option('force')) {
             if (!$this->confirm("Are you sure you want to delete {$count} notifications?")) {
                 $this->info('Operation cancelled.');
                 return Command::SUCCESS;

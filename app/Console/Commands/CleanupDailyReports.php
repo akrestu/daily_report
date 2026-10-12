@@ -18,7 +18,8 @@ class CleanupDailyReports extends Command
                             {--days=365 : Number of days to keep reports} 
                             {--status=* : Only cleanup reports with specific status (completed, approved, rejected)}
                             {--dry-run : Show what would be deleted without actually deleting}
-                            {--keep-attachments : Keep attachment files when deleting reports}';
+                            {--keep-attachments : Keep attachment files when deleting reports}
+                            {--force : Skip production confirmation (used by the scheduler)}';
 
     /**
      * The console command description.
@@ -76,8 +77,8 @@ class CleanupDailyReports extends Command
             return Command::SUCCESS;
         }
         
-        // Safety confirmation in production
-        if (app()->environment('production')) {
+        // Safety confirmation in production (dilewati oleh scheduler via --force)
+        if (app()->environment('production') && ! $this->option('force')) {
             if (!$this->confirm("Are you sure you want to delete {$count} daily reports? This action cannot be undone!")) {
                 $this->info('Operation cancelled.');
                 return Command::SUCCESS;

@@ -24,3 +24,8 @@ Artisan::command('tickets:sla-check', function (TicketSla $sla, TicketWorkflow $
 })->purpose('Tandai & beri notifikasi tiket yang melewati tenggat SLA');
 
 Schedule::command('tickets:sla-check')->everyFiveMinutes()->withoutOverlapping();
+
+// Pemeliharaan data (dipindahkan dari app/Console/Kernel.php yang tidak lagi dibaca Laravel 12)
+Schedule::command('notifications:cleanup --force')->dailyAt('02:00')->withoutOverlapping()->runInBackground();
+Schedule::command('reports:cleanup --status=completed --status=approved --days=730 --force')
+    ->monthlyOn(1, '03:00')->withoutOverlapping()->runInBackground();
