@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Department;
+use App\Models\Employee;
 use App\Models\Notification;
 use App\Models\Role;
 use App\Models\Ticket;
@@ -72,9 +73,10 @@ class TicketTrackingTest extends TestCase
 
     public function test_public_submission_shows_token_once_via_session(): void
     {
+        Employee::create(['nik' => '0012345', 'name' => 'Budi', 'department_id' => Department::where('code', 'HR')->value('id')]);
+
         $response = $this->post('/request', [
-            'requester_name' => 'Budi',
-            'requester_department' => 'HR',
+            'nik' => '0012345',
             'category_id' => $this->category->id,
             'title' => 'Printer rusak',
             'description' => 'Tidak bisa print',

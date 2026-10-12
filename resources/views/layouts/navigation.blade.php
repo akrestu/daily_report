@@ -156,11 +156,19 @@
             </li>
             @endif
 
-            @if(\App\Policies\TicketPolicy::isTriager(auth()->user()) && ! auth()->user()->isAdmin())
-            @php $openTicketCount = \App\Models\Ticket::where('status', 'open')->count(); @endphp
+            {{-- Tiket: semua user bisa mengajukan; triager (tim IT level >= 4) melihat Tiket Masuk --}}
             <li class="nav-item mb-3">
                 <span class="sidebar-heading px-3 py-2 text-uppercase fw-bold text-white-50 small d-block">Tiket</span>
             </li>
+            <li class="nav-item mb-2">
+                <a class="nav-link rounded-pill {{ request()->routeIs('tickets.mine') || request()->routeIs('tickets.create') ? 'active bg-white text-primary' : 'text-white' }}"
+                   href="{{ route('tickets.mine') }}">
+                    <i class="fas fa-life-ring me-2"></i>
+                    <span>Tiket Saya</span>
+                </a>
+            </li>
+            @if(\App\Policies\TicketPolicy::isTriager(auth()->user()))
+            @php $openTicketCount = \App\Models\Ticket::where('status', 'open')->count(); @endphp
             <li class="nav-item mb-2">
                 <a class="nav-link rounded-pill {{ request()->routeIs('tickets.index') || request()->routeIs('tickets.show') ? 'active bg-white text-primary' : 'text-white' }}"
                    href="{{ route('tickets.index') }}">
@@ -217,6 +225,14 @@
                    href="{{ route('admin.job-sites.index') }}">
                     <i class="fas fa-map-marker-alt me-2"></i>
                     <span>Job Site Management</span>
+                </a>
+            </li>
+
+            <li class="nav-item mb-2">
+                <a class="nav-link rounded-pill {{ request()->routeIs('admin.employees.*') ? 'active bg-white text-primary' : 'text-white' }}"
+                   href="{{ route('admin.employees.index') }}">
+                    <i class="fas fa-id-card me-2"></i>
+                    <span>Master Karyawan</span>
                 </a>
             </li>
 

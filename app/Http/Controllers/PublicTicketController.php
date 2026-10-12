@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreTicketRequest;
+use App\Models\Employee;
 use App\Models\JobSite;
 use App\Models\Ticket;
 use App\Models\TicketCategory;
@@ -17,53 +19,28 @@ class PublicTicketController extends Controller
         return view('tickets.public-form', compact('categories', 'jobSites'));
     }
 
-    public function store(Request $request)
+    /**
+     * Verifikasi NIK di form publik: hanya mengembalikan nama & departemen karyawan aktif.
+     */
+    public function lookupEmployee(Request $request)
     {
-        $validated = $request->validate([
-            'requester_name' => 'required|string|max:255',
-            'requester_employee_id' => 'nullable|string|max:50',
-            'requester_department' => 'required|string|max:255',
-            'requester_phone' => 'nullable|string|max:30',
-            'job_site_id' => 'nullable|exists:job_sites,id',
-            'category_id' => 'required|exists:ticket_categories,id',
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'priority' => 'required|in:low,medium,high,urgent',
-            'attachment' => 'nullable|file|max:5120|mimes:jpeg,jpg,png,gif,pdf,doc,docx,xls,xlsx',
-        ], [
-            'requester_name.required' => 'Nama pemohon wajib diisi.',
-            'requester_department.required' => 'Departemen wajib diisi.',
-            'category_id.required' => 'Kategori permintaan wajib dipilih.',
-            'title.required' => 'Judul permintaan wajib diisi.',
-            'description.required' => 'Deskripsi detail wajib diisi.',
-            'priority.required' => 'Prioritas wajib dipilih.',
-            'attachment.max' => 'Ukuran file maksimal 5 MB.',
-            'attachment.mimes' => 'Format file tidak didukung.',
-        ]);
+        $employee = Employee::findActiveByNik($request->query('nik'));
 
-        $attachmentPath = null;
-        $attachmentOriginalName = null;
-
-        if ($request->hasFile('attachment')) {
-            $file = $request->file('attachment');
-            $attachmentOriginalName = $file->getClientOriginalName();
-            $filename = 'ticket_'.uniqid().'_'.time().'.'.($file->extension() ?: 'bin');
-            $attachmentPath = $file->storeAs('attachments', $filename, 'attachments');
+        if (! $employee) {
+            return response()->json(['found' => false, 'message' => 'NIK tidak terdaftar atau tidak aktif.'], 404);
         }
 
-        $ticket = Ticket::createWithNumber([
-            'requester_name' => $validated['requester_name'],
-            'requester_employee_id' => $validated['requester_employee_id'] ?? null,
-            'requester_department' => $validated['requester_department'],
-            'requester_phone' => $validated['requester_phone'] ?? null,
-            'job_site_id' => $validated['job_site_id'] ?? null,
-            'category_id' => $validated['category_id'],
-            'title' => $validated['title'],
-            'description' => $validated['description'],
-            'priority' => $validated['priority'],
-            'attachment_path' => $attachmentPath,
-            'attachment_original_name' => $attachmentOriginalName,
+        return response()->json([
+            'found' => true,
+            'name' => $employee->name,
+            'department' => $employee->department?->name,
+            'job_site_id' => $employee->job_site_id,
         ]);
+    }
+
+    public function store(StoreTicketRequest $request)
+    {
+        $ticket = Ticket::createWithNumber($request->ticketAttributes());
 
         // Detail tiket hanya ditampilkan sekali ke pengirim via session, bukan via nomor di URL
         return redirect()->route('tickets.public.success')->with('submitted_ticket_id', $ticket->id);

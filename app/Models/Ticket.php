@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Http\UploadedFile;
 
 class Ticket extends Model
 {
@@ -23,6 +24,8 @@ class Ticket extends Model
 
     protected $fillable = [
         'ticket_number',
+        'employee_id',
+        'requester_user_id',
         'requester_name',
         'requester_employee_id',
         'requester_department',
@@ -50,6 +53,30 @@ class Ticket extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(TicketCategory::class, 'category_id');
+    }
+
+    public function employee(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class);
+    }
+
+    public function requesterUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'requester_user_id');
+    }
+
+    /**
+     * Simpan lampiran tiket ke disk privat. Return [path, nama asli].
+     */
+    public static function storeAttachment(?UploadedFile $file): array
+    {
+        if (! $file) {
+            return [null, null];
+        }
+
+        $filename = 'ticket_'.uniqid().'_'.time().'.'.($file->extension() ?: 'bin');
+
+        return [$file->storeAs('attachments', $filename, 'attachments'), $file->getClientOriginalName()];
     }
 
     public function jobSite(): BelongsTo

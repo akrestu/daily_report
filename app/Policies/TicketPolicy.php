@@ -27,7 +27,9 @@ class TicketPolicy
 
     public function view(User $user, Ticket $ticket): bool
     {
-        return self::isTriager($user) || $ticket->assigned_to === $user->id;
+        return self::isTriager($user)
+            || $ticket->assigned_to === $user->id
+            || $ticket->requester_user_id === $user->id;
     }
 
     public function assign(User $user): bool
@@ -37,7 +39,8 @@ class TicketPolicy
 
     public function updateStatus(User $user, Ticket $ticket): bool
     {
-        return $this->view($user, $ticket);
+        // Pemohon tidak boleh mengubah status sendiri (konfirmasi selesai ditangani terpisah di fase lifecycle)
+        return self::isTriager($user) || $ticket->assigned_to === $user->id;
     }
 
     public function addComment(User $user, Ticket $ticket): bool

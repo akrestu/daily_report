@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreTicketRequest;
 use App\Models\JobPlan;
+use App\Models\JobSite;
 use App\Models\Ticket;
 use App\Models\TicketCategory;
 use App\Models\TicketComment;
@@ -38,17 +40,48 @@ class TicketController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('ticket_number', 'like', "%{$search}%")
-                  ->orWhere('requester_name', 'like', "%{$search}%")
-                  ->orWhere('requester_department', 'like', "%{$search}%");
+                    ->orWhere('ticket_number', 'like', "%{$search}%")
+                    ->orWhere('requester_name', 'like', "%{$search}%")
+                    ->orWhere('requester_department', 'like', "%{$search}%");
             });
         }
 
-        $tickets    = $query->paginate(15)->withQueryString();
+        $tickets = $query->paginate(15)->withQueryString();
         $categories = TicketCategory::active()->orderBy('name')->get();
-        $openCount  = Ticket::where('status', 'open')->count();
+        $openCount = Ticket::where('status', 'open')->count();
 
         return view('tickets.index', compact('tickets', 'categories', 'openCount'));
+    }
+
+    /**
+     * Tiket yang diajukan oleh user yang login.
+     */
+    public function mine(Request $request)
+    {
+        $tickets = Ticket::with(['category', 'assignedUser'])
+            ->where('requester_user_id', Auth::id())
+            ->when($request->filled('status'), fn ($q) => $q->where('status', $request->status))
+            ->latest()
+            ->paginate(15)
+            ->withQueryString();
+
+        return view('tickets.mine', compact('tickets'));
+    }
+
+    public function create()
+    {
+        $categories = TicketCategory::active()->orderBy('name')->get();
+        $jobSites = JobSite::where('is_active', true)->orderBy('name')->get();
+
+        return view('tickets.create', compact('categories', 'jobSites'));
+    }
+
+    public function store(StoreTicketRequest $request)
+    {
+        $ticket = Ticket::createWithNumber($request->ticketAttributes());
+
+        return redirect()->route('tickets.show', $ticket)
+            ->with('success', 'Tiket '.$ticket->ticket_number.' berhasil dibuat. Tim IT akan segera menindaklanjuti.');
     }
 
     public function show(Ticket $ticket)
@@ -72,10 +105,10 @@ class TicketController extends Controller
 
         $validated = $request->validate([
             'assigned_to' => 'required|exists:users,id',
-            'due_date'    => 'required|date|after_or_equal:today',
+            'due_date' => 'required|date|after_or_equal:today',
         ], [
-            'assigned_to.required'    => 'Anggota tim wajib dipilih.',
-            'due_date.required'       => 'Tanggal target selesai wajib diisi.',
+            'assigned_to.required' => 'Anggota tim wajib dipilih.',
+            'due_date.required' => 'Tanggal target selesai wajib diisi.',
             'due_date.after_or_equal' => 'Tanggal tidak boleh sebelum hari ini.',
         ]);
 
@@ -88,29 +121,29 @@ class TicketController extends Controller
 
         DB::transaction(function () use ($ticket, $assignedUser, $assignerUser, $validated) {
             $jobPlan = JobPlan::create([
-                'creator_id'   => $assignerUser->id,       // A: yang assign = pembuat job plan
-                'assignee_id'  => $assignedUser->id,       // C: yang di-assign → Tugas Masuk (Assigned to Me)
+                'creator_id' => $assignerUser->id,       // A: yang assign = pembuat job plan
+                'assignee_id' => $assignedUser->id,       // C: yang di-assign → Tugas Masuk (Assigned to Me)
                 'department_id' => $assignedUser->department_id,
-                'job_site_id'  => $ticket->job_site_id,
-                'job_name'     => '[' . $ticket->ticket_number . '] ' . $ticket->title,
-                'description'  => $ticket->description,
-                'remark'       => 'Dari Tiket ' . $ticket->ticket_number
-                    . ' — Pemohon: ' . $ticket->requester_name
-                    . ' (' . $ticket->requester_department . ')',
+                'job_site_id' => $ticket->job_site_id,
+                'job_name' => '['.$ticket->ticket_number.'] '.$ticket->title,
+                'description' => $ticket->description,
+                'remark' => 'Dari Tiket '.$ticket->ticket_number
+                    .' — Pemohon: '.$ticket->requester_name
+                    .' ('.$ticket->requester_department.')',
                 'planned_date' => today(),
-                'due_date'     => $validated['due_date'],
-                'status'       => 'assigned',
+                'due_date' => $validated['due_date'],
+                'status' => 'assigned',
             ]);
 
             $ticket->update([
                 'assigned_to' => $assignedUser->id,
-                'status'      => 'in_progress',
+                'status' => 'in_progress',
                 'job_plan_id' => $jobPlan->id,
             ]);
         });
 
         return redirect()->route('tickets.show', $ticket)
-            ->with('success', 'Tiket berhasil di-assign. Job plan otomatis masuk ke Tugas Masuk milik ' . $assignedUser->name . '.');
+            ->with('success', 'Tiket berhasil di-assign. Job plan otomatis masuk ke Tugas Masuk milik '.$assignedUser->name.'.');
     }
 
     public function updateStatus(Request $request, Ticket $ticket)
@@ -142,8 +175,8 @@ class TicketController extends Controller
 
         TicketComment::create([
             'ticket_id' => $ticket->id,
-            'user_id'   => Auth::id(),
-            'comment'   => $validated['comment'],
+            'user_id' => Auth::id(),
+            'comment' => $validated['comment'],
         ]);
 
         return redirect()->back()->with('success', 'Komentar berhasil ditambahkan.');
@@ -172,6 +205,6 @@ class TicketController extends Controller
         Ticket::whereIn('id', $ids)->delete();
 
         return redirect()->route('tickets.index')
-            ->with('success', $count . ' tiket berhasil dihapus.');
+            ->with('success', $count.' tiket berhasil dihapus.');
     }
 }

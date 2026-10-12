@@ -51,6 +51,9 @@ Route::post('/request', [PublicTicketController::class, 'store'])
     ->middleware('throttle:5,10')
     ->name('tickets.public.store');
 Route::get('/request/success', [PublicTicketController::class, 'success'])->name('tickets.public.success');
+Route::get('/request/employee', [PublicTicketController::class, 'lookupEmployee'])
+    ->middleware('throttle:20,1')
+    ->name('tickets.public.employee');
 Route::get('/request/status', [PublicTicketController::class, 'trackForm'])->name('tickets.public.track');
 Route::post('/request/status', [PublicTicketController::class, 'track'])
     ->middleware('throttle:10,1')
@@ -124,7 +127,8 @@ Route::middleware('auth')->group(function () {
     Route::delete('/comments/{commentId}', [\App\Http\Controllers\JobCommentController::class, 'destroy'])->name('job-comments.destroy');
 
     // Ticket Routes (internal dashboard)
-    Route::resource('tickets', TicketController::class)->only(['index', 'show', 'destroy']);
+    Route::get('tickets/mine', [TicketController::class, 'mine'])->name('tickets.mine');
+    Route::resource('tickets', TicketController::class)->only(['index', 'create', 'store', 'show', 'destroy']);
     Route::post('tickets/{ticket}/assign', [TicketController::class, 'assign'])->name('tickets.assign');
     Route::post('tickets/{ticket}/status', [TicketController::class, 'updateStatus'])->name('tickets.update-status');
     Route::post('tickets/{ticket}/comment', [TicketController::class, 'addComment'])->name('tickets.comment');
@@ -162,6 +166,11 @@ Route::middleware('auth')->group(function () {
         // Job Site management
         Route::delete('/job-sites/batch-delete', [\App\Http\Controllers\Admin\JobSiteController::class, 'batchDelete'])->name('job-sites.batch-delete');
         Route::resource('job-sites', \App\Http\Controllers\Admin\JobSiteController::class);
+
+        // Master karyawan (verifikasi NIK pemohon tiket)
+        Route::get('/employees/template', [\App\Http\Controllers\Admin\EmployeeController::class, 'exportTemplate'])->name('employees.template');
+        Route::post('/employees/import', [\App\Http\Controllers\Admin\EmployeeController::class, 'import'])->name('employees.import');
+        Route::resource('employees', \App\Http\Controllers\Admin\EmployeeController::class)->except(['show']);
 
         // Section management
         Route::get('/sections/by-department', [\App\Http\Controllers\Admin\SectionController::class, 'getByDepartment'])->name('sections.by-department');
