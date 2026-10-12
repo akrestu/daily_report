@@ -156,7 +156,7 @@
             </li>
             @endif
 
-            @if(auth()->user()->getRoleLevel() >= 4)
+            @if(\App\Policies\TicketPolicy::isTriager(auth()->user()) && ! auth()->user()->isAdmin())
             @php $openTicketCount = \App\Models\Ticket::where('status', 'open')->count(); @endphp
             <li class="nav-item mb-3">
                 <span class="sidebar-heading px-3 py-2 text-uppercase fw-bold text-white-50 small d-block">Tiket</span>

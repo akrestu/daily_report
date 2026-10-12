@@ -57,18 +57,11 @@ class TicketController extends Controller
 
         $ticket->load(['category', 'jobSite', 'assignedUser', 'jobPlan.assignee', 'comments.user']);
 
-        /** @var \App\Models\User $authUser */
-        $authUser = Auth::user();
-
-        if ($authUser->isAdmin() || $authUser->getRoleLevel() >= 5) {
-            $eligibleHandlers = User::with('role')->orderBy('name')->get();
-        } else {
-            // Level 4: hanya user di departemennya sendiri
-            $eligibleHandlers = User::with('role')
-                ->where('department_id', $authUser->department_id)
-                ->orderBy('name')
-                ->get();
-        }
+        // Handler tiket: anggota departemen layanan (IT)
+        $eligibleHandlers = User::with('role')
+            ->whereHas('department', fn ($q) => $q->where('code', config('tickets.department_code')))
+            ->orderBy('name')
+            ->get();
 
         return view('tickets.show', compact('ticket', 'eligibleHandlers'));
     }

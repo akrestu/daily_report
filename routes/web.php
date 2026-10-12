@@ -51,6 +51,10 @@ Route::post('/request', [PublicTicketController::class, 'store'])
     ->middleware('throttle:5,10')
     ->name('tickets.public.store');
 Route::get('/request/success', [PublicTicketController::class, 'success'])->name('tickets.public.success');
+Route::get('/request/status', [PublicTicketController::class, 'trackForm'])->name('tickets.public.track');
+Route::post('/request/status', [PublicTicketController::class, 'track'])
+    ->middleware('throttle:10,1')
+    ->name('tickets.public.track.show');
 
 // Redirect root to dashboard or login page
 Route::get('/', function () {

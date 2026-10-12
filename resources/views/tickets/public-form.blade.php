@@ -8,6 +8,7 @@
         <i class="fas fa-ticket-alt text-primary me-2"></i>Form Request Bantuan / Work Order
     </h5>
     <p class="text-muted small mb-0">Isi form di bawah untuk mengajukan permintaan bantuan. Tim kami akan segera menindaklanjuti.</p>
+    <p class="small mb-0 mt-1">Sudah punya tiket? <a href="{{ route('tickets.public.track') }}">Cek status tiket</a></p>
 </div>
 
 @if ($errors->any())

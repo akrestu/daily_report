@@ -14,7 +14,6 @@
     <h5 class="fw-bold text-success mb-1">Permintaan Berhasil Dikirim!</h5>
     <p class="text-muted small mb-4">Tim kami akan segera menindaklanjuti permintaan Anda.</p>
 
-    @if($ticket)
     <div class="bg-light border rounded-3 p-3 mb-4 text-start">
         <div class="row g-2">
             <div class="col-12">
@@ -45,7 +44,7 @@
             <div class="col-12">
                 <div class="d-flex justify-content-between">
                     <span class="text-muted small">Status</span>
-                    <span class="badge bg-primary">Terbuka</span>
+                    <span class="badge {{ $ticket->status_badge_class }}">{{ $ticket->status_label }}</span>
                 </div>
             </div>
             <div class="col-12">
@@ -57,19 +56,23 @@
         </div>
     </div>
 
+    <div class="border border-warning rounded-3 p-3 mb-3 text-start" style="background:#fff8e1">
+        <div class="fw-semibold small mb-2"><i class="fas fa-key me-1 text-warning"></i>Simpan data berikut untuk cek status tiket</div>
+        <div class="d-flex justify-content-between small"><span class="text-muted">Nomor Tiket</span><strong>{{ $ticket->ticket_number }}</strong></div>
+        <div class="d-flex justify-content-between small"><span class="text-muted">Kode Akses</span><strong class="font-monospace fs-6 text-danger">{{ $ticket->tracking_token }}</strong></div>
+        <div class="text-muted mt-2" style="font-size:.75rem">Kode akses hanya ditampilkan sekali. Catat atau screenshot halaman ini.</div>
+    </div>
+
+    @if($ticket->requester_phone)
     <div class="alert alert-info small text-start mb-4">
         <i class="fas fa-info-circle me-1"></i>
-        Simpan nomor tiket <strong>{{ $ticket->ticket_number }}</strong> untuk referensi Anda.
-        @if($ticket->requester_phone)
-            Tim kami akan menghubungi Anda melalui nomor <strong>{{ $ticket->requester_phone }}</strong> jika diperlukan.
-        @endif
-    </div>
-    @else
-    <div class="alert alert-warning small mb-4">
-        Nomor tiket: <strong>{{ $ticketNumber }}</strong>
+        Tim kami akan menghubungi Anda melalui nomor <strong>{{ $ticket->requester_phone }}</strong> jika diperlukan.
     </div>
     @endif
 
+    <a href="{{ route('tickets.public.track') }}" class="btn btn-primary me-1">
+        <i class="fas fa-search me-1"></i>Cek Status Tiket
+    </a>
     <a href="{{ route('tickets.public.form') }}" class="btn btn-outline-primary">
         <i class="fas fa-plus me-1"></i>Ajukan Permintaan Lain
     </a>
