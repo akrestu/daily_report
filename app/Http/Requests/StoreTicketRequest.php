@@ -31,7 +31,8 @@ class StoreTicketRequest extends FormRequest
             'category_id' => 'required|exists:ticket_categories,id',
             'title' => 'required|string|max:255',
             'description' => 'required|string',
-            'priority' => 'required|in:low,medium,high,urgent',
+            'impact' => ['required', Rule::in(array_keys(Ticket::IMPACTS))],
+            'urgency' => ['required', Rule::in(array_keys(Ticket::URGENCIES))],
             'attachment' => 'nullable|file|max:5120|mimes:jpeg,jpg,png,gif,pdf,doc,docx,xls,xlsx',
         ];
     }
@@ -61,7 +62,8 @@ class StoreTicketRequest extends FormRequest
             'category_id.required' => 'Kategori permintaan wajib dipilih.',
             'title.required' => 'Judul permintaan wajib diisi.',
             'description.required' => 'Deskripsi detail wajib diisi.',
-            'priority.required' => 'Prioritas wajib dipilih.',
+            'impact.required' => 'Dampak wajib dipilih.',
+            'urgency.required' => 'Urgensi wajib dipilih.',
             'attachment.max' => 'Ukuran file maksimal 5 MB.',
             'attachment.mimes' => 'Format file tidak didukung.',
         ];
@@ -96,7 +98,9 @@ class StoreTicketRequest extends FormRequest
             'category_id' => $this->input('category_id'),
             'title' => $this->input('title'),
             'description' => $this->input('description'),
-            'priority' => $this->input('priority'),
+            'impact' => $this->input('impact'),
+            'urgency' => $this->input('urgency'),
+            'priority' => Ticket::priorityFor($this->input('impact'), $this->input('urgency')),
             'attachment_path' => $path,
             'attachment_original_name' => $originalName,
         ];

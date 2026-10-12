@@ -151,6 +151,10 @@
 
         {{-- Panel Kanan --}}
         <div class="col-lg-4">
+            @if($isStaff)
+                @include('tickets.partials.sla-card')
+            @endif
+
             {{-- Info Pemohon --}}
             <div class="card shadow-sm border-0 mb-3">
                 <div class="card-header bg-white py-3">

@@ -81,7 +81,8 @@ class TicketTrackingTest extends TestCase
             'category_id' => $this->category->id,
             'title' => 'Printer rusak',
             'description' => 'Tidak bisa print',
-            'priority' => 'medium',
+            'impact' => 'medium',
+            'urgency' => 'medium',
         ]);
 
         $response->assertRedirect(route('tickets.public.success'));

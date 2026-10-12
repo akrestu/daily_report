@@ -8,6 +8,7 @@ use App\Models\JobSite;
 use App\Models\Ticket;
 use App\Models\TicketCategory;
 use App\Models\User;
+use App\Services\TicketSla;
 use App\Services\TicketWorkflow;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,8 +22,8 @@ class TicketController extends Controller
         $this->authorize('viewAny', Ticket::class);
 
         $query = Ticket::with(['category', 'assignedUser', 'jobPlan'])
-            ->orderByRaw("FIELD(status, 'open', 'assigned', 'in_progress', 'pending', 'resolved', 'closed', 'cancelled')")
-            ->orderByRaw("FIELD(priority, 'urgent', 'high', 'medium', 'low')")
+            ->orderByRaw(self::orderByList('status', array_keys(Ticket::STATUSES)))
+            ->orderByRaw(self::orderByList('priority', array_keys(Ticket::PRIORITIES)))
             ->orderBy('created_at', 'desc');
 
         if ($request->filled('status')) {
@@ -31,6 +32,11 @@ class TicketController extends Controller
 
         if ($request->filled('priority')) {
             $query->where('priority', $request->priority);
+        }
+
+        if ($request->input('sla') === 'breached') {
+            $query->where(fn ($q) => $q->where('resolution_breached', true)->orWhere('response_breached', true)
+                ->orWhere(fn ($q) => $q->whereIn('status', TicketSla::RUNNING_STATUSES)->where('resolution_due_at', '<', now())));
         }
 
         if ($request->filled('category')) {
@@ -162,6 +168,24 @@ class TicketController extends Controller
         return back()->with('success', $internal ? 'Catatan internal ditambahkan.' : 'Balasan terkirim.');
     }
 
+    public function changePriority(Request $request, Ticket $ticket, TicketWorkflow $workflow)
+    {
+        $this->authorize('assign', Ticket::class);
+
+        $validated = $request->validate([
+            'priority' => ['required', Rule::in(array_keys(Ticket::PRIORITIES))],
+            'reason' => 'nullable|string|max:500',
+        ]);
+
+        try {
+            $workflow->changePriority($ticket, $validated['priority'], Auth::user(), $validated['reason'] ?? null);
+        } catch (TicketWorkflowException $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', 'Prioritas diubah menjadi '.$ticket->priority_label.'. Tenggat SLA dihitung ulang.');
+    }
+
     /**
      * Respons pemohon (user login): konfirmasi selesai, buka kembali, atau batalkan.
      */
@@ -181,6 +205,17 @@ class TicketController extends Controller
         }
 
         return back()->with('success', $message);
+    }
+
+    /**
+     * Urutan kustom yang portabel (MySQL & SQLite), pengganti FIELD() milik MySQL.
+     * Nilai berasal dari konstanta model, bukan input pengguna.
+     */
+    private static function orderByList(string $column, array $values): string
+    {
+        $cases = collect($values)->map(fn ($value, $i) => "WHEN '{$value}' THEN {$i}")->implode(' ');
+
+        return "CASE {$column} {$cases} ELSE ".count($values).' END';
     }
 
     private function eligibleHandlers()

@@ -29,16 +29,31 @@
             @enderror
         </div>
         <div class="col-md-6">
-            <label class="form-label fw-semibold small">Prioritas <span class="text-danger">*</span></label>
-            <select name="priority" class="form-select @error('priority') is-invalid @enderror" required>
-                <option value="low"    {{ old('priority') == 'low'    ? 'selected' : '' }}>Rendah (Low)</option>
-                <option value="medium" {{ old('priority', 'medium') == 'medium' ? 'selected' : '' }}>Sedang (Medium)</option>
-                <option value="high"   {{ old('priority') == 'high'   ? 'selected' : '' }}>Tinggi (High)</option>
-                <option value="urgent" {{ old('priority') == 'urgent' ? 'selected' : '' }}>Mendesak (Urgent)</option>
+            <label class="form-label fw-semibold small">Siapa yang terdampak? <span class="text-danger">*</span></label>
+            <select name="impact" class="form-select @error('impact') is-invalid @enderror" required>
+                <option value="">— Pilih Dampak —</option>
+                @foreach(\App\Models\Ticket::IMPACTS as $value => $label)
+                    <option value="{{ $value }}" {{ old('impact') === $value ? 'selected' : '' }}>{{ $label }}</option>
+                @endforeach
             </select>
-            @error('priority')
+            @error('impact')
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
+        </div>
+        <div class="col-md-6">
+            <label class="form-label fw-semibold small">Seberapa mendesak? <span class="text-danger">*</span></label>
+            <select name="urgency" class="form-select @error('urgency') is-invalid @enderror" required>
+                <option value="">— Pilih Urgensi —</option>
+                @foreach(\App\Models\Ticket::URGENCIES as $value => $label)
+                    <option value="{{ $value }}" {{ old('urgency') === $value ? 'selected' : '' }}>{{ $label }}</option>
+                @endforeach
+            </select>
+            @error('urgency')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
+        <div class="col-12">
+            <div class="form-text mt-0">Prioritas dan target waktu penanganan ditentukan otomatis dari dampak &amp; urgensi.</div>
         </div>
         <div class="col-12">
             <label class="form-label fw-semibold small">Judul Permintaan <span class="text-danger">*</span></label>

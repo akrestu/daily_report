@@ -49,6 +49,12 @@
                     </select>
                 </div>
                 <div class="col-md-2">
+                    <select name="sla" class="form-select form-select-sm">
+                        <option value="">Semua SLA</option>
+                        <option value="breached" {{ request('sla') === 'breached' ? 'selected' : '' }}>SLA Terlewat</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
                     <select name="priority" class="form-select form-select-sm">
                         <option value="">Semua Prioritas</option>
                         <option value="urgent" {{ request('priority') == 'urgent' ? 'selected' : '' }}>Mendesak</option>
@@ -109,6 +115,7 @@
                             <th style="width:90px">Prioritas</th>
                             <th style="width:100px">Status</th>
                             <th style="width:120px">Handler</th>
+                            <th style="width:100px">SLA</th>
                             <th style="width:100px">Tanggal</th>
                             <th style="width:80px" class="text-center">Aksi</th>
                         </tr>
@@ -145,6 +152,7 @@
                                     <span class="text-muted">—</span>
                                 @endif
                             </td>
+                            <td>@include('tickets.partials.sla-badge')</td>
                             <td class="small text-muted">{{ $ticket->created_at->format('d M Y') }}</td>
                             <td class="text-center">
                                 <a href="{{ route('tickets.show', $ticket) }}" class="btn btn-sm btn-outline-primary">
@@ -154,7 +162,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="{{ auth()->user()->isAdmin() ? 9 : 8 }}" class="text-center py-5 text-muted">
+                            <td colspan="{{ auth()->user()->isAdmin() ? 10 : 9 }}" class="text-center py-5 text-muted">
                                 <i class="fas fa-ticket-alt fa-2x mb-2 d-block opacity-25"></i>
                                 Tidak ada tiket yang ditemukan.
                             </td>

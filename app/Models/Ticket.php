@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\TicketSla;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -38,6 +39,32 @@ class Ticket extends Model
         'cancelled' => ['label' => 'Dibatalkan', 'badge' => 'bg-light text-muted border'],
     ];
 
+    const IMPACTS = [
+        'low' => 'Hanya saya',
+        'medium' => 'Satu tim / departemen',
+        'high' => 'Banyak orang / operasional terhenti',
+    ];
+
+    const URGENCIES = [
+        'low' => 'Bisa menunggu (tidak mendesak)',
+        'medium' => 'Perlu ditangani hari ini',
+        'high' => 'Pekerjaan tidak bisa dilanjutkan',
+    ];
+
+    /** Matriks prioritas ITIL: [dampak][urgensi] => prioritas */
+    const PRIORITY_MATRIX = [
+        'high' => ['high' => 'urgent', 'medium' => 'high', 'low' => 'medium'],
+        'medium' => ['high' => 'high', 'medium' => 'medium', 'low' => 'low'],
+        'low' => ['high' => 'medium', 'medium' => 'low', 'low' => 'low'],
+    ];
+
+    const PRIORITIES = [
+        'urgent' => 'Mendesak',
+        'high' => 'Tinggi',
+        'medium' => 'Sedang',
+        'low' => 'Rendah',
+    ];
+
     const TYPES = [
         'incident' => 'Gangguan / Kerusakan',
         'service_request' => 'Permintaan Layanan',
@@ -49,6 +76,7 @@ class Ticket extends Model
     {
         static::creating(function (Ticket $ticket) {
             $ticket->tracking_token ??= static::generateTrackingToken();
+            app(TicketSla::class)->calculateDueDates($ticket);
         });
     }
 
@@ -78,6 +106,8 @@ class Ticket extends Model
         'close_method',
         'cancelled_at',
         'reopen_count',
+        'impact',
+        'urgency',
     ];
 
     protected function casts(): array
@@ -87,6 +117,12 @@ class Ticket extends Model
             'assigned_at' => 'datetime',
             'closed_at' => 'datetime',
             'cancelled_at' => 'datetime',
+            'first_responded_at' => 'datetime',
+            'response_due_at' => 'datetime',
+            'resolution_due_at' => 'datetime',
+            'sla_paused_at' => 'datetime',
+            'response_breached' => 'boolean',
+            'resolution_breached' => 'boolean',
         ];
     }
 
@@ -148,6 +184,11 @@ class Ticket extends Model
     public function isActive(): bool
     {
         return ! in_array($this->status, [self::STATUS_CLOSED, self::STATUS_CANCELLED], true);
+    }
+
+    public static function priorityFor(string $impact, string $urgency): string
+    {
+        return self::PRIORITY_MATRIX[$impact][$urgency] ?? 'medium';
     }
 
     public function getTypeLabelAttribute(): string

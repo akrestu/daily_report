@@ -49,7 +49,8 @@ class TicketRequesterTest extends TestCase
             'category_id' => $this->category->id,
             'title' => 'Laptop tidak menyala',
             'description' => 'Sejak pagi tidak bisa dinyalakan',
-            'priority' => 'high',
+            'impact' => 'low',
+            'urgency' => 'high',
         ];
     }
 

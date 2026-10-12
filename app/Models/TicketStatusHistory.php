@@ -28,7 +28,7 @@ class TicketStatusHistory extends Model
         }
 
         if ($this->from_status === $this->to_status) {
-            return 'Penanganan dialihkan';
+            return 'Pembaruan tiket';
         }
 
         if ($this->from_status === Ticket::STATUS_RESOLVED && $this->to_status === Ticket::STATUS_IN_PROGRESS) {

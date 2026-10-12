@@ -237,6 +237,14 @@
             </li>
 
             <li class="nav-item mb-2">
+                <a class="nav-link rounded-pill {{ request()->routeIs('admin.sla.*') ? 'active bg-white text-primary' : 'text-white' }}"
+                   href="{{ route('admin.sla.index') }}">
+                    <i class="fas fa-stopwatch me-2"></i>
+                    <span>Pengaturan SLA</span>
+                </a>
+            </li>
+
+            <li class="nav-item mb-2">
                 <a class="nav-link rounded-pill {{ request()->routeIs('admin.sections.*') ? 'active bg-white text-primary' : 'text-white' }}"
                    href="{{ route('admin.sections.index') }}">
                     <i class="fas fa-layer-group me-2"></i>

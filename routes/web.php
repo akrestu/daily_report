@@ -140,6 +140,7 @@ Route::middleware('auth')->group(function () {
     Route::post('tickets/{ticket}/status', [TicketController::class, 'updateStatus'])->name('tickets.update-status');
     Route::post('tickets/{ticket}/comment', [TicketController::class, 'addComment'])->name('tickets.comment');
     Route::post('tickets/{ticket}/respond', [TicketController::class, 'respond'])->name('tickets.respond');
+    Route::post('tickets/{ticket}/priority', [TicketController::class, 'changePriority'])->name('tickets.priority');
     Route::get('tickets/{ticket}/attachment', [AttachmentController::class, 'ticket'])->name('tickets.attachment');
     Route::delete('tickets-batch', [TicketController::class, 'batchDelete'])->name('tickets.batch-delete');
 
@@ -174,6 +175,12 @@ Route::middleware('auth')->group(function () {
         // Job Site management
         Route::delete('/job-sites/batch-delete', [\App\Http\Controllers\Admin\JobSiteController::class, 'batchDelete'])->name('job-sites.batch-delete');
         Route::resource('job-sites', \App\Http\Controllers\Admin\JobSiteController::class);
+
+        // Pengaturan SLA tiket & hari libur
+        Route::get('/sla', [\App\Http\Controllers\Admin\SlaController::class, 'index'])->name('sla.index');
+        Route::put('/sla', [\App\Http\Controllers\Admin\SlaController::class, 'update'])->name('sla.update');
+        Route::post('/sla/holidays', [\App\Http\Controllers\Admin\SlaController::class, 'storeHoliday'])->name('sla.holidays.store');
+        Route::delete('/sla/holidays/{holiday}', [\App\Http\Controllers\Admin\SlaController::class, 'destroyHoliday'])->name('sla.holidays.destroy');
 
         // Master karyawan (verifikasi NIK pemohon tiket)
         Route::get('/employees/template', [\App\Http\Controllers\Admin\EmployeeController::class, 'exportTemplate'])->name('employees.template');

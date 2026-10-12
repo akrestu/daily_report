@@ -23,6 +23,8 @@ use Illuminate\Support\Facades\DB;
  */
 class TicketWorkflow
 {
+    public function __construct(private TicketSla $sla) {}
+
     /** Transisi yang boleh dilakukan petugas IT lewat panel "Ubah Status" */
     const STAFF_TRANSITIONS = [
         Ticket::STATUS_OPEN => [Ticket::STATUS_CANCELLED],
@@ -89,12 +91,14 @@ class TicketWorkflow
             }
 
             $from = $ticket->status;
-            $ticket->update([
+            $ticket->fill([
                 'assigned_to' => $handler->id,
                 'assigned_at' => now(),
                 'job_plan_id' => $jobPlan->id,
                 'status' => $from === Ticket::STATUS_OPEN ? Ticket::STATUS_ASSIGNED : $from,
             ]);
+            $this->sla->markResponded($ticket);
+            $ticket->save();
             $ticket->setRelation('assignedUser', $handler);
 
             $this->record($ticket, $from, $ticket->status, $actor, $actor->name,
@@ -125,6 +129,7 @@ class TicketWorkflow
             $updates += ['cancelled_at' => now()];
         }
 
+        $this->sla->markResponded($ticket);
         $this->transition($ticket, $updates, $actor, $actor->name, $note);
 
         $message = match ($to) {
@@ -148,6 +153,7 @@ class TicketWorkflow
 
         $actor = $jobPlan->assignee;
         $note = 'Diselesaikan melalui laporan harian dari Job Plan "'.$jobPlan->job_name.'".';
+        $this->sla->markResponded($ticket);
 
         $this->transition($ticket, [
             'status' => Ticket::STATUS_RESOLVED,
@@ -203,6 +209,49 @@ class TicketWorkflow
     }
 
     /**
+     * Koreksi prioritas oleh triager (mis. pemohon salah menilai dampak). Tenggat SLA dihitung ulang.
+     */
+    public function changePriority(Ticket $ticket, string $priority, User $actor, ?string $reason): void
+    {
+        if (! array_key_exists($priority, Ticket::PRIORITIES)) {
+            throw new TicketWorkflowException('Prioritas tidak valid.');
+        }
+        if ($priority === $ticket->priority) {
+            throw new TicketWorkflowException('Prioritas tidak berubah.');
+        }
+        if (! $ticket->isActive()) {
+            throw new TicketWorkflowException('Prioritas tiket yang sudah ditutup tidak dapat diubah.');
+        }
+        $this->requireText($reason, 'Alasan perubahan prioritas wajib diisi.');
+
+        DB::transaction(function () use ($ticket, $priority, $actor, $reason) {
+            $old = $ticket->priority_label;
+            $ticket->priority = $priority;
+            $this->sla->calculateDueDates($ticket);
+            $ticket->save();
+
+            $this->record($ticket, $ticket->status, $ticket->status, $actor, $actor->name,
+                'Prioritas diubah dari '.$old.' menjadi '.$ticket->priority_label.': '.$reason);
+        });
+
+        $this->notify($ticket->assignedUser, $ticket,
+            'Prioritas tiket ['.$ticket->ticket_number.'] diubah menjadi '.$ticket->priority_label.'.', $actor);
+    }
+
+    /**
+     * Notifikasi pelanggaran SLA ke teknisi yang menangani + triager.
+     */
+    public function notifySlaBreach(Ticket $ticket, string $kind): void
+    {
+        $label = $kind === 'response' ? 'respons' : 'penyelesaian';
+        $message = 'SLA '.$label.' tiket ['.$ticket->ticket_number.'] terlewat ('.$ticket->priority_label.'): '.$ticket->title;
+
+        User::with(['role', 'department'])->get()
+            ->filter(fn (User $u) => $u->id === $ticket->assigned_to || TicketPolicy::isTriager($u))
+            ->each(fn (User $user) => $this->notify($user, $ticket, $message, null));
+    }
+
+    /**
      * Respons pemohon (user login atau via form publik). Return pesan sukses untuk ditampilkan.
      */
     public function applyRequesterResponse(Ticket $ticket, string $action, ?string $reason, ?User $actor, string $actorName): string
@@ -252,6 +301,11 @@ class TicketWorkflow
         ]);
 
         $fromRequester = $author === null || $author->id === $ticket->requester_user_id;
+
+        if (! $fromRequester && ! $internal && ! $ticket->first_responded_at) {
+            $this->sla->markResponded($ticket);
+            $ticket->save();
+        }
         $message = $authorName.' mengomentari tiket ['.$ticket->ticket_number.']: '.str($body)->limit(80);
 
         if ($fromRequester) {
@@ -270,7 +324,9 @@ class TicketWorkflow
     {
         DB::transaction(function () use ($ticket, $updates, $actor, $actorName, $note) {
             $from = $ticket->status;
-            $ticket->update($updates);
+            $ticket->fill($updates);
+            $this->sla->onStatusChange($ticket, $from, $ticket->status);
+            $ticket->save();
             $this->record($ticket, $from, $ticket->status, $actor, $actorName, $note);
         });
     }
