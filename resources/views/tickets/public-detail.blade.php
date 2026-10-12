@@ -29,7 +29,16 @@
     <tr><td class="text-muted ps-0">Ditangani oleh</td><td class="text-end pe-0">{{ $ticket->assignedUser->name ?? 'Belum ditugaskan' }}</td></tr>
 </table>
 
-@include('tickets.partials.requester-actions', ['action' => route('tickets.public.respond', $ticket)])
+@if($ticket->approval_status)
+    @include('tickets.partials.approval-card', [
+        'printUrl' => route('tickets.public.approval.form', $ticket),
+        'proofUrl' => route('tickets.public.approval.proof', $ticket),
+        'uploadUrl' => route('tickets.public.approval.upload', $ticket),
+        'verifyUrl' => null,
+    ])
+@endif
+
+@include('tickets.partials.requester-actions', ['action' => route('tickets.public.respond', $ticket), 'csatAction' => route('tickets.public.csat', $ticket)])
 
 @if($ticket->status === \App\Models\Ticket::STATUS_PENDING)
     <div class="alert alert-warning small">

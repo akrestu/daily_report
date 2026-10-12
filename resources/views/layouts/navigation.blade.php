@@ -179,6 +179,13 @@
                     @endif
                 </a>
             </li>
+            <li class="nav-item mb-2">
+                <a class="nav-link rounded-pill {{ request()->routeIs('tickets.dashboard') ? 'active bg-white text-primary' : 'text-white' }}"
+                   href="{{ route('tickets.dashboard') }}">
+                    <i class="fas fa-chart-pie me-2"></i>
+                    <span>Dashboard Tiket</span>
+                </a>
+            </li>
             @endif
             @endif
 
@@ -195,6 +202,13 @@
                     @if($openTicketCount > 0)
                         <span class="badge bg-danger ms-1 small">{{ $openTicketCount }}</span>
                     @endif
+                </a>
+            </li>
+            <li class="nav-item mb-2">
+                <a class="nav-link rounded-pill {{ request()->routeIs('tickets.dashboard') ? 'active bg-white text-primary' : 'text-white' }}"
+                   href="{{ route('tickets.dashboard') }}">
+                    <i class="fas fa-chart-pie me-2"></i>
+                    <span>Dashboard Tiket</span>
                 </a>
             </li>
             @endif
@@ -233,6 +247,14 @@
                    href="{{ route('admin.employees.index') }}">
                     <i class="fas fa-id-card me-2"></i>
                     <span>Master Karyawan</span>
+                </a>
+            </li>
+
+            <li class="nav-item mb-2">
+                <a class="nav-link rounded-pill {{ request()->routeIs('admin.ticket-categories.*') ? 'active bg-white text-primary' : 'text-white' }}"
+                   href="{{ route('admin.ticket-categories.index') }}">
+                    <i class="fas fa-tags me-2"></i>
+                    <span>Kategori Tiket</span>
                 </a>
             </li>
 

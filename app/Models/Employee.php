@@ -48,6 +48,16 @@ class Employee extends Model
         return $query->where('is_active', true);
     }
 
+    /** Calon atasan: karyawan aktif di departemen yang sama */
+    public static function supervisorOptions(?int $departmentId, ?int $exceptId = null)
+    {
+        return static::active()
+            ->when($departmentId, fn ($q) => $q->where('department_id', $departmentId))
+            ->when($exceptId, fn ($q) => $q->where('id', '!=', $exceptId))
+            ->orderBy('name')
+            ->get(['id', 'name', 'position']);
+    }
+
     public static function normalizeNik(?string $nik): string
     {
         return strtoupper(preg_replace('/\s+/', '', (string) $nik));

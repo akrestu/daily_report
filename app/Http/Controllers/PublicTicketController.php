@@ -39,6 +39,7 @@ class PublicTicketController extends Controller
             'name' => $employee->name,
             'department' => $employee->department?->name,
             'job_site_id' => $employee->job_site_id,
+            'supervisors' => Employee::supervisorOptions($employee->department_id, $employee->id),
         ]);
     }
 
@@ -136,6 +137,55 @@ class PublicTicketController extends Controller
         }
 
         return back()->with('success', $message);
+    }
+
+    public function approvalForm(Request $request, Ticket $ticket)
+    {
+        $this->authorizeTracked($request, $ticket);
+        abort_unless($ticket->approval_status, 404);
+
+        $ticket->load(['category', 'supervisor.department']);
+
+        return view('tickets.approval-print', compact('ticket'));
+    }
+
+    public function uploadApproval(Request $request, Ticket $ticket, TicketWorkflow $workflow)
+    {
+        $this->authorizeTracked($request, $ticket);
+
+        $request->validate(TicketController::approvalProofRules(), TicketController::approvalProofMessages());
+
+        try {
+            $workflow->uploadApprovalProof($ticket, $request->file('approval_proof'), null, $ticket->requester_name);
+        } catch (TicketWorkflowException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', 'Bukti persetujuan terkirim. Tim IT akan memverifikasi.');
+    }
+
+    public function approvalProof(Request $request, Ticket $ticket)
+    {
+        $this->authorizeTracked($request, $ticket);
+        abort_unless($ticket->approval_proof_path, 404);
+
+        return app(AttachmentController::class)->serve($ticket->approval_proof_path,
+            $ticket->approval_proof_original_name ?: basename($ticket->approval_proof_path), ['ticket_id' => $ticket->id]);
+    }
+
+    public function submitCsat(Request $request, Ticket $ticket, TicketWorkflow $workflow)
+    {
+        $this->authorizeTracked($request, $ticket);
+
+        $validated = $request->validate(TicketController::csatRules(), ['rating.required' => 'Pilih nilai 1 sampai 5.']);
+
+        try {
+            $workflow->submitCsat($ticket, (int) $validated['rating'], $validated['comment'] ?? null, null, $ticket->requester_name);
+        } catch (TicketWorkflowException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', 'Terima kasih atas penilaian Anda.');
     }
 
     private function authorizeTracked(Request $request, Ticket $ticket): void

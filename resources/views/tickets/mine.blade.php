@@ -46,7 +46,10 @@
                                 <div class="text-muted" style="font-size:.75rem">{{ $ticket->category->name ?? '-' }}</div>
                             </td>
                             <td><span class="badge {{ $ticket->priority_badge_class }} small">{{ $ticket->priority_label }}</span></td>
-                            <td><span class="badge {{ $ticket->status_badge_class }} small">{{ $ticket->status_label }}</span></td>
+                            <td><span class="badge {{ $ticket->status_badge_class }} small">{{ $ticket->status_label }}</span>
+                                @if($ticket->awaitingApproval())
+                                    <div><span class="badge {{ $ticket->approval_badge_class }} mt-1" style="white-space:normal">{{ $ticket->approval_label }}</span></div>
+                                @endif</td>
                             <td class="small">{{ $ticket->assignedUser->name ?? '—' }}</td>
                             <td class="small text-muted">{{ $ticket->created_at->format('d M Y H:i') }}</td>
                         </tr>

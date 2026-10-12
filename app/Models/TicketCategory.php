@@ -7,12 +7,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TicketCategory extends Model
 {
-    protected $fillable = ['name', 'description', 'is_active'];
+    protected $fillable = ['name', 'description', 'is_active', 'requires_approval'];
 
     protected function casts(): array
     {
         return [
             'is_active' => 'boolean',
+            'requires_approval' => 'boolean',
         ];
     }
 

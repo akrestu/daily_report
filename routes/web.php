@@ -65,6 +65,14 @@ Route::post('/request/status/{ticket:ticket_number}/comment', [PublicTicketContr
 Route::post('/request/status/{ticket:ticket_number}/respond', [PublicTicketController::class, 'respond'])
     ->middleware('throttle:10,1')
     ->name('tickets.public.respond');
+Route::post('/request/status/{ticket:ticket_number}/csat', [PublicTicketController::class, 'submitCsat'])
+    ->middleware('throttle:10,1')
+    ->name('tickets.public.csat');
+Route::get('/request/status/{ticket:ticket_number}/approval-form', [PublicTicketController::class, 'approvalForm'])->name('tickets.public.approval.form');
+Route::post('/request/status/{ticket:ticket_number}/approval', [PublicTicketController::class, 'uploadApproval'])
+    ->middleware('throttle:5,10')
+    ->name('tickets.public.approval.upload');
+Route::get('/request/status/{ticket:ticket_number}/approval/proof', [PublicTicketController::class, 'approvalProof'])->name('tickets.public.approval.proof');
 
 // Redirect root to dashboard or login page
 Route::get('/', function () {
@@ -135,12 +143,18 @@ Route::middleware('auth')->group(function () {
 
     // Ticket Routes (internal dashboard)
     Route::get('tickets/mine', [TicketController::class, 'mine'])->name('tickets.mine');
+    Route::get('tickets/dashboard', [\App\Http\Controllers\TicketDashboardController::class, 'index'])->name('tickets.dashboard');
     Route::resource('tickets', TicketController::class)->only(['index', 'create', 'store', 'show', 'destroy']);
     Route::post('tickets/{ticket}/assign', [TicketController::class, 'assign'])->name('tickets.assign');
     Route::post('tickets/{ticket}/status', [TicketController::class, 'updateStatus'])->name('tickets.update-status');
     Route::post('tickets/{ticket}/comment', [TicketController::class, 'addComment'])->name('tickets.comment');
     Route::post('tickets/{ticket}/respond', [TicketController::class, 'respond'])->name('tickets.respond');
     Route::post('tickets/{ticket}/priority', [TicketController::class, 'changePriority'])->name('tickets.priority');
+    Route::post('tickets/{ticket}/csat', [TicketController::class, 'submitCsat'])->name('tickets.csat');
+    Route::get('tickets/{ticket}/approval-form', [TicketController::class, 'approvalForm'])->name('tickets.approval.form');
+    Route::post('tickets/{ticket}/approval', [TicketController::class, 'uploadApproval'])->name('tickets.approval.upload');
+    Route::post('tickets/{ticket}/approval/verify', [TicketController::class, 'verifyApproval'])->name('tickets.approval.verify');
+    Route::get('tickets/{ticket}/approval/proof', [AttachmentController::class, 'ticketApproval'])->name('tickets.approval.proof');
     Route::get('tickets/{ticket}/attachment', [AttachmentController::class, 'ticket'])->name('tickets.attachment');
     Route::delete('tickets-batch', [TicketController::class, 'batchDelete'])->name('tickets.batch-delete');
 
@@ -175,6 +189,11 @@ Route::middleware('auth')->group(function () {
         // Job Site management
         Route::delete('/job-sites/batch-delete', [\App\Http\Controllers\Admin\JobSiteController::class, 'batchDelete'])->name('job-sites.batch-delete');
         Route::resource('job-sites', \App\Http\Controllers\Admin\JobSiteController::class);
+
+        // Kategori tiket (termasuk penanda wajib persetujuan atasan)
+        Route::get('/ticket-categories', [\App\Http\Controllers\Admin\TicketCategoryController::class, 'index'])->name('ticket-categories.index');
+        Route::post('/ticket-categories', [\App\Http\Controllers\Admin\TicketCategoryController::class, 'store'])->name('ticket-categories.store');
+        Route::put('/ticket-categories/{ticketCategory}', [\App\Http\Controllers\Admin\TicketCategoryController::class, 'update'])->name('ticket-categories.update');
 
         // Pengaturan SLA tiket & hari libur
         Route::get('/sla', [\App\Http\Controllers\Admin\SlaController::class, 'index'])->name('sla.index');

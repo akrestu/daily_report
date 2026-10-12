@@ -65,6 +65,21 @@ class Ticket extends Model
         'low' => 'Rendah',
     ];
 
+    const APPROVAL_WAITING_UPLOAD = 'waiting_upload';
+
+    const APPROVAL_WAITING_VERIFICATION = 'waiting_verification';
+
+    const APPROVAL_APPROVED = 'approved';
+
+    const APPROVAL_REJECTED = 'rejected';
+
+    const APPROVAL_STATUSES = [
+        'waiting_upload' => ['label' => 'Menunggu bukti persetujuan atasan', 'badge' => 'bg-warning text-dark'],
+        'waiting_verification' => ['label' => 'Bukti persetujuan menunggu verifikasi IT', 'badge' => 'bg-info text-dark'],
+        'approved' => ['label' => 'Disetujui atasan', 'badge' => 'bg-success'],
+        'rejected' => ['label' => 'Bukti persetujuan ditolak', 'badge' => 'bg-danger'],
+    ];
+
     const TYPES = [
         'incident' => 'Gangguan / Kerusakan',
         'service_request' => 'Permintaan Layanan',
@@ -76,6 +91,9 @@ class Ticket extends Model
     {
         static::creating(function (Ticket $ticket) {
             $ticket->tracking_token ??= static::generateTrackingToken();
+            if ($ticket->approval_status) {
+                app(TicketSla::class)->pauseForApproval($ticket);
+            }
             app(TicketSla::class)->calculateDueDates($ticket);
         });
     }
@@ -108,6 +126,17 @@ class Ticket extends Model
         'reopen_count',
         'impact',
         'urgency',
+        'supervisor_employee_id',
+        'approval_status',
+        'approval_proof_path',
+        'approval_proof_original_name',
+        'approval_uploaded_at',
+        'approval_verified_by',
+        'approval_verified_at',
+        'approval_note',
+        'csat_rating',
+        'csat_comment',
+        'csat_submitted_at',
     ];
 
     protected function casts(): array
@@ -121,6 +150,10 @@ class Ticket extends Model
             'response_due_at' => 'datetime',
             'resolution_due_at' => 'datetime',
             'sla_paused_at' => 'datetime',
+            'approval_uploaded_at' => 'datetime',
+            'approval_verified_at' => 'datetime',
+            'csat_rating' => 'integer',
+            'csat_submitted_at' => 'datetime',
             'response_breached' => 'boolean',
             'resolution_breached' => 'boolean',
         ];
@@ -134,6 +167,45 @@ class Ticket extends Model
     public function employee(): BelongsTo
     {
         return $this->belongsTo(Employee::class);
+    }
+
+    public function supervisor(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class, 'supervisor_employee_id');
+    }
+
+    public function approvalVerifier(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approval_verified_by');
+    }
+
+    /** Tiket butuh persetujuan atasan yang belum diverifikasi IT → belum boleh dikerjakan */
+    public function awaitingApproval(): bool
+    {
+        return $this->approval_status !== null && $this->approval_status !== self::APPROVAL_APPROVED;
+    }
+
+    /** Survei kepuasan: sekali, setelah tiket ditutup (bukan dibatalkan) */
+    public function canSubmitCsat(): bool
+    {
+        return $this->status === self::STATUS_CLOSED && $this->csat_rating === null;
+    }
+
+    /** Pemohon boleh (ulang) mengunggah bukti persetujuan */
+    public function canUploadApproval(): bool
+    {
+        return $this->isActive()
+            && in_array($this->approval_status, [self::APPROVAL_WAITING_UPLOAD, self::APPROVAL_REJECTED], true);
+    }
+
+    public function getApprovalLabelAttribute(): ?string
+    {
+        return self::APPROVAL_STATUSES[$this->approval_status]['label'] ?? null;
+    }
+
+    public function getApprovalBadgeClassAttribute(): string
+    {
+        return self::APPROVAL_STATUSES[$this->approval_status]['badge'] ?? 'bg-secondary';
     }
 
     public function requesterUser(): BelongsTo

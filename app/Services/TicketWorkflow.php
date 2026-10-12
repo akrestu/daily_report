@@ -11,7 +11,9 @@ use App\Models\TicketStatusHistory;
 use App\Models\User;
 use App\Policies\TicketPolicy;
 use App\Support\WorkingCalendar;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Satu-satunya tempat perubahan status tiket. Setiap transisi divalidasi,
@@ -45,7 +47,7 @@ class TicketWorkflow
 
     public static function canBeAssigned(Ticket $ticket): bool
     {
-        return in_array($ticket->status, [
+        return ! $ticket->awaitingApproval() && in_array($ticket->status, [
             Ticket::STATUS_OPEN, Ticket::STATUS_ASSIGNED, Ticket::STATUS_IN_PROGRESS, Ticket::STATUS_PENDING,
         ], true);
     }
@@ -60,6 +62,9 @@ class TicketWorkflow
      */
     public function assign(Ticket $ticket, User $handler, string $dueDate, User $actor): void
     {
+        if ($ticket->awaitingApproval()) {
+            throw new TicketWorkflowException('Tiket belum bisa di-assign: persetujuan atasan belum diverifikasi.');
+        }
         if (! self::canBeAssigned($ticket)) {
             throw new TicketWorkflowException('Tiket dengan status "'.$ticket->status_label.'" tidak dapat di-assign.');
         }
@@ -206,6 +211,102 @@ class TicketWorkflow
         ], $actor, $actorName, $reason);
 
         $this->notify($ticket->assignedUser, $ticket, 'Tiket ['.$ticket->ticket_number.'] dibatalkan oleh pemohon: '.$reason, $actor);
+    }
+
+    /**
+     * Pemohon mengunggah foto/scan formulir persetujuan yang sudah ditandatangani atasan.
+     */
+    public function uploadApprovalProof(Ticket $ticket, UploadedFile $file, ?User $actor, string $actorName): void
+    {
+        if (! $ticket->canUploadApproval()) {
+            throw new TicketWorkflowException('Bukti persetujuan tidak dapat diunggah pada status tiket saat ini.');
+        }
+
+        $filename = 'approval_'.$ticket->id.'_'.uniqid().'.'.($file->extension() ?: 'bin');
+        $path = $file->storeAs('approvals', $filename, 'attachments');
+        $oldPath = $ticket->approval_proof_path;
+
+        DB::transaction(function () use ($ticket, $file, $path, $actor, $actorName) {
+            $ticket->update([
+                'approval_status' => Ticket::APPROVAL_WAITING_VERIFICATION,
+                'approval_proof_path' => $path,
+                'approval_proof_original_name' => $file->getClientOriginalName(),
+                'approval_uploaded_at' => now(),
+            ]);
+            $this->record($ticket, $ticket->status, $ticket->status, $actor, $actorName,
+                'Bukti persetujuan atasan diunggah, menunggu verifikasi tim IT.');
+        });
+
+        if ($oldPath && $oldPath !== $path) {
+            Storage::disk('attachments')->delete($oldPath);
+        }
+
+        User::with(['role', 'department'])->get()
+            ->filter(fn (User $u) => TicketPolicy::isTriager($u))
+            ->each(fn (User $u) => $this->notify($u, $ticket,
+                'Bukti persetujuan atasan tiket ['.$ticket->ticket_number.'] perlu diverifikasi.', $actor));
+    }
+
+    /**
+     * Tim IT (level 4 ke atas) memverifikasi bukti persetujuan. Disetujui → jam SLA mulai berjalan.
+     */
+    public function verifyApproval(Ticket $ticket, bool $approved, User $actor, ?string $note = null): void
+    {
+        if ($ticket->approval_status !== Ticket::APPROVAL_WAITING_VERIFICATION) {
+            throw new TicketWorkflowException('Tidak ada bukti persetujuan yang menunggu verifikasi.');
+        }
+        if (! $approved) {
+            $this->requireText($note, 'Alasan penolakan bukti persetujuan wajib diisi.');
+        }
+
+        DB::transaction(function () use ($ticket, $approved, $actor, $note) {
+            $ticket->fill([
+                'approval_status' => $approved ? Ticket::APPROVAL_APPROVED : Ticket::APPROVAL_REJECTED,
+                'approval_verified_by' => $actor->id,
+                'approval_verified_at' => now(),
+                'approval_note' => $note,
+            ]);
+            if ($approved) {
+                $this->sla->resume($ticket);
+            }
+            $ticket->save();
+
+            $this->record($ticket, $ticket->status, $ticket->status, $actor, $actor->name, $approved
+                ? 'Persetujuan atasan diverifikasi. Tiket siap ditangani.'.($note ? ' '.$note : '')
+                : 'Bukti persetujuan ditolak: '.$note);
+        });
+
+        $this->notify($ticket->requesterUser, $ticket, $approved
+            ? 'Persetujuan atasan untuk tiket ['.$ticket->ticket_number.'] telah diverifikasi. Tiket akan segera ditangani.'
+            : 'Bukti persetujuan tiket ['.$ticket->ticket_number.'] ditolak: '.$note.'. Silakan unggah ulang.', $actor);
+    }
+
+    /**
+     * Survei kepuasan pemohon (1–5). Nilai rendah (≤ 2) langsung diberitahukan ke tim IT.
+     */
+    public function submitCsat(Ticket $ticket, int $rating, ?string $comment, ?User $actor, string $actorName): void
+    {
+        if (! $ticket->canSubmitCsat()) {
+            throw new TicketWorkflowException('Penilaian hanya bisa diberikan sekali setelah tiket ditutup.');
+        }
+        if ($rating < 1 || $rating > 5) {
+            throw new TicketWorkflowException('Nilai harus antara 1 sampai 5.');
+        }
+
+        $ticket->update([
+            'csat_rating' => $rating,
+            'csat_comment' => $comment ?: null,
+            'csat_submitted_at' => now(),
+        ]);
+
+        if ($rating <= 2) {
+            $message = 'Penilaian rendah ('.$rating.'/5) untuk tiket ['.$ticket->ticket_number.'] dari '.$actorName
+                .($comment ? ': '.str($comment)->limit(80) : '.');
+
+            User::with(['role', 'department'])->get()
+                ->filter(fn (User $u) => $u->id === $ticket->assigned_to || TicketPolicy::isTriager($u))
+                ->each(fn (User $u) => $this->notify($u, $ticket, $message, $actor));
+        }
     }
 
     /**

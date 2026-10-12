@@ -15,13 +15,15 @@ class TicketCategorySeeder extends Seeder
             ['name' => 'Hardware & Perangkat',     'description' => 'Kerusakan atau permintaan perangkat keras'],
             ['name' => 'HR & Kepegawaian',         'description' => 'Permintaan terkait SDM dan kepegawaian'],
             ['name' => 'Fasilitas & Umum',         'description' => 'Permintaan terkait fasilitas kantor dan umum'],
+            ['name' => 'Perangkat Baru',           'description' => 'Permintaan laptop, PC, printer, atau perangkat IT baru', 'requires_approval' => true],
+            ['name' => 'Akses Sistem / Aplikasi',  'description' => 'Permintaan akses / akun sistem, aplikasi, folder, atau email', 'requires_approval' => true],
             ['name' => 'Lainnya',                  'description' => 'Permintaan di luar kategori yang tersedia'],
         ];
 
         foreach ($categories as $category) {
             TicketCategory::updateOrCreate(
                 ['name' => $category['name']],
-                array_merge($category, ['is_active' => true])
+                array_merge(['requires_approval' => false], $category, ['is_active' => true])
             );
         }
     }

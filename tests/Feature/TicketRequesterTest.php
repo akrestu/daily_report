@@ -87,7 +87,7 @@ class TicketRequesterTest extends TestCase
 
         $this->getJson(route('tickets.public.employee', ['nik' => '0012345']))
             ->assertOk()
-            ->assertExactJson(['found' => true, 'name' => 'Budi Santoso', 'department' => 'HR Department', 'job_site_id' => null]);
+            ->assertExactJson(['found' => true, 'name' => 'Budi Santoso', 'department' => 'HR Department', 'job_site_id' => null, 'supervisors' => []]);
 
         $this->getJson(route('tickets.public.employee', ['nik' => 'X']))->assertNotFound();
     }

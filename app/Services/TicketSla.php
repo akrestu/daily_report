@@ -31,7 +31,9 @@ class TicketSla
         }
 
         $start = $ticket->created_at ?? now();
-        $ticket->response_due_at = WorkingCalendar::addWorkingMinutes($start, $policy->response_minutes);
+        // Jeda sebelum respons pertama (menunggu persetujuan atasan) juga menggeser tenggat respons
+        $responsePause = $ticket->first_responded_at ? 0 : (int) $ticket->sla_paused_minutes;
+        $ticket->response_due_at = WorkingCalendar::addWorkingMinutes($start, $policy->response_minutes + $responsePause);
         $ticket->resolution_due_at = WorkingCalendar::addWorkingMinutes(
             $start, $policy->resolution_minutes + (int) $ticket->sla_paused_minutes
         );
@@ -65,13 +67,28 @@ class TicketSla
             if ($to === Ticket::STATUS_RESOLVED && $ticket->resolution_due_at) {
                 $ticket->resolution_breached = now()->gt($ticket->resolution_due_at);
             }
-        } elseif ($wasPaused && in_array($to, self::RUNNING_STATUSES, true) && $ticket->sla_paused_at) {
-            $ticket->sla_paused_minutes += WorkingCalendar::workingMinutesBetween($ticket->sla_paused_at, now());
-            $ticket->sla_paused_at = null;
-            $this->calculateDueDates($ticket);
-            // Breach dinilai ulang saat resolved berikutnya / oleh pengecekan berkala
-            $ticket->resolution_breached = false;
+        } elseif ($wasPaused && in_array($to, self::RUNNING_STATUSES, true)) {
+            $this->resume($ticket);
         }
+    }
+
+    /** Tiket yang butuh persetujuan atasan: jam SLA belum berjalan sampai persetujuan diverifikasi. */
+    public function pauseForApproval(Ticket $ticket): void
+    {
+        $ticket->sla_paused_at ??= now();
+    }
+
+    public function resume(Ticket $ticket): void
+    {
+        if (! $ticket->sla_paused_at) {
+            return;
+        }
+
+        $ticket->sla_paused_minutes += WorkingCalendar::workingMinutesBetween($ticket->sla_paused_at, now());
+        $ticket->sla_paused_at = null;
+        $this->calculateDueDates($ticket);
+        // Breach dinilai ulang saat resolved berikutnya / oleh pengecekan berkala
+        $ticket->resolution_breached = false;
     }
 
     /**
@@ -82,6 +99,7 @@ class TicketSla
         $breaches = collect();
 
         Ticket::whereIn('status', self::RUNNING_STATUSES)
+            ->whereNull('sla_paused_at')
             ->whereNull('first_responded_at')
             ->where('response_breached', false)
             ->where('response_due_at', '<=', now())
@@ -92,6 +110,7 @@ class TicketSla
             });
 
         Ticket::whereIn('status', self::RUNNING_STATUSES)
+            ->whereNull('sla_paused_at')
             ->where('resolution_breached', false)
             ->where('resolution_due_at', '<=', now())
             ->get()
@@ -118,6 +137,8 @@ class TicketSla
                 $response['state'] = $ticket->response_breached ? 'breached' : 'met';
             } elseif (in_array($ticket->status, [Ticket::STATUS_CLOSED, Ticket::STATUS_CANCELLED], true)) {
                 $response['state'] = 'none';
+            } elseif ($ticket->sla_paused_at) {
+                $response['state'] = 'paused';
             } else {
                 $response['state'] = $now->gt($ticket->response_due_at) ? 'breached' : 'running';
                 $response['remaining'] = WorkingCalendar::workingMinutesBetween($now, $ticket->response_due_at);
@@ -130,7 +151,7 @@ class TicketSla
                 $resolution['state'] = $ticket->resolution_breached ? 'breached' : 'met';
             } elseif ($ticket->status === Ticket::STATUS_CANCELLED) {
                 $resolution['state'] = 'none';
-            } elseif ($ticket->status === Ticket::STATUS_PENDING) {
+            } elseif ($ticket->status === Ticket::STATUS_PENDING || $ticket->sla_paused_at) {
                 $resolution['state'] = 'paused';
                 $resolution['remaining'] = WorkingCalendar::workingMinutesBetween($ticket->sla_paused_at ?? $now, $ticket->resolution_due_at);
             } else {

@@ -60,7 +60,7 @@ class TicketSlaTest extends TestCase
         return Ticket::createWithNumber([
             'requester_name' => 'Budi',
             'requester_department' => 'HR',
-            'category_id' => TicketCategory::value('id'),
+            'category_id' => TicketCategory::where('name', 'IT Support')->value('id'),
             'title' => 'Server mati',
             'description' => '-',
             'priority' => $priority,
@@ -93,7 +93,7 @@ class TicketSlaTest extends TestCase
         Employee::create(['nik' => '001', 'name' => 'Budi', 'department_id' => Department::value('id')]);
 
         $this->post('/request', [
-            'nik' => '001', 'type' => 'incident', 'category_id' => TicketCategory::value('id'),
+            'nik' => '001', 'type' => 'incident', 'category_id' => TicketCategory::where('name', 'IT Support')->value('id'),
             'title' => 'Jaringan site down', 'description' => '-',
             'impact' => 'high', 'urgency' => 'high', 'priority' => 'low',
         ])->assertRedirect(route('tickets.public.success'));

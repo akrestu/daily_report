@@ -1,7 +1,41 @@
 {{--
     Aksi pemohon: konfirmasi selesai / belum selesai (status resolved) dan batalkan (status open/assigned).
     $action = URL tujuan form (route internal tickets.respond atau publik tickets.public.respond).
+    $csatAction = URL penilaian kepuasan (tickets.csat / tickets.public.csat).
 --}}
+@if($ticket->canSubmitCsat())
+    <div class="card border-primary shadow-sm mb-3">
+        <div class="card-body">
+            <h6 class="fw-bold text-primary mb-1"><i class="fas fa-star me-1"></i>Bagaimana layanan tim IT untuk tiket ini?</h6>
+            <p class="small text-muted mb-2">Penilaian Anda membantu kami meningkatkan layanan.</p>
+            <form action="{{ $csatAction }}" method="POST">
+                @csrf
+                <div class="csat-stars mb-2" role="radiogroup" aria-label="Nilai 1 sampai 5">
+                    @for($i = 5; $i >= 1; $i--)
+                        <input type="radio" name="rating" id="csat{{ $i }}" value="{{ $i }}" required {{ old('rating') == $i ? 'checked' : '' }}>
+                        <label for="csat{{ $i }}" title="{{ [1 => 'Sangat buruk', 2 => 'Buruk', 3 => 'Cukup', 4 => 'Baik', 5 => 'Sangat baik'][$i] }}">&#9733;</label>
+                    @endfor
+                </div>
+                <textarea name="comment" rows="2" class="form-control form-control-sm mb-2" maxlength="1000"
+                    placeholder="Saran atau komentar (opsional)">{{ old('comment') }}</textarea>
+                <button type="submit" class="btn btn-primary btn-sm">Kirim Penilaian</button>
+            </form>
+        </div>
+    </div>
+    <style>
+        .csat-stars { display: inline-flex; flex-direction: row-reverse; gap: 2px; }
+        .csat-stars input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+        .csat-stars label { font-size: 1.9rem; line-height: 1; color: #ced4da; cursor: pointer; }
+        .csat-stars input:checked ~ label, .csat-stars label:hover, .csat-stars label:hover ~ label { color: #ffc107; }
+        .csat-stars input:focus-visible + label { outline: 2px solid #0d6efd; border-radius: 4px; }
+    </style>
+@elseif($ticket->csat_rating)
+    <div class="alert alert-light border small mb-3">
+        <i class="fas fa-star text-warning me-1"></i>
+        Penilaian Anda: <strong>{{ $ticket->csat_rating }}/5</strong>. Terima kasih atas masukannya.
+    </div>
+@endif
+
 @if($ticket->status === \App\Models\Ticket::STATUS_RESOLVED)
     <div class="card border-success shadow-sm mb-3">
         <div class="card-body">

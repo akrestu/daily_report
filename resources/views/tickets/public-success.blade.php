@@ -63,6 +63,14 @@
         <div class="text-muted mt-2" style="font-size:.75rem">Kode akses hanya ditampilkan sekali. Catat atau screenshot halaman ini.</div>
     </div>
 
+    @if($ticket->approval_status)
+    <div class="alert alert-warning small text-start mb-3">
+        <i class="fas fa-user-tie me-1"></i>
+        Permintaan ini memerlukan <strong>persetujuan atasan</strong>. Buka <strong>Cek Status Tiket</strong> untuk mencetak formulir,
+        minta tanda tangan atasan, lalu unggah fotonya. Tiket baru akan dikerjakan setelah persetujuan diverifikasi tim IT.
+    </div>
+    @endif
+
     @if($ticket->requester_phone)
     <div class="alert alert-info small text-start mb-4">
         <i class="fas fa-info-circle me-1"></i>

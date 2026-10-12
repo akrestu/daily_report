@@ -60,6 +60,12 @@ class TicketPolicy
         return $ticket->requester_user_id !== null && $ticket->requester_user_id === $user->id;
     }
 
+    /** Verifikasi bukti persetujuan atasan: tim IT level 4 ke atas / admin */
+    public function verifyApproval(User $user, Ticket $ticket): bool
+    {
+        return self::isTriager($user);
+    }
+
     public function deleteAny(User $user): bool
     {
         return $user->isAdmin();

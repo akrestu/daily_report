@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Exceptions\TicketWorkflowException;
 use App\Http\Requests\StoreTicketRequest;
+use App\Models\Employee;
 use App\Models\JobSite;
 use App\Models\Ticket;
 use App\Models\TicketCategory;
@@ -79,8 +80,9 @@ class TicketController extends Controller
     {
         $categories = TicketCategory::active()->orderBy('name')->get();
         $jobSites = JobSite::where('is_active', true)->orderBy('name')->get();
+        $supervisors = Employee::supervisorOptions(Auth::user()->department_id);
 
-        return view('tickets.create', compact('categories', 'jobSites'));
+        return view('tickets.create', compact('categories', 'jobSites', 'supervisors'));
     }
 
     public function store(StoreTicketRequest $request)
@@ -166,6 +168,89 @@ class TicketController extends Controller
         $workflow->addComment($ticket, $validated['comment'], Auth::user(), Auth::user()->name, $internal);
 
         return back()->with('success', $internal ? 'Catatan internal ditambahkan.' : 'Balasan terkirim.');
+    }
+
+    /** Formulir persetujuan atasan siap cetak */
+    public function approvalForm(Ticket $ticket)
+    {
+        $this->authorize('view', $ticket);
+        abort_unless($ticket->approval_status, 404);
+
+        $ticket->load(['category', 'supervisor.department']);
+
+        return view('tickets.approval-print', compact('ticket'));
+    }
+
+    public function uploadApproval(Request $request, Ticket $ticket, TicketWorkflow $workflow)
+    {
+        $this->authorize('respond', $ticket);
+
+        $request->validate(self::approvalProofRules(), self::approvalProofMessages());
+
+        try {
+            $workflow->uploadApprovalProof($ticket, $request->file('approval_proof'), Auth::user(), Auth::user()->name);
+        } catch (TicketWorkflowException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', 'Bukti persetujuan terkirim. Tim IT akan memverifikasi.');
+    }
+
+    public function verifyApproval(Request $request, Ticket $ticket, TicketWorkflow $workflow)
+    {
+        $this->authorize('verifyApproval', $ticket);
+
+        $validated = $request->validate([
+            'decision' => 'required|in:approve,reject',
+            'note' => 'nullable|string|max:1000',
+        ]);
+
+        try {
+            $workflow->verifyApproval($ticket, $validated['decision'] === 'approve', Auth::user(), $validated['note'] ?? null);
+        } catch (TicketWorkflowException $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', $validated['decision'] === 'approve'
+            ? 'Persetujuan diverifikasi. Tiket sekarang bisa di-assign.'
+            : 'Bukti persetujuan ditolak. Pemohon diminta mengunggah ulang.');
+    }
+
+    public function submitCsat(Request $request, Ticket $ticket, TicketWorkflow $workflow)
+    {
+        $this->authorize('respond', $ticket);
+
+        $validated = $request->validate(self::csatRules());
+
+        try {
+            $workflow->submitCsat($ticket, (int) $validated['rating'], $validated['comment'] ?? null, Auth::user(), Auth::user()->name);
+        } catch (TicketWorkflowException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', 'Terima kasih atas penilaian Anda.');
+    }
+
+    public static function csatRules(): array
+    {
+        return [
+            'rating' => 'required|integer|between:1,5',
+            'comment' => 'nullable|string|max:1000',
+        ];
+    }
+
+    public static function approvalProofRules(): array
+    {
+        return ['approval_proof' => 'required|file|max:5120|mimes:jpeg,jpg,png,pdf'];
+    }
+
+    public static function approvalProofMessages(): array
+    {
+        return [
+            'approval_proof.required' => 'Pilih foto/scan formulir yang sudah ditandatangani.',
+            'approval_proof.max' => 'Ukuran file maksimal 5 MB.',
+            'approval_proof.mimes' => 'Format harus JPG, PNG, atau PDF.',
+        ];
     }
 
     public function changePriority(Request $request, Ticket $ticket, TicketWorkflow $workflow)

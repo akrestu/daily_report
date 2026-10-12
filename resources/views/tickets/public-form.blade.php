@@ -109,6 +109,7 @@
                     help.textContent = 'NIK terverifikasi.';
                     help.className = 'form-text text-success';
                     if (siteSelect && data.job_site_id && !siteSelect.value) siteSelect.value = data.job_site_id;
+                    if (window.fillSupervisors) window.fillSupervisors(data.supervisors || []);
                 } else {
                     help.textContent = res.status === 429
                         ? 'Terlalu banyak percobaan. Coba lagi dalam 1 menit.'

@@ -62,7 +62,23 @@ class AttachmentController extends Controller
         return $this->serve($ticket->attachment_path, $downloadName, ['ticket_id' => $ticket->id]);
     }
 
-    private function serve(string $path, string $downloadName, array $logContext): BinaryFileResponse
+    /**
+     * Bukti persetujuan atasan (foto/scan formulir) — untuk user yang boleh melihat tiket.
+     */
+    public function ticketApproval(Ticket $ticket): BinaryFileResponse
+    {
+        $this->authorize('view', $ticket);
+
+        abort_unless($ticket->approval_proof_path, 404);
+
+        return $this->serve($ticket->approval_proof_path,
+            $ticket->approval_proof_original_name ?: basename($ticket->approval_proof_path), ['ticket_id' => $ticket->id]);
+    }
+
+    /**
+     * Otorisasi dilakukan pemanggil (mis. sesi cek status tiket publik).
+     */
+    public function serve(string $path, string $downloadName, array $logContext): BinaryFileResponse
     {
         $filePath = $this->resolvePath($path);
         if (!$filePath) {

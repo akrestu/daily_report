@@ -22,8 +22,17 @@
                 </div>
             @endif
 
+            @if($ticket->approval_status)
+                @include('tickets.partials.approval-card', [
+                    'printUrl' => route('tickets.approval.form', $ticket),
+                    'proofUrl' => route('tickets.approval.proof', $ticket),
+                    'uploadUrl' => auth()->user()->can('respond', $ticket) ? route('tickets.approval.upload', $ticket) : null,
+                    'verifyUrl' => auth()->user()->can('verifyApproval', $ticket) ? route('tickets.approval.verify', $ticket) : null,
+                ])
+            @endif
+
             @can('respond', $ticket)
-                @include('tickets.partials.requester-actions', ['action' => route('tickets.respond', $ticket)])
+                @include('tickets.partials.requester-actions', ['action' => route('tickets.respond', $ticket), 'csatAction' => route('tickets.csat', $ticket)])
             @endcan
 
             <div class="card shadow-sm border-0 mb-3">
@@ -271,6 +280,19 @@
                             <i class="fas fa-save me-1"></i>Simpan Status
                         </button>
                     </form>
+                </div>
+            </div>
+            @endif
+
+            @if($isStaff && $ticket->csat_rating)
+            <div class="card shadow-sm border-0 mb-3">
+                <div class="card-body small">
+                    <div class="fw-bold mb-1"><i class="fas fa-star text-warning me-1"></i>Penilaian Pemohon</div>
+                    <div class="fs-5 text-warning">{!! str_repeat('&#9733;', $ticket->csat_rating) !!}<span class="text-muted">{!! str_repeat('&#9733;', 5 - $ticket->csat_rating) !!}</span></div>
+                    @if($ticket->csat_comment)
+                        <div class="bg-light rounded p-2 mt-1" style="white-space:pre-wrap">{{ $ticket->csat_comment }}</div>
+                    @endif
+                    <div class="text-muted mt-1">{{ $ticket->csat_submitted_at->format('d M Y H:i') }}</div>
                 </div>
             </div>
             @endif

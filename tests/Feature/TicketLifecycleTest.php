@@ -58,7 +58,7 @@ class TicketLifecycleTest extends TestCase
             'requester_user_id' => $this->requester->id,
             'requester_name' => $this->requester->name,
             'requester_department' => 'HR Department',
-            'category_id' => TicketCategory::value('id'),
+            'category_id' => TicketCategory::where('name', 'IT Support')->value('id'),
             'title' => 'Printer rusak',
             'description' => 'Tidak bisa print',
             'priority' => 'medium',
@@ -208,7 +208,7 @@ class TicketLifecycleTest extends TestCase
             ->assertOk()->assertSee('Toner diganti')->assertDontSee('Catatan internal X');
 
         $this->post(route('tickets.public.comment', $ticket), ['comment' => 'Terima kasih'])->assertSessionHas('success');
-        $this->assertSame('Budi', $ticket->comments()->latest('id')->first()->author_display_name);
+        $this->assertSame('Budi', $ticket->comments()->get()->last()->author_display_name);
 
         $this->post(route('tickets.public.respond', $ticket), ['action' => 'confirm'])->assertSessionHas('success');
         $this->assertSame(Ticket::STATUS_CLOSED, $ticket->fresh()->status);

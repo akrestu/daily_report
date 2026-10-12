@@ -144,7 +144,10 @@
                             </td>
                             <td><span class="badge bg-light text-dark border small">{{ $ticket->category->name ?? '-' }}</span></td>
                             <td><span class="badge {{ $ticket->priority_badge_class }} small">{{ $ticket->priority_label }}</span></td>
-                            <td><span class="badge {{ $ticket->status_badge_class }} small">{{ $ticket->status_label }}</span></td>
+                            <td><span class="badge {{ $ticket->status_badge_class }} small">{{ $ticket->status_label }}</span>
+                                @if($ticket->awaitingApproval())
+                                    <div><span class="badge {{ $ticket->approval_badge_class }} mt-1" style="white-space:normal">{{ $ticket->approval_label }}</span></div>
+                                @endif</td>
                             <td class="small">
                                 @if($ticket->assignedUser)
                                     <i class="fas fa-user-check text-success me-1"></i>{{ $ticket->assignedUser->name }}
