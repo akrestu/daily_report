@@ -11,6 +11,9 @@
 .sg-section-label { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--sg-muted); margin: 0 0 12px; }
 .text-muted, .sg-muted { color: var(--sg-muted) !important; }
 
+/* Tombol primary nonaktif: tetap warna brand (Bootstrap default biru) */
+.btn-primary { --bs-btn-disabled-bg: var(--sg-primary); --bs-btn-disabled-border-color: var(--sg-primary); --bs-btn-disabled-color: var(--sg-on-primary); --bs-btn-disabled-opacity: .4; }
+
 /* Tombol tambahan */
 .btn-approve:hover, .btn-approve:focus-visible { background: #166534; border-color: #166534; color: #fff; }
 .btn-reject { background: var(--sg-reject); border-color: var(--sg-reject); color: #fff; }

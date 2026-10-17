@@ -9,7 +9,7 @@
 
     <link rel="icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
     <meta name="theme-color" content="#111111">
-    @vite(['resources/css/app.css'])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
 </head>
 <body class="sg-public">

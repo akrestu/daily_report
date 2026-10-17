@@ -15,16 +15,16 @@
 
 <div class="d-flex justify-content-between align-items-start mb-2">
     <div>
-        <div class="fw-bold text-primary">{{ $ticket->ticket_number }}</div>
+        <div class="fw-bold sg-num">{{ $ticket->ticket_number }}</div>
         <h5 class="fw-bold mb-0">{{ $ticket->title }}</h5>
     </div>
-    <span class="badge {{ $ticket->status_badge_class }}">{{ $ticket->status_label }}</span>
+    <x-sg.badge-status type="ticket_status" :value="$ticket->status" />
 </div>
 
 <table class="table table-sm small mb-3">
     <tr><td class="text-muted ps-0">Pemohon</td><td class="text-end pe-0">{{ $ticket->requester_name }} ({{ $ticket->requester_department }})</td></tr>
     <tr><td class="text-muted ps-0">Jenis / Kategori</td><td class="text-end pe-0">{{ $ticket->type_label }} &bull; {{ $ticket->category->name ?? '-' }}</td></tr>
-    <tr><td class="text-muted ps-0">Prioritas</td><td class="text-end pe-0"><span class="badge {{ $ticket->priority_badge_class }}">{{ $ticket->priority_label }}</span></td></tr>
+    <tr><td class="text-muted ps-0">Prioritas</td><td class="text-end pe-0"><x-sg.badge-priority :value="$ticket->priority" code /></td></tr>
     <tr><td class="text-muted ps-0">Diajukan</td><td class="text-end pe-0">{{ $ticket->created_at->format('d M Y, H:i') }} WIB</td></tr>
     <tr><td class="text-muted ps-0">Ditangani oleh</td><td class="text-end pe-0">{{ $ticket->assignedUser->name ?? 'Belum ditugaskan' }}</td></tr>
 </table>

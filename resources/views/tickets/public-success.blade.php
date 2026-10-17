@@ -1,88 +1,50 @@
 @extends('layouts.public')
 
-@section('title', 'Permintaan Berhasil Dikirim')
+@section('title', 'Tiket Terkirim')
 
+{{-- Sukses kirim tiket — mockup: TicketSuccessMobile --}}
 @section('content')
-<div class="text-center py-2">
-    <div class="mb-3">
-        <div class="d-inline-flex align-items-center justify-content-center bg-success text-white rounded-circle"
-            style="width: 72px; height: 72px; font-size: 2rem;">
-            <i class="bi bi-check-lg"></i>
+@php($copyText = "Tiket SiGAP {$ticket->ticket_number}\nKode akses: {$ticket->tracking_token}\nLacak: ".route('tickets.public.track'))
+<div x-data="{ copied: false, async copy() { await navigator.clipboard.writeText(@js($copyText)); this.copied = true; sgToast('Nomor tiket & kode akses disalin'); } }">
+    <x-sg.brand-panel class="text-center mb-3">
+        <div class="mx-auto mb-2 d-flex align-items-center justify-content-center rounded-circle" style="width:56px;height:56px;background:var(--sg-accent);color:#111;font-size:28px">
+            <i class="bi bi-check-lg" aria-hidden="true"></i>
         </div>
-    </div>
-
-    <h5 class="fw-bold text-success mb-1">Permintaan Berhasil Dikirim!</h5>
-    <p class="text-muted small mb-4">Tim kami akan segera menindaklanjuti permintaan Anda.</p>
-
-    <div class="bg-light border rounded-3 p-3 mb-4 text-start">
-        <div class="row g-2">
-            <div class="col-12">
-                <div class="d-flex justify-content-between align-items-start">
-                    <span class="text-muted small">Nomor Tiket</span>
-                    <span class="fw-bold text-primary fs-6">{{ $ticket->ticket_number }}</span>
-                </div>
-            </div>
-            <div class="col-12"><hr class="my-1"></div>
-            <div class="col-12">
-                <div class="d-flex justify-content-between">
-                    <span class="text-muted small">Judul</span>
-                    <span class="fw-semibold small text-end" style="max-width: 65%">{{ $ticket->title }}</span>
-                </div>
-            </div>
-            <div class="col-12">
-                <div class="d-flex justify-content-between">
-                    <span class="text-muted small">Kategori</span>
-                    <span class="small">{{ $ticket->category->name ?? '-' }}</span>
-                </div>
-            </div>
-            <div class="col-12">
-                <div class="d-flex justify-content-between">
-                    <span class="text-muted small">Prioritas</span>
-                    <span class="badge {{ $ticket->priority_badge_class }}">{{ $ticket->priority_label }}</span>
-                </div>
-            </div>
-            <div class="col-12">
-                <div class="d-flex justify-content-between">
-                    <span class="text-muted small">Status</span>
-                    <span class="badge {{ $ticket->status_badge_class }}">{{ $ticket->status_label }}</span>
-                </div>
-            </div>
-            <div class="col-12">
-                <div class="d-flex justify-content-between">
-                    <span class="text-muted small">Tanggal</span>
-                    <span class="small">{{ $ticket->created_at->format('d M Y, H:i') }} WIB</span>
-                </div>
-            </div>
+        <h1 class="h5 fw-bold mb-1">Tiket berhasil dikirim</h1>
+        <p class="small mb-3 opacity-75">Tim IT akan segera menindaklanjuti permintaan Anda.</p>
+        <div class="small text-uppercase fw-semibold" style="color:var(--sg-accent);letter-spacing:.08em">Nomor tiket</div>
+        <div class="display-6 fw-bold sg-num mb-3">{{ $ticket->ticket_number }}</div>
+        <div class="d-flex gap-2 justify-content-center">
+            <button type="button" class="btn btn-accent" @click="copy()"><i class="bi" :class="copied ? 'bi-check2' : 'bi-copy'" aria-hidden="true"></i> Salin</button>
+            <a class="btn btn-outline-light" target="_blank" rel="noopener" href="https://wa.me/?text={{ rawurlencode($copyText) }}"><i class="bi bi-whatsapp" aria-hidden="true"></i> Bagikan</a>
         </div>
+    </x-sg.brand-panel>
+
+    <div class="sg-internal-note p-3 mb-3">
+        <div class="fw-semibold mb-1"><i class="bi bi-key" aria-hidden="true"></i> Kode akses — hanya ditampilkan sekali</div>
+        <div class="font-monospace fs-4 fw-bold sg-num">{{ $ticket->tracking_token }}</div>
+        <div class="small">Simpan bersama nomor tiket untuk melacak status. Tombol Salin menyalin keduanya.</div>
     </div>
 
-    <div class="border border-warning rounded-3 p-3 mb-3 text-start" style="background:#fff8e1">
-        <div class="fw-semibold small mb-2"><i class="bi bi-key me-1 text-warning"></i>Simpan data berikut untuk cek status tiket</div>
-        <div class="d-flex justify-content-between small"><span class="text-muted">Nomor Tiket</span><strong>{{ $ticket->ticket_number }}</strong></div>
-        <div class="d-flex justify-content-between small"><span class="text-muted">Kode Akses</span><strong class="font-monospace fs-6 text-danger">{{ $ticket->tracking_token }}</strong></div>
-        <div class="text-muted mt-2" style="font-size:.75rem">Kode akses hanya ditampilkan sekali. Catat atau screenshot halaman ini.</div>
-    </div>
+    <dl class="sg-meta-grid mb-3" style="grid-template-columns:1fr 1fr">
+        <div><dt>Judul</dt><dd>{{ $ticket->title }}</dd></div>
+        <div><dt>Kategori</dt><dd>{{ $ticket->category->name ?? '-' }}</dd></div>
+        <div><dt>Prioritas</dt><dd><x-sg.badge-priority :value="$ticket->priority" code /></dd></div>
+        <div><dt>Status</dt><dd><x-sg.badge-status type="ticket_status" :value="$ticket->status" /></dd></div>
+        <div><dt>Dikirim</dt><dd>{{ \App\Support\Format::datetime($ticket->created_at) }} WIB</dd></div>
+    </dl>
 
-    @if($ticket->approval_status)
-    <div class="alert alert-warning small text-start mb-3">
-        <i class="bi bi-person-badge me-1"></i>
-        Permintaan ini memerlukan <strong>persetujuan atasan</strong>. Buka <strong>Cek Status Tiket</strong> untuk mencetak formulir,
-        minta tanda tangan atasan, lalu unggah fotonya. Tiket baru akan dikerjakan setelah persetujuan diverifikasi tim IT.
-    </div>
+    @if ($ticket->approval_status)
+        <div class="alert alert-warning small">Permintaan ini perlu <strong>persetujuan atasan</strong>. Buka <strong>Lacak Tiket</strong> untuk mencetak formulir,
+            minta tanda tangan atasan, lalu unggah fotonya. Tiket dikerjakan setelah persetujuan diverifikasi tim IT.</div>
+    @endif
+    @if ($ticket->requester_phone)
+        <p class="small text-muted">Kabar status dikirim ke <strong>{{ $ticket->requester_phone }}</strong>.</p>
     @endif
 
-    @if($ticket->requester_phone)
-    <div class="alert alert-info small text-start mb-4">
-        <i class="bi bi-info-circle me-1"></i>
-        Tim kami akan menghubungi Anda melalui nomor <strong>{{ $ticket->requester_phone }}</strong> jika diperlukan.
+    <div class="sg-public-actions">
+        <a href="{{ route('tickets.public.form') }}" class="btn btn-outline-secondary">Ajukan lagi</a>
+        <a href="{{ route('tickets.public.track') }}" class="btn btn-primary flex-fill"><i class="bi bi-search" aria-hidden="true"></i> Lacak Tiket</a>
     </div>
-    @endif
-
-    <a href="{{ route('tickets.public.track') }}" class="btn btn-primary me-1">
-        <i class="bi bi-search me-1"></i>Cek Status Tiket
-    </a>
-    <a href="{{ route('tickets.public.form') }}" class="btn btn-outline-primary">
-        <i class="bi bi-plus-lg me-1"></i>Ajukan Permintaan Lain
-    </a>
 </div>
 @endsection

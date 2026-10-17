@@ -1,116 +1,53 @@
-<x-app-layout>
-    <x-slot name="header">Dashboard Tiket</x-slot>
-
+<x-app-layout title="Dashboard Tiket">
+    {{-- Dashboard KPI tiket — mockup: TicketKpiMobile, TicketKpiDesktop --}}
     @php
         $fmt = fn ($minutes) => $minutes === null ? '-' : \App\Services\TicketSla::formatMinutes($minutes);
-        $pct = fn ($value) => $value === null ? '-' : rtrim(rtrim(number_format($value, 1, ',', ''), '0'), ',').'%';
+        $pct = fn ($value) => $value === null ? '-' : \App\Support\Format::percent($value);
         $pctClass = fn ($value, $target = 90) => $value === null ? 'text-muted' : ($value >= $target ? 'text-success' : ($value >= $target - 15 ? 'text-warning' : 'text-danger'));
+        $tone = fn ($value, $target = 90) => $value === null ? null : ($value >= $target ? 'approved' : ($value >= $target - 15 ? 'pending' : 'rejected'));
     @endphp
 
-    <style>
-        .kpi .card-body { padding: .9rem 1rem; }
-        .kpi .label { font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; color: #6c757d; }
-        .kpi .value { font-size: 1.6rem; font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; }
-        .kpi .hint { font-size: .75rem; color: #6c757d; }
-        .chart-box { position: relative; height: 260px; }
-    </style>
+    <style>.chart-box { position: relative; height: 260px; }</style>
 
-    {{-- Filter --}}
-    <form method="GET" action="{{ route('tickets.dashboard') }}" class="card shadow-sm border-0 mb-3">
-        <div class="card-body row g-2 align-items-end">
-            <div class="col-md-3">
-                <label class="form-label small mb-1">Periode</label>
-                <select name="period" class="form-select form-select-sm" id="periodSelect">
-                    @foreach($periods as $value => $label)
-                        <option value="{{ $value }}" {{ $period === $value ? 'selected' : '' }}>{{ $label }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="col-md-2 custom-range">
-                <label class="form-label small mb-1">Dari</label>
-                <input type="date" name="from" class="form-control form-control-sm" value="{{ $from->toDateString() }}">
-            </div>
-            <div class="col-md-2 custom-range">
-                <label class="form-label small mb-1">Sampai</label>
-                <input type="date" name="to" class="form-control form-control-sm" value="{{ $to->toDateString() }}">
-            </div>
-            <div class="col-md-3">
-                <label class="form-label small mb-1">Site</label>
-                <select name="job_site" class="form-select form-select-sm">
-                    <option value="">Semua site</option>
-                    @foreach($jobSites as $site)
-                        <option value="{{ $site->id }}" {{ request('job_site') == $site->id ? 'selected' : '' }}>{{ $site->name }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="col-md-2">
-                <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-funnel me-1"></i>Terapkan</button>
-            </div>
-            <div class="col-12 small text-muted">
-                {{ $from->translatedFormat('d M Y') }} – {{ $to->translatedFormat('d M Y') }} &bull;
-                Durasi dihitung dalam jam kerja (Senin–Sabtu {{ config('tickets.working_hours.start') }}–{{ config('tickets.working_hours.end') }}), tidak termasuk waktu menunggu pemohon / persetujuan.
-            </div>
-        </div>
+    <x-sg.page-header title="Dashboard Tiket"
+        :subtitle="$from->translatedFormat('d M Y').' – '.$to->translatedFormat('d M Y').' · durasi dalam jam kerja ('.config('tickets.working_hours.start').'–'.config('tickets.working_hours.end').')'" />
+
+    <form method="GET" action="{{ route('tickets.dashboard') }}" class="sg-filter-bar mb-3" aria-label="Periode dashboard">
+        <label for="periodSelect" class="visually-hidden">Periode</label>
+        <select name="period" class="form-select" id="periodSelect">
+            @foreach ($periods as $value => $label)
+                <option value="{{ $value }}" @selected($period === $value)>{{ $label }}</option>
+            @endforeach
+        </select>
+        <label for="kpi-from" class="visually-hidden">Dari</label>
+        <input type="date" id="kpi-from" name="from" class="form-control custom-range" value="{{ $from->toDateString() }}" title="Dari">
+        <label for="kpi-to" class="visually-hidden">Sampai</label>
+        <input type="date" id="kpi-to" name="to" class="form-control custom-range" value="{{ $to->toDateString() }}" title="Sampai">
+        <label for="kpi-site" class="visually-hidden">Site</label>
+        <select id="kpi-site" name="job_site" class="form-select">
+            <option value="">Semua site</option>
+            @foreach ($jobSites as $site)
+                <option value="{{ $site->id }}" @selected(request('job_site') == $site->id)>{{ $site->name }}</option>
+            @endforeach
+        </select>
+        <button type="submit" class="btn btn-primary">Terapkan</button>
     </form>
 
-    {{-- KPI --}}
-    <div class="row g-3 mb-3">
-        <div class="col-6 col-lg-3">
-            <div class="card kpi shadow-sm border-0 h-100"><div class="card-body">
-                <div class="label">Tiket Masuk</div>
-                <div class="value">{{ number_format($summary['created']) }}</div>
-                <div class="hint">Selesai dalam periode: {{ number_format($summary['resolved']) }}</div>
-            </div></div>
-        </div>
-        <div class="col-6 col-lg-3">
-            <a href="{{ route('tickets.index') }}" class="text-decoration-none text-reset">
-            <div class="card kpi shadow-sm border-0 h-100"><div class="card-body">
-                <div class="label">Backlog Aktif</div>
-                <div class="value">{{ number_format($summary['backlog']) }}</div>
-                <div class="hint">
-                    <span class="{{ $summary['backlog_breached'] ? 'text-danger fw-semibold' : '' }}">{{ $summary['backlog_breached'] }} lewat SLA</span>
-                    &bull; {{ $summary['unassigned'] }} belum di-assign
-                    @if($summary['awaiting_approval']) &bull; {{ $summary['awaiting_approval'] }} menunggu approval @endif
-                </div>
-            </div></div>
-            </a>
-        </div>
-        <div class="col-6 col-lg-3">
-            <div class="card kpi shadow-sm border-0 h-100"><div class="card-body">
-                <div class="label">Rata-rata Penyelesaian (MTTR)</div>
-                <div class="value">{{ $fmt($summary['mttr_minutes']) }}</div>
-                <div class="hint">Respons pertama rata-rata: {{ $fmt($summary['response_minutes']) }}</div>
-            </div></div>
-        </div>
-        <div class="col-6 col-lg-3">
-            <div class="card kpi shadow-sm border-0 h-100"><div class="card-body">
-                <div class="label">Kepuasan Pemohon (CSAT)</div>
-                <div class="value">{{ $summary['csat_avg'] !== null ? number_format($summary['csat_avg'], 1, ',', '').' / 5' : '-' }}</div>
-                <div class="hint">{{ $summary['csat_count'] }} penilaian &bull; puas (≥4): {{ $pct($summary['csat_satisfied_pct']) }}</div>
-            </div></div>
-        </div>
-        <div class="col-6 col-lg-4">
-            <div class="card kpi shadow-sm border-0 h-100"><div class="card-body">
-                <div class="label">SLA Respons Tercapai</div>
-                <div class="value {{ $pctClass($summary['response_sla_pct']) }}">{{ $pct($summary['response_sla_pct']) }}</div>
-                <div class="hint">Tiket masuk periode ini yang sudah direspons</div>
-            </div></div>
-        </div>
-        <div class="col-6 col-lg-4">
-            <div class="card kpi shadow-sm border-0 h-100"><div class="card-body">
-                <div class="label">SLA Penyelesaian Tercapai</div>
-                <div class="value {{ $pctClass($summary['resolution_sla_pct']) }}">{{ $pct($summary['resolution_sla_pct']) }}</div>
-                <div class="hint">Tiket yang selesai dalam periode</div>
-            </div></div>
-        </div>
-        <div class="col-12 col-lg-4">
-            <div class="card kpi shadow-sm border-0 h-100"><div class="card-body">
-                <div class="label">Dibuka Kembali (Reopen)</div>
-                <div class="value {{ $summary['reopen_pct'] !== null && $summary['reopen_pct'] > 10 ? 'text-danger' : '' }}">{{ $pct($summary['reopen_pct']) }}</div>
-                <div class="hint">Tiket selesai yang pernah ditolak pemohon (makin kecil makin baik)</div>
-            </div></div>
-        </div>
-    </div>
+    <section class="sg-kpi-grid mb-3" aria-label="Ringkasan tiket">
+        <x-sg.kpi label="Tiket masuk" :value="\App\Support\Format::number($summary['created'])" :note="'Selesai: '.\App\Support\Format::number($summary['resolved'])" />
+        <x-sg.kpi label="Backlog aktif" :value="\App\Support\Format::number($summary['backlog'])" :href="route('tickets.index')"
+                  :note="$summary['backlog_breached'].' lewat SLA · '.$summary['unassigned'].' belum di-assign'.($summary['awaiting_approval'] ? ' · '.$summary['awaiting_approval'].' menunggu approval' : '')"
+                  :note-tone="$summary['backlog_breached'] ? 'rejected' : null" />
+        <x-sg.kpi label="MTTR" :value="$fmt($summary['mttr_minutes'])" :note="'Respons pertama: '.$fmt($summary['response_minutes'])" />
+        <x-sg.kpi label="CSAT" :value="$summary['csat_avg'] !== null ? \App\Support\Format::number($summary['csat_avg'], 1).' / 5' : '-'"
+                  :note="$summary['csat_count'].' penilaian · puas: '.$pct($summary['csat_satisfied_pct'])" />
+    </section>
+    <section class="row g-3 mb-3" aria-label="Kepatuhan SLA">
+        <div class="col-6 col-lg-4"><x-sg.kpi label="SLA respons tercapai" :value="$pct($summary['response_sla_pct'])" note="Tiket masuk yang sudah direspons" :note-tone="$tone($summary['response_sla_pct'])" /></div>
+        <div class="col-6 col-lg-4"><x-sg.kpi label="SLA penyelesaian tercapai" :value="$pct($summary['resolution_sla_pct'])" note="Tiket yang selesai dalam periode" :note-tone="$tone($summary['resolution_sla_pct'])" /></div>
+        <div class="col-12 col-lg-4"><x-sg.kpi label="Dibuka kembali" :value="$pct($summary['reopen_pct'])" note="Makin kecil makin baik"
+                  :note-tone="$summary['reopen_pct'] !== null && $summary['reopen_pct'] > 10 ? 'rejected' : null" /></div>
+    </section>
 
     {{-- Grafik --}}
     <div class="row g-3 mb-3">
