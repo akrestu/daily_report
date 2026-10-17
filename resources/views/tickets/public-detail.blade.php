@@ -4,13 +4,13 @@
 
 @section('content')
 @if(session('success'))
-    <div class="alert alert-success small"><i class="fas fa-check-circle me-1"></i>{{ session('success') }}</div>
+    <div class="alert alert-success small"><i class="bi bi-check-circle me-1"></i>{{ session('success') }}</div>
 @endif
 @if(session('error'))
-    <div class="alert alert-danger small"><i class="fas fa-exclamation-circle me-1"></i>{{ session('error') }}</div>
+    <div class="alert alert-danger small"><i class="bi bi-exclamation-circle me-1"></i>{{ session('error') }}</div>
 @endif
 @if ($errors->any())
-    <div class="alert alert-danger small"><i class="fas fa-exclamation-circle me-1"></i>{{ $errors->first() }}</div>
+    <div class="alert alert-danger small"><i class="bi bi-exclamation-circle me-1"></i>{{ $errors->first() }}</div>
 @endif
 
 <div class="d-flex justify-content-between align-items-start mb-2">
@@ -42,17 +42,17 @@
 
 @if($ticket->status === \App\Models\Ticket::STATUS_PENDING)
     <div class="alert alert-warning small">
-        <i class="fas fa-hourglass-half me-1"></i>
+        <i class="bi bi-hourglass-split me-1"></i>
         Tim IT menunggu informasi dari Anda. Lihat catatan di riwayat di bawah, lalu balas melalui kolom komentar.
     </div>
 @endif
 
-<p class="section-title mt-3"><i class="fas fa-history me-1"></i>Riwayat</p>
+<p class="section-title mt-3"><i class="bi bi-clock-history me-1"></i>Riwayat</p>
 <div class="mb-4">
     @include('tickets.partials.timeline')
 </div>
 
-<p class="section-title"><i class="fas fa-comments me-1"></i>Komentar</p>
+<p class="section-title"><i class="bi bi-chat-left-text me-1"></i>Komentar</p>
 @include('tickets.partials.comments', ['comments' => $ticket->comments])
 
 @if($ticket->isActive())
@@ -60,11 +60,11 @@
     @csrf
     <textarea name="comment" rows="3" class="form-control form-control-sm mb-2" required maxlength="2000"
         placeholder="Tulis pesan untuk tim IT...">{{ old('comment') }}</textarea>
-    <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-paper-plane me-1"></i>Kirim</button>
+    <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-send me-1"></i>Kirim</button>
 </form>
 @endif
 
 <a href="{{ route('tickets.public.track') }}" class="btn btn-outline-secondary btn-sm">
-    <i class="fas fa-search me-1"></i>Cek Tiket Lain
+    <i class="bi bi-search me-1"></i>Cek Tiket Lain
 </a>
 @endsection

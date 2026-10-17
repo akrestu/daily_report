@@ -24,7 +24,7 @@
             {{ $attributes->merge(['class' => 'form-control' . ($errors->has($name) ? ' is-invalid' : '')]) }}
         >
         <button class="btn btn-outline-secondary toggle-password" type="button" data-target="{{ $name }}">
-            <i class="fas fa-eye"></i>
+            <i class="bi bi-eye"></i>
         </button>
     </div>
     @else
@@ -63,8 +63,8 @@
                 passwordInput.setAttribute('type', type);
                 
                 // Toggle the icon
-                this.querySelector('i').classList.toggle('fa-eye');
-                this.querySelector('i').classList.toggle('fa-eye-slash');
+                this.querySelector('i').classList.toggle('bi-eye');
+                this.querySelector('i').classList.toggle('bi-eye-slash');
             });
         });
     });

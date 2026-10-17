@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="d-flex justify-content-between align-items-center">
             <h2 class="fs-4 text-dark mb-0">
-                <i class="fas fa-broom me-2"></i>Report Cleanup Management
+                <i class="bi bi-eraser me-2"></i>Report Cleanup Management
             </h2>
         </div>
     </x-slot>
@@ -19,7 +19,7 @@
                                 <p class="card-text">Total Reports</p>
                             </div>
                             <div class="align-self-center">
-                                <i class="fas fa-file-alt fa-2x opacity-75"></i>
+                                <i class="bi bi-file-earmark-text fs-3 opacity-75"></i>
                             </div>
                         </div>
                     </div>
@@ -35,7 +35,7 @@
                                 <p class="card-text">Older than 1 Year</p>
                             </div>
                             <div class="align-self-center">
-                                <i class="fas fa-calendar-times fa-2x opacity-75"></i>
+                                <i class="bi bi-calendar-x fs-3 opacity-75"></i>
                             </div>
                         </div>
                     </div>
@@ -51,7 +51,7 @@
                                 <p class="card-text">With Attachments</p>
                             </div>
                             <div class="align-self-center">
-                                <i class="fas fa-paperclip fa-2x opacity-75"></i>
+                                <i class="bi bi-paperclip fs-3 opacity-75"></i>
                             </div>
                         </div>
                     </div>
@@ -67,7 +67,7 @@
                                 <p class="card-text">Storage Used</p>
                             </div>
                             <div class="align-self-center">
-                                <i class="fas fa-hdd fa-2x opacity-75"></i>
+                                <i class="bi bi-hdd fs-3 opacity-75"></i>
                             </div>
                         </div>
                     </div>
@@ -80,7 +80,7 @@
             <div class="col-lg-8">
                 <div class="card shadow-sm">
                     <div class="card-header bg-white">
-                        <h5 class="mb-0"><i class="fas fa-tools me-2"></i>Cleanup Configuration</h5>
+                        <h5 class="mb-0"><i class="bi bi-tools me-2"></i>Cleanup Configuration</h5>
                     </div>
                     <div class="card-body">
                         <form id="cleanupForm">
@@ -89,7 +89,7 @@
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label for="days" class="form-label">
-                                            <i class="fas fa-calendar-alt me-1"></i>Keep Reports Newer Than
+                                            <i class="bi bi-calendar3 me-1"></i>Keep Reports Newer Than
                                         </label>
                                         <div class="input-group">
                                             <input type="number" class="form-control" id="days" name="days" 
@@ -103,7 +103,7 @@
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label class="form-label">
-                                            <i class="fas fa-filter me-1"></i>Filter by Status
+                                            <i class="bi bi-funnel me-1"></i>Filter by Status
                                         </label>
                                         <div class="row">
                                             <div class="col-6">
@@ -146,10 +146,10 @@
                             
                             <div class="d-flex gap-2">
                                 <button type="button" class="btn btn-info" id="previewBtn">
-                                    <i class="fas fa-eye me-1"></i>Preview Cleanup
+                                    <i class="bi bi-eye me-1"></i>Preview Cleanup
                                 </button>
                                 <button type="button" class="btn btn-danger" id="executeBtn" disabled>
-                                    <i class="fas fa-trash me-1"></i>Execute Cleanup
+                                    <i class="bi bi-trash3 me-1"></i>Execute Cleanup
                                 </button>
                             </div>
                         </form>
@@ -160,7 +160,7 @@
             <div class="col-lg-4">
                 <div class="card shadow-sm">
                     <div class="card-header bg-white">
-                        <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Current Statistics</h5>
+                        <h5 class="mb-0"><i class="bi bi-pie-chart me-2"></i>Current Statistics</h5>
                     </div>
                     <div class="card-body">
                         <h6>By Age:</h6>
@@ -216,7 +216,7 @@
             <div class="col-12">
                 <div class="card shadow-sm">
                     <div class="card-header bg-light">
-                        <h5 class="mb-0"><i class="fas fa-preview me-2"></i>Cleanup Preview</h5>
+                        <h5 class="mb-0"><i class="bi bi-eye me-2"></i>Cleanup Preview</h5>
                     </div>
                     <div class="card-body" id="previewContent">
                         <!-- Preview content will be loaded here -->
@@ -241,7 +241,7 @@
             const previewBtn = document.getElementById('previewBtn');
             
             previewBtn.disabled = true;
-            previewBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Loading...';
+            previewBtn.innerHTML = '<i class="bi bi-arrow-repeat sg-spin me-1"></i>Loading...';
             
             fetch('{{ route("admin.reports.cleanup.preview") }}', {
                 method: 'POST',
@@ -265,7 +265,7 @@
             })
             .finally(() => {
                 previewBtn.disabled = false;
-                previewBtn.innerHTML = '<i class="fas fa-eye me-1"></i>Preview Cleanup';
+                previewBtn.innerHTML = '<i class="bi bi-eye me-1"></i>Preview Cleanup';
             });
         }
         
@@ -274,7 +274,7 @@
             
             let html = `
                 <div class="alert alert-info">
-                    <i class="fas fa-info-circle me-2"></i>
+                    <i class="bi bi-info-circle me-2"></i>
                     <strong>Preview Results</strong> - Reports created before ${cutoffDate}
                 </div>
                 
@@ -317,7 +317,7 @@
             if (breakdown.total > 0) {
                 html += `
                     <div class="alert alert-warning mt-3">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <i class="bi bi-exclamation-triangle me-2"></i>
                         <strong>Warning:</strong> This action cannot be undone. Please review the results carefully before executing.
                     </div>`;
             }
@@ -335,7 +335,7 @@
             const executeBtn = document.getElementById('executeBtn');
             
             executeBtn.disabled = true;
-            executeBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Executing...';
+            executeBtn.innerHTML = '<i class="bi bi-arrow-repeat sg-spin me-1"></i>Executing...';
             
             fetch('{{ route("admin.reports.cleanup.execute") }}', {
                 method: 'POST',
@@ -365,7 +365,7 @@
             })
             .finally(() => {
                 executeBtn.disabled = false;
-                executeBtn.innerHTML = '<i class="fas fa-trash me-1"></i>Execute Cleanup';
+                executeBtn.innerHTML = '<i class="bi bi-trash3 me-1"></i>Execute Cleanup';
             });
         }
         

@@ -3,13 +3,13 @@
 
     @if (session('success'))
         <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-3" role="alert">
-            <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+            <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     @endif
     @if (session('error'))
         <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm mb-3" role="alert">
-            <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+            <i class="bi bi-exclamation-circle me-2"></i>{{ session('error') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     @endif
@@ -21,21 +21,21 @@
                 <div class="row g-2 align-items-end">
                     <div class="col-12 col-md-3">
                         <div class="input-group">
-                            <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-primary"></i></span>
+                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-primary"></i></span>
                             <input type="text" name="search" class="form-control border-start-0 ps-0"
                                 placeholder="Cari nama pekerjaan" value="{{ request('search') }}">
                         </div>
                     </div>
                     <div class="col-6 col-md-2">
                         <div class="input-group">
-                            <span class="input-group-text bg-white border-end-0"><i class="fas fa-calendar-alt text-primary"></i></span>
+                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-calendar3 text-primary"></i></span>
                             <input type="date" name="date_from" class="form-control border-start-0 ps-0"
                                 value="{{ request('date_from') }}">
                         </div>
                     </div>
                     <div class="col-6 col-md-2">
                         <div class="input-group">
-                            <span class="input-group-text bg-white border-end-0"><i class="fas fa-calendar-alt text-primary"></i></span>
+                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-calendar3 text-primary"></i></span>
                             <input type="date" name="date_to" class="form-control border-start-0 ps-0"
                                 value="{{ request('date_to') }}">
                         </div>
@@ -49,10 +49,10 @@
                     </div>
                     <div class="col-4 col-md-3 d-flex gap-2">
                         <button type="submit" class="btn btn-primary rounded-pill px-3 flex-grow-1">
-                            <i class="fas fa-filter me-1"></i><span class="d-none d-sm-inline"> Filter</span>
+                            <i class="bi bi-funnel me-1"></i><span class="d-none d-sm-inline"> Filter</span>
                         </button>
                         <a href="{{ route('job-plans.assigned-to-me') }}" class="btn btn-outline-secondary rounded-pill px-3">
-                            <i class="fas fa-redo"></i>
+                            <i class="bi bi-arrow-clockwise"></i>
                         </a>
                     </div>
                 </div>
@@ -65,7 +65,7 @@
         <div class="card-header bg-white py-3">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="mb-0 fw-bold">
-                    <i class="fas fa-inbox text-primary me-2"></i>Tugas Masuk
+                    <i class="bi bi-inbox text-primary me-2"></i>Tugas Masuk
                     <span class="badge bg-primary ms-1">{{ $plans->total() }}</span>
                     @if($activeCount > 0)
                         <span class="badge bg-warning text-dark ms-1">{{ $activeCount }} aktif</span>
@@ -76,7 +76,7 @@
         <div class="card-body p-0">
             @if($plans->isEmpty())
                 <div class="text-center py-5 text-muted">
-                    <i class="fas fa-inbox fa-3x mb-3 opacity-25"></i>
+                    <i class="bi bi-inbox fs-1 mb-3 opacity-25"></i>
                     <p class="mb-0">Belum ada tugas yang diberikan kepada Anda.</p>
                 </div>
             @else
@@ -104,20 +104,20 @@
                                     </a>
                                     {{-- Info tambahan hanya tampil di mobile --}}
                                     <div class="d-sm-none mt-1 text-muted small">
-                                        <i class="fas fa-user-tie me-1"></i>{{ $plan->creator->name ?? '-' }}
+                                        <i class="bi bi-person-badge me-1"></i>{{ $plan->creator->name ?? '-' }}
                                         @if($plan->due_date)
                                             &nbsp;·&nbsp;
                                             @if($plan->due_date->isPast() && !$plan->isConverted())
-                                                <span class="text-danger"><i class="fas fa-exclamation-triangle me-1"></i>{{ $plan->due_date->format('d/m/Y') }}</span>
+                                                <span class="text-danger"><i class="bi bi-exclamation-triangle me-1"></i>{{ $plan->due_date->format('d/m/Y') }}</span>
                                             @else
-                                                <i class="fas fa-clock me-1"></i>{{ $plan->due_date->format('d/m/Y') }}
+                                                <i class="bi bi-clock me-1"></i>{{ $plan->due_date->format('d/m/Y') }}
                                             @endif
                                         @endif
                                     </div>
                                 </td>
                                 <td class="d-none d-sm-table-cell">
                                     <span class="d-flex align-items-center gap-2">
-                                        <i class="fas fa-user-tie text-muted small"></i>
+                                        <i class="bi bi-person-badge text-muted small"></i>
                                         {{ $plan->creator->name ?? '-' }}
                                     </span>
                                 </td>
@@ -126,7 +126,7 @@
                                 <td class="d-none d-sm-table-cell">
                                     @if($plan->due_date && $plan->due_date->isPast() && !$plan->isConverted())
                                         <span class="text-danger fw-semibold">
-                                            <i class="fas fa-exclamation-triangle me-1 small"></i>{{ $plan->due_date->format('d/m/Y') }}
+                                            <i class="bi bi-exclamation-triangle me-1 small"></i>{{ $plan->due_date->format('d/m/Y') }}
                                         </span>
                                     @else
                                         {{ $plan->due_date?->format('d/m/Y') ?? '-' }}
@@ -144,13 +144,13 @@
                                         <a href="{{ route('job-plans.show', $plan) }}"
                                             class="btn btn-sm btn-outline-primary rounded-pill px-2"
                                             title="Lihat Detail">
-                                            <i class="fas fa-eye"></i>
+                                            <i class="bi bi-eye"></i>
                                         </a>
                                         @can('convert', $plan)
                                         <a href="{{ route('job-plans.convert', $plan) }}"
                                             class="btn btn-sm btn-success rounded-pill px-2"
                                             title="Jadikan Report">
-                                            <i class="fas fa-file-alt"></i><span class="d-none d-md-inline ms-1">Jadikan Report</span>
+                                            <i class="bi bi-file-earmark-text"></i><span class="d-none d-md-inline ms-1">Jadikan Report</span>
                                         </a>
                                         @endcan
                                     </div>

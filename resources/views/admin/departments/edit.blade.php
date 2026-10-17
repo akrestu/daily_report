@@ -11,7 +11,7 @@
                 </div>
                 <div class="col text-end">
                     <a href="{{ route('admin.departments.index') }}" class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-left me-1"></i> Back to Departments
+                        <i class="bi bi-arrow-left me-1"></i> Back to Departments
                     </a>
                 </div>
             </div>
@@ -57,10 +57,10 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-6">
-                                <p class="mb-1"><i class="fas fa-users me-2 text-primary"></i> Total Users: <span class="fw-bold">{{ $department->users->count() }}</span></p>
+                                <p class="mb-1"><i class="bi bi-people me-2 text-primary"></i> Total Users: <span class="fw-bold">{{ $department->users->count() }}</span></p>
                             </div>
                             <div class="col-md-6">
-                                <p class="mb-1"><i class="fas fa-clipboard-list me-2 text-primary"></i> Total Reports: <span class="fw-bold">{{ $department->dailyReports->count() }}</span></p>
+                                <p class="mb-1"><i class="bi bi-clipboard-data me-2 text-primary"></i> Total Reports: <span class="fw-bold">{{ $department->dailyReports->count() }}</span></p>
                             </div>
                         </div>
                     </div>
@@ -68,12 +68,12 @@
                 
                 <div class="d-flex justify-content-between mt-4">
                     <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
-                        <i class="fas fa-trash me-1"></i> Delete Department
+                        <i class="bi bi-trash3 me-1"></i> Delete Department
                     </button>
                     <div>
                         <button type="reset" class="btn btn-secondary me-2">Reset</button>
                         <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save me-1"></i> Update Department
+                            <i class="bi bi-floppy me-1"></i> Update Department
                         </button>
                     </div>
                 </div>
@@ -93,7 +93,7 @@
                     <p>Are you sure you want to delete the department <strong>{{ $department->name }}</strong>?</p>
                     @if($department->users->count() > 0)
                     <div class="alert alert-danger">
-                        <i class="fas fa-exclamation-triangle me-2"></i> This department has {{ $department->users->count() }} users assigned to it. You cannot delete it until all users are reassigned.
+                        <i class="bi bi-exclamation-triangle me-2"></i> This department has {{ $department->users->count() }} users assigned to it. You cannot delete it until all users are reassigned.
                     </div>
                     @endif
                 </div>

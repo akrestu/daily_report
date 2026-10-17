@@ -1,588 +1,276 @@
-<x-app-layout>
-    <x-slot name="header">
-        Create Daily Report
-    </x-slot>
+{{-- Buat Laporan (multi-entri) — mockup: CreateMobile, CreatePicSheet, CreateDesktop --}}
+@php
+    $pics = collect($eligiblePics ?? [])->map(fn ($name, $id) => ['id' => (string) $id, 'name' => $name])->values();
+    $defaultPic = (string) ($fromPlan?->creator_id ?? ($pics->count() === 1 ? $pics->first()['id'] : ''));
 
-    <div class="card shadow-sm border-0">
-        <div class="card-header bg-white py-3">
-            <div class="row align-items-center">
-                <div class="col-md-6 col-sm-12 mb-2 mb-md-0">
-                    <h5 class="mb-0 fw-bold">
-                        <i class="fas fa-plus-circle text-primary me-2"></i>New Daily Report
-                    </h5>
-                </div>
-                <div class="col-md-6 col-sm-12 text-md-end mt-2 mt-md-0">
-                    <a href="{{ route('daily-reports.index') }}" class="btn btn-outline-secondary rounded-pill px-4">
-                        <i class="fas fa-arrow-left me-1"></i> Back to Reports
-                    </a>
-                </div>
+    $entries = old('reports');
+    if (! $entries && $fromPlan) {
+        $entries = [0 => [
+            'job_plan_id' => $fromPlan->id,
+            'job_name' => $fromPlan->job_name,
+            'description' => $fromPlan->description,
+            'remark' => $fromPlan->remark,
+            'job_site_id' => $fromPlan->job_site_id,
+            'section_id' => $fromPlan->section_id,
+            'job_pic' => $fromPlan->creator_id,
+            'report_date' => $fromPlan->planned_date?->format('Y-m-d'),
+            'due_date' => $fromPlan->due_date?->format('Y-m-d'),
+        ]];
+    }
+    $entryErrors = collect($errors->getMessages())->filter(fn ($m, $k) => str_starts_with($k, 'reports.'))->all();
+    $config = [
+        'entries' => $entries ?? [],
+        'errors' => (object) $entryErrors,
+        'pics' => $pics,
+        'today' => now()->format('Y-m-d'),
+        'defaultPic' => $defaultPic,
+    ];
+@endphp
+
+<x-app-layout title="Buat Laporan" :back="route('daily-reports.user-jobs')">
+    <form action="{{ route('daily-reports.store-multiple') }}" method="POST" enctype="multipart/form-data"
+          x-data="sgReportForm(@js($config))" @submit="busy = true" novalidate>
+        @csrf
+
+        <x-sg.page-header title="Buat Laporan" class="d-none d-lg-flex"
+                          subtitle="Isi detail pekerjaan hari ini. Semua laporan dikirim sekaligus ke PIC masing-masing.">
+            <x-slot:actions>
+                <a href="{{ route('daily-reports.user-jobs') }}" class="btn btn-outline-secondary">Batal</a>
+                <button type="submit" class="btn btn-primary" :disabled="busy">
+                    <span x-text="busy ? 'Mengirim…' : 'Kirim ' + count + ' Laporan'">Kirim Laporan</span>
+                </button>
+            </x-slot:actions>
+        </x-sg.page-header>
+
+        @if ($fromPlan)
+            <div class="sg-internal-note p-3 mb-3 d-flex gap-2">
+                <i class="bi bi-clipboard-check fs-5" aria-hidden="true"></i>
+                <div class="small">Diisi otomatis dari rencana kerja <strong>{{ $fromPlan->job_name }}</strong> yang ditugaskan
+                    <strong>{{ $fromPlan->creator?->name }}</strong>. Periksa sebelum mengirim.</div>
             </div>
-        </div>
-        <div class="card-body p-3 p-lg-4">
-            <form action="{{ route('daily-reports.store-multiple') }}" method="POST" enctype="multipart/form-data" id="multipleReportForm">
-                @csrf
-                
-                <!-- Validation Errors -->
-                @if ($errors->any())
-                    <div class="alert alert-danger mb-4 border-0 shadow-sm">
-                        <div class="d-flex">
-                            <div class="me-3">
-                                <i class="fas fa-exclamation-circle text-danger fa-2x"></i>
-                            </div>
-                            <div>
-                                <h5 class="alert-heading mb-1">Please fix the following errors</h5>
-                                <ul class="mb-0 ps-3">
-                                    @foreach ($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                @endif
-                
-                <div id="report-container">
-                    <!-- First Report Form (Initial) -->
-                    <div class="report-form mb-4 pb-4 border-bottom" data-index="0">
+        @endif
 
-                        {{-- Pre-fill banner when converting from a Job Plan --}}
-                        @if($fromPlan ?? null)
-                        <input type="hidden" name="reports[0][job_plan_id]" value="{{ $fromPlan->id }}">
-                        <div class="alert alert-info border-0 shadow-sm mb-4">
-                            <div class="d-flex align-items-start">
-                                <i class="fas fa-clipboard-check fa-lg me-3 mt-1 text-info"></i>
-                                <div>
-                                    <h6 class="mb-1 fw-bold">Membuat Laporan dari Job Plan</h6>
-                                    <p class="mb-0">Form ini telah diisi otomatis dari job plan <strong>{{ $fromPlan->job_name }}</strong> yang ditugaskan oleh <strong>{{ $fromPlan->creator->name }}</strong>. Periksa dan sesuaikan data sebelum menyimpan.</p>
+        @if ($errors->any())
+            <div class="alert alert-danger d-flex gap-2 mb-3" role="alert">
+                <i class="bi bi-exclamation-octagon fs-5" aria-hidden="true"></i>
+                <div><strong>Periksa kembali isian yang ditandai.</strong>
+                    <div class="small">Lampiran perlu dipilih ulang setelah validasi gagal.</div></div>
+            </div>
+        @endif
+
+        <div class="row g-3 g-lg-4">
+            <div class="col-lg-8">
+                <template x-for="entry in entries" :key="entry.key">
+                    <section class="card sg-entry mb-3" :class="{ 'is-open': open === entry.key, 'has-error': hasErrors(entry) }"
+                             :aria-labelledby="id(entry, 'title')">
+                        <input type="hidden" :name="name(entry, 'department_id')" value="{{ auth()->user()->department_id }}">
+                        <input type="hidden" :name="name(entry, 'job_plan_id')" :value="entry.job_plan_id">
+
+                        <div class="sg-entry__head">
+                            <button type="button" class="sg-entry__toggle" @click="toggle(entry)" :aria-expanded="open === entry.key"
+                                    :aria-controls="id(entry, 'body')">
+                                <span class="sg-entry__num" x-text="number(entry)"></span>
+                                <span class="min-w-0 text-start d-flex flex-column">
+                                    <span class="fw-bold sg-clamp-1" :id="id(entry, 'title')"
+                                          x-text="open === entry.key || !entry.job_name ? 'Laporan ' + number(entry) : entry.job_name"></span>
+                                    <span class="small" x-show="open !== entry.key"
+                                          :class="hasErrors(entry) ? 'text-danger fw-semibold' : 'text-muted'" x-text="summary(entry)"></span>
+                                </span>
+                                <i class="bi ms-auto" :class="open === entry.key ? 'bi-chevron-up' : 'bi-chevron-down'" aria-hidden="true"></i>
+                            </button>
+                            <button type="button" class="sg-icon-btn text-danger" x-show="count > 1" @click="remove(entry)"
+                                    :aria-label="'Hapus laporan ' + number(entry)"><i class="bi bi-trash3" aria-hidden="true"></i></button>
+                        </div>
+
+                        <div class="sg-entry__body" :id="id(entry, 'body')" x-show="open === entry.key">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold" :for="id(entry, 'job_name')">Nama Pekerjaan <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" :id="id(entry, 'job_name')" :name="name(entry, 'job_name')"
+                                       x-model="entry.job_name" maxlength="255" required placeholder="Mis. Inspeksi conveyor CV-03"
+                                       :class="{ 'is-invalid': error(entry, 'job_name') }">
+                                <div class="invalid-feedback" x-text="error(entry, 'job_name')"></div>
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-6">
+                                    <label class="form-label fw-semibold" :for="id(entry, 'report_date')">Tanggal <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" :id="id(entry, 'report_date')" :name="name(entry, 'report_date')"
+                                           x-model="entry.report_date" required :class="{ 'is-invalid': error(entry, 'report_date') }">
+                                    <div class="invalid-feedback" x-text="error(entry, 'report_date')"></div>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label fw-semibold" :for="id(entry, 'due_date')">Due date <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" :id="id(entry, 'due_date')" :name="name(entry, 'due_date')"
+                                           x-model="entry.due_date" :min="entry.report_date" required :class="{ 'is-invalid': error(entry, 'due_date') }">
+                                    <div class="invalid-feedback" x-text="error(entry, 'due_date')"></div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="form-label fw-semibold" :for="id(entry, 'job_site_id')">Job site</label>
+                                    <select class="form-select" :id="id(entry, 'job_site_id')" :name="name(entry, 'job_site_id')" x-model="entry.job_site_id"
+                                            :class="{ 'is-invalid': error(entry, 'job_site_id') }">
+                                        <option value="">Pilih job site</option>
+                                        @foreach ($jobSites ?? [] as $site)
+                                            <option value="{{ $site->id }}">{{ $site->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="invalid-feedback" x-text="error(entry, 'job_site_id')"></div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="form-label fw-semibold" :for="id(entry, 'section_id')">Section</label>
+                                    <select class="form-select" :id="id(entry, 'section_id')" :name="name(entry, 'section_id')" x-model="entry.section_id"
+                                            :class="{ 'is-invalid': error(entry, 'section_id') }">
+                                        <option value="">{{ ($sections ?? collect())->isEmpty() ? 'Belum ada section' : 'Pilih section' }}</option>
+                                        @foreach ($sections ?? [] as $section)
+                                            <option value="{{ $section->id }}">{{ $section->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="invalid-feedback" x-text="error(entry, 'section_id')"></div>
                                 </div>
                             </div>
-                        </div>
-                        @endif
 
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h5 class="report-title mb-0 fw-bold text-primary">
-                                <i class="fas fa-clipboard-list me-2"></i>Report #1
-                            </h5>
-                            <div class="form-actions">
-                                <button type="button" class="btn btn-sm btn-outline-danger rounded-pill remove-form d-none">
-                                    <i class="fas fa-trash me-1"></i> Remove
+                            {{-- PIC: tombol pembuka sheet; nilai dikirim lewat input tersembunyi --}}
+                            <div class="mb-3">
+                                <span class="form-label fw-semibold d-block" :id="id(entry, 'pic-label')">PIC (Atasan) <span class="text-danger">*</span></span>
+                                <input type="hidden" :name="name(entry, 'job_pic')" :value="entry.job_pic">
+                                <button type="button" class="sg-pic-field" @click="choosePic(entry)" :aria-labelledby="id(entry, 'pic-label')"
+                                        :class="{ 'is-invalid': error(entry, 'job_pic') }">
+                                    <template x-if="entry.job_pic">
+                                        <span class="d-flex align-items-center gap-2 min-w-0">
+                                            <span class="sg-avatar" style="width:36px;height:36px;font-size:13px" x-text="picName(entry.job_pic).split(' ').map(w => w[0]).slice(0, 2).join('')"></span>
+                                            <span class="fw-semibold sg-clamp-1" x-text="picName(entry.job_pic)"></span>
+                                        </span>
+                                    </template>
+                                    <span x-show="!entry.job_pic" class="text-muted">Pilih atasan yang menyetujui</span>
+                                    <i class="bi bi-chevron-right ms-auto text-muted" aria-hidden="true"></i>
                                 </button>
-                            </div>
-                        </div>
-                        
-                        <div class="p-3 bg-light rounded-3 mb-4">
-                            <!-- Job Name -->
-                            <div class="row mb-4">
-                                <div class="col-md-12">
-                                    <div class="form-floating">
-                                        <input 
-                                            type="text" 
-                                            class="form-control @error('reports.0.job_name') is-invalid @enderror" 
-                                            id="job_name_0" 
-                                            name="reports[0][job_name]" 
-                                            placeholder="Enter job name" 
-                                            value="{{ old('reports.0.job_name', isset($fromPlan) ? $fromPlan->job_name : '') }}"
-                                            required
-                                        >
-                                        <label for="job_name_0">Job Name <span class="text-danger">*</span></label>
-                                        @error('reports.0.job_name')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Job Description -->
-                            <div class="mb-4">
-                                <label for="description_0" class="form-label fw-medium">Job Description <span class="text-danger">*</span></label>
-                                <textarea 
-                                    class="form-control @error('reports.0.description') is-invalid @enderror" 
-                                    id="description_0" 
-                                    name="reports[0][description]" 
-                                    rows="5" 
-                                    required
-                                    placeholder="Enter detailed job description"
-                                    style="border-radius: 0.375rem;"
-                                >{{ old('reports.0.description', isset($fromPlan) ? $fromPlan->description : '') }}</textarea>
-                                @error('reports.0.description')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-                        
-                        <div class="row mb-4">
-                            <!-- Job Department (auto-filled, read-only) -->
-                            <div class="col-lg-6 col-md-12 mb-3 mb-lg-0">
-                                <label class="form-label fw-medium">Department</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-white"><i class="fas fa-building text-primary"></i></span>
-                                    <input
-                                        type="text"
-                                        class="form-control bg-light department-display"
-                                        value="{{ auth()->user()->department->name ?? '-' }}"
-                                        readonly
-                                    >
-                                    <input
-                                        type="hidden"
-                                        name="reports[0][department_id]"
-                                        value="{{ auth()->user()->department_id }}"
-                                        class="department-id-hidden"
-                                    >
-                                </div>
+                                <div class="invalid-feedback d-block" x-text="error(entry, 'job_pic')"></div>
+                                @if ($pics->isEmpty())
+                                    <div class="small text-danger mt-1">Belum ada atasan yang berhak menyetujui laporan Anda. Hubungi admin.</div>
+                                @endif
                             </div>
 
-                            <!-- Job Site -->
-                            <div class="col-lg-6 col-md-12">
-                                <label for="job_site_id_0" class="form-label fw-medium">Job Site</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-white"><i class="fas fa-map-marker-alt text-primary"></i></span>
-                                    <select
-                                        class="form-select @error('reports.0.job_site_id') is-invalid @enderror"
-                                        id="job_site_id_0"
-                                        name="reports[0][job_site_id]"
-                                    >
-                                        <option value="">Select job site (optional)</option>
-                                        @foreach ($jobSites ?? [] as $jobSite)
-                                            <option value="{{ $jobSite->id }}" {{ old('reports.0.job_site_id', isset($fromPlan) ? $fromPlan->job_site_id : '') == $jobSite->id ? 'selected' : '' }}>
-                                                {{ $jobSite->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                @error('reports.0.job_site_id')
-                                <div class="text-danger small mt-1">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="row mb-4">
-                            <!-- Section -->
-                            <div class="col-lg-6 col-md-12 mb-3 mb-lg-0">
-                                <label for="section_id_0" class="form-label fw-medium">Section</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-white"><i class="fas fa-layer-group text-primary"></i></span>
-                                    <select
-                                        class="form-select section-select @error('reports.0.section_id') is-invalid @enderror"
-                                        id="section_id_0"
-                                        name="reports[0][section_id]"
-                                        data-index="0"
-                                    >
-                                        <option value="">Select section (optional)</option>
-                                        @if(isset($sections) && $sections->count() > 0)
-                                            @foreach ($sections as $section)
-                                                <option value="{{ $section->id }}" {{ old('reports.0.section_id', isset($fromPlan) ? $fromPlan->section_id : '') == $section->id ? 'selected' : '' }}>
-                                                    {{ $section->name }}
-                                                </option>
-                                            @endforeach
-                                        @endif
-                                    </select>
-                                </div>
-                                @error('reports.0.section_id')
-                                <div class="text-danger small mt-1">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <!-- Job PIC -->
-                            <div class="col-lg-6 col-md-12">
-                                <label for="job_pic_0" class="form-label fw-medium">Person In Charge <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-white"><i class="fas fa-user text-primary"></i></span>
-                                    <select 
-                                        class="form-select @error('reports.0.job_pic') is-invalid @enderror" 
-                                        id="job_pic_0" 
-                                        name="reports[0][job_pic]" 
-                                        required
-                                    >
-                                        <option value="">Select person in charge</option>
-                                        @foreach ($eligiblePics ?? [] as $id => $name)
-                                            <option value="{{ $id }}" {{ old('reports.0.job_pic', isset($fromPlan) ? $fromPlan->creator_id : '') == $id ? 'selected' : '' }}>
-                                                {{ $name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                @error('reports.0.job_pic')
-                                <div class="text-danger small mt-1">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-                        
-                        <div class="row mb-4">
-                            <!-- Job Date -->
-                            <div class="col-lg-6 col-md-12 mb-3 mb-lg-0">
-                                <label for="report_date_0" class="form-label fw-medium">Job Date <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-white"><i class="fas fa-calendar-day text-primary"></i></span>
-                                    <input 
-                                        type="date" 
-                                        class="form-control @error('reports.0.report_date') is-invalid @enderror" 
-                                        id="report_date_0" 
-                                        name="reports[0][report_date]" 
-                                        value="{{ old('reports.0.report_date', isset($fromPlan) ? $fromPlan->planned_date->format('Y-m-d') : date('Y-m-d')) }}"
-                                        required
-                                    >
-                                </div>
-                                @error('reports.0.report_date')
-                                <div class="text-danger small mt-1">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            
-                            <!-- Due Date -->
-                            <div class="col-lg-6 col-md-12">
-                                <label for="due_date_0" class="form-label fw-medium">Due Date <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-white"><i class="fas fa-calendar-alt text-primary"></i></span>
-                                    <input 
-                                        type="date" 
-                                        class="form-control @error('reports.0.due_date') is-invalid @enderror" 
-                                        id="due_date_0" 
-                                        name="reports[0][due_date]" 
-                                        value="{{ old('reports.0.due_date', isset($fromPlan) ? $fromPlan->due_date->format('Y-m-d') : '') }}"
-                                        required
-                                    >
-                                </div>
-                                @error('reports.0.due_date')
-                                <div class="text-danger small mt-1">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-                        
-                        <!-- Job Status -->
-                        <div class="row mb-4">
-                            <div class="col-md-12">
-                                <label class="form-label fw-medium">Job Status <span class="text-danger">*</span></label>
-                                <div class="d-flex flex-column flex-md-row gap-2 gap-md-3">
-                                    <div class="flex-grow-1">
-                                        <input type="radio" class="btn-check" name="reports[0][status]" id="status_pending_0" value="pending" {{ old('reports.0.status', 'pending') == 'pending' ? 'checked' : '' }}>
-                                        <label class="btn btn-outline-warning w-100 d-flex align-items-center justify-content-center gap-2 py-2 py-md-3" for="status_pending_0">
-                                            <i class="fas fa-clock"></i>
-                                            <span>Pending</span>
+                            <fieldset class="mb-3">
+                                <legend class="form-label fw-semibold fs-6">Progres Pekerjaan</legend>
+                                <div class="sg-segment" role="radiogroup">
+                                    @foreach (config('sigap-ui.report_progress') as $value => $progress)
+                                        <input type="radio" class="btn-check" :name="name(entry, 'status')" :id="id(entry, 'status-{{ $value }}')"
+                                               value="{{ $value }}" x-model="entry.status" autocomplete="off">
+                                        <label class="sg-segment__item" :for="id(entry, 'status-{{ $value }}')">
+                                            <i class="bi {{ $progress['icon'] }}" aria-hidden="true"></i>{{ $progress['label'] }}
                                         </label>
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <input type="radio" class="btn-check" name="reports[0][status]" id="status_in_progress_0" value="in_progress" {{ old('reports.0.status') == 'in_progress' ? 'checked' : '' }}>
-                                        <label class="btn btn-outline-info w-100 d-flex align-items-center justify-content-center gap-2 py-2 py-md-3" for="status_in_progress_0">
-                                            <i class="fas fa-spinner"></i>
-                                            <span>In Progress</span>
-                                        </label>
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <input type="radio" class="btn-check" name="reports[0][status]" id="status_completed_0" value="completed" {{ old('reports.0.status') == 'completed' ? 'checked' : '' }}>
-                                        <label class="btn btn-outline-success w-100 d-flex align-items-center justify-content-center gap-2 py-2 py-md-3" for="status_completed_0">
-                                            <i class="fas fa-check"></i>
-                                            <span>Completed</span>
-                                        </label>
-                                    </div>
+                                    @endforeach
                                 </div>
-                                @error('reports.0.status')
-                                <div class="text-danger small mt-1">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-                        
-                        <!-- Remark -->
-                        <div class="mb-4">
-                            <label for="remark_0" class="form-label fw-medium">
-                                <i class="fas fa-comment-dots me-1 text-primary"></i> Remark
-                            </label>
-                            <textarea 
-                                class="form-control @error('reports.0.remark') is-invalid @enderror" 
-                                id="remark_0" 
-                                name="reports[0][remark]" 
-                                rows="3"
-                                placeholder="Additional information or notes about the job"
-                                style="border-radius: 0.375rem;"
-                            >{{ old('reports.0.remark', isset($fromPlan) ? $fromPlan->remark : '') }}</textarea>
-                            @error('reports.0.remark')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        
-                        <!-- Attachment 1 -->
-                        <div class="mb-3">
-                            <label for="attachment_0" class="form-label fw-medium">
-                                <i class="fas fa-paperclip me-1 text-primary"></i> Attachment 1
-                            </label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-white"><i class="fas fa-file"></i></span>
-                                <input
-                                    type="file"
-                                    class="form-control @error('reports.0.attachment') is-invalid @enderror"
-                                    id="attachment_0"
-                                    name="reports[0][attachment]"
-                                >
-                            </div>
-                            @error('reports.0.attachment')
-                            <div class="text-danger small mt-1">{{ $message }}</div>
-                            @enderror
-                        </div>
+                            </fieldset>
 
-                        <!-- Attachment 2 -->
-                        <div class="mb-3">
-                            <label for="attachment_2_0" class="form-label fw-medium">
-                                <i class="fas fa-paperclip me-1 text-primary"></i> Attachment 2
-                            </label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-white"><i class="fas fa-file"></i></span>
-                                <input
-                                    type="file"
-                                    class="form-control @error('reports.0.attachment_2') is-invalid @enderror"
-                                    id="attachment_2_0"
-                                    name="reports[0][attachment_2]"
-                                >
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold" :for="id(entry, 'description')">Deskripsi <span class="text-danger">*</span></label>
+                                <textarea class="form-control" rows="4" maxlength="2000" :id="id(entry, 'description')" :name="name(entry, 'description')"
+                                          x-model="entry.description" required placeholder="Apa yang dikerjakan, temuan, dan hasilnya"
+                                          :class="{ 'is-invalid': error(entry, 'description') }"></textarea>
+                                <div class="d-flex justify-content-between gap-2">
+                                    <div class="invalid-feedback d-block flex-grow-1 w-auto" x-text="error(entry, 'description')"></div>
+                                    <span class="small text-muted sg-num flex-none mt-1" x-text="(entry.description || '').length + ' / 2000'"></span>
+                                </div>
                             </div>
-                            @error('reports.0.attachment_2')
-                            <div class="text-danger small mt-1">{{ $message }}</div>
-                            @enderror
-                        </div>
 
-                        <!-- Attachment 3 -->
-                        <div class="mb-3">
-                            <label for="attachment_3_0" class="form-label fw-medium">
-                                <i class="fas fa-paperclip me-1 text-primary"></i> Attachment 3
-                            </label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-white"><i class="fas fa-file"></i></span>
-                                <input
-                                    type="file"
-                                    class="form-control @error('reports.0.attachment_3') is-invalid @enderror"
-                                    id="attachment_3_0"
-                                    name="reports[0][attachment_3]"
-                                >
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold" :for="id(entry, 'remark')">Remark</label>
+                                <textarea class="form-control" rows="2" maxlength="1000" :id="id(entry, 'remark')" :name="name(entry, 'remark')"
+                                          x-model="entry.remark" placeholder="Catatan tindak lanjut (opsional)"></textarea>
                             </div>
-                            @error('reports.0.attachment_3')
-                            <div class="text-danger small mt-1">{{ $message }}</div>
-                            @enderror
-                        </div>
 
-                        <div class="form-text small mt-2 mb-3">
-                            <i class="fas fa-info-circle me-1"></i> Supported formats: JPG, PNG, PDF, DOC, DOCX, XLS, XLSX. Max size: 5MB per file. Maximum 3 attachments.
+                            {{-- Lampiran: satu file per field attachment / attachment_2 / attachment_3 --}}
+                            <div class="sg-uploader" x-data="sgUploader({ maxMb: 5, names: [name(entry, 'attachment'), name(entry, 'attachment_2'), name(entry, 'attachment_3')] })">
+                                <div class="form-label fw-semibold">Lampiran <span class="text-muted fw-normal" x-text="files.length + ' / 3 · maks. 5 MB per berkas'"></span></div>
+                                <template x-for="(field, slot) in names" :key="field">
+                                    <input type="file" class="d-none" :name="field" :data-slot="slot" tabindex="-1" aria-hidden="true">
+                                </template>
+                                <input type="file" accept="image/*" capture="environment" class="d-none" x-ref="camera" tabindex="-1" aria-hidden="true" @change="add($event)">
+                                <input type="file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" multiple class="d-none" x-ref="gallery" tabindex="-1" aria-hidden="true" @change="add($event)">
+
+                                <div class="sg-uploader__grid" x-show="files.length" x-cloak>
+                                    <template x-for="(item, index) in files" :key="item.key">
+                                        <div class="sg-uploader__item">
+                                            <template x-if="item.preview"><img :src="item.preview" :alt="item.file.name"></template>
+                                            <template x-if="!item.preview">
+                                                <div class="sg-uploader__file"><i class="bi bi-file-earmark-text" aria-hidden="true"></i><span x-text="item.file.name"></span></div>
+                                            </template>
+                                            <button type="button" class="sg-uploader__remove" @click="remove(index)" :aria-label="'Hapus ' + item.file.name">
+                                                <i class="bi bi-x-lg" aria-hidden="true"></i>
+                                            </button>
+                                        </div>
+                                    </template>
+                                </div>
+                                <div class="sg-uploader__actions" x-show="files.length < max">
+                                    <button type="button" class="btn btn-outline-secondary" @click="$refs.camera.click()"><i class="bi bi-camera" aria-hidden="true"></i> Ambil Foto</button>
+                                    <button type="button" class="btn btn-outline-secondary" @click="$refs.gallery.click()"><i class="bi bi-images" aria-hidden="true"></i> Galeri / File</button>
+                                </div>
+                                <div class="sg-uploader__hint" :class="{ 'text-danger': error }" aria-live="polite"
+                                     x-text="error || 'JPG, PNG, PDF, Word, atau Excel.'"></div>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                
-                <!-- Add More Button -->
-                <div class="d-grid mb-4">
-                    <button type="button" class="btn btn-outline-primary rounded-pill py-2" id="add-report">
-                        <i class="fas fa-plus-circle me-1"></i> Add Another Report
-                    </button>
-                </div>
-                
-                <div class="d-flex flex-column flex-md-row justify-content-md-end gap-3 mt-4">
-                    <button type="reset" class="btn btn-light px-4 rounded-pill mb-2 mb-md-0">
-                        <i class="fas fa-undo me-1"></i> Reset
-                    </button>
-                    <button type="submit" class="btn btn-primary px-4 rounded-pill shadow-sm" id="saveReportsBtn" style="min-width: 140px;">
-                        <span id="saveButtonText"><i class="fas fa-save me-1"></i> Save Reports</span>
-                        <span class="spinner-border spinner-border-sm ms-1 d-none" role="status" id="saveSpinner" style="width: 1rem; height: 1rem;">
-                            <span class="visually-hidden">Loading...</span>
-                        </span>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-    
-    <!-- Delete Report Modal -->
-    <div class="modal fade" id="deleteReportModal" tabindex="-1" aria-labelledby="deleteReportModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header bg-light">
-                    <h5 class="modal-title" id="deleteReportModalLabel">
-                        <i class="fas fa-trash text-danger me-2"></i>Remove Report
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <p class="mb-1">Are you sure you want to remove this report?</p>
-                    <p class="text-danger mb-0"><small>This action cannot be undone.</small></p>
-                </div>
-                <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
-                        <i class="fas fa-times me-1"></i> Cancel
-                    </button>
-                    <button type="button" class="btn btn-danger rounded-pill px-4" id="confirmRemoveReport">
-                        <i class="fas fa-trash me-1"></i> Remove Report
-                    </button>
-                </div>
+                    </section>
+                </template>
+
+                <button type="button" class="btn btn-outline-secondary w-100" @click="add()">
+                    <i class="bi bi-plus-lg" aria-hidden="true"></i> Tambah laporan lain
+                </button>
+                <p class="small text-muted text-center mt-2 mb-0">Semua laporan dikirim sekaligus ke PIC masing-masing.</p>
             </div>
+
+            {{-- Panel samping (desktop) --}}
+            <aside class="col-lg-4 d-none d-lg-block">
+                <div class="sg-create-aside">
+                    <section class="card p-3 mb-3" aria-labelledby="entries-title">
+                        <h2 id="entries-title" class="h6 fw-bold mb-2">Entri laporan <span class="sg-count ms-1" x-text="count"></span></h2>
+                        <template x-for="entry in entries" :key="'s' + entry.key">
+                            <button type="button" class="sg-entry-link" :class="{ active: open === entry.key }" @click="open = entry.key">
+                                <span class="sg-entry__num" x-text="number(entry)"></span>
+                                <span class="min-w-0 text-start">
+                                    <span class="d-block fw-semibold sg-clamp-1" x-text="entry.job_name || 'Laporan ' + number(entry)"></span>
+                                    <span class="d-block small" :class="complete(entry) && !hasErrors(entry) ? 'text-success' : 'text-muted'" x-text="summary(entry)"></span>
+                                </span>
+                            </button>
+                        </template>
+                        <button type="button" class="btn btn-quiet w-100 mt-1" @click="add()"><i class="bi bi-plus-lg" aria-hidden="true"></i> Tambah laporan lain</button>
+                    </section>
+
+                    <section class="card p-3" aria-labelledby="flow-title">
+                        <h2 id="flow-title" class="h6 fw-bold mb-3">Alur persetujuan</h2>
+                        <x-sg.timeline :items="[
+                            ['title' => 'Anda', 'meta' => 'Mengirim laporan', 'tone' => 'approved', 'icon' => 'bi-send'],
+                            ['title' => 'PIC (atasan)', 'meta' => 'Menyetujui atau menolak · mendapat notifikasi', 'tone' => 'pending', 'icon' => 'bi-hourglass-split'],
+                        ]" />
+                    </section>
+                </div>
+            </aside>
         </div>
-    </div>
 
-    <style>
-        @media (max-width: 767.98px) {
-            /* General form controls */
-            .form-control, .form-select, .input-group {
-                font-size: 15px;
-            }
-            
-            /* File input specific styling */
-            input[type="file"].form-control {
-                padding: 0.375rem 0.5rem;
-                font-size: 14px;
-            }
-            
-            /* Adjust padding for status buttons */
-            .btn-outline-warning, .btn-outline-info, .btn-outline-success {
-                padding: 0.5rem 0.25rem;
-                font-size: 14px;
-            }
-            
-            /* Make modals better on mobile */
-            .modal-dialog {
-                margin: 0.5rem;
-            }
-            
-            /* Improve spacing on mobile */
-            .mb-4 {
-                margin-bottom: 1rem !important;
-            }
-            
-            /* Adjust padding for action buttons */
-            button[type="submit"], button[type="reset"] {
-                padding-left: 1rem !important;
-                padding-right: 1rem !important;
-            }
-            
-            /* Add more spacing for attachments form text */
-            .form-text.small {
-                display: block;
-                margin-top: 0.5rem;
-                line-height: 1.4;
-            }
-            
-            /* Make report container have less padding */
-            .report-form {
-                margin-bottom: 1rem !important;
-                padding-bottom: 1rem !important;
-            }
-            
-            /* Field labels on mobile */
-            .form-label {
-                margin-bottom: 0.25rem;
-                font-size: 14px;
-            }
-            
-            /* Adjust card styles */
-            .card-body.p-3 {
-                padding: 1rem !important;
-            }
-        }
-    </style>
+        <x-sg.sticky-actions>
+            <button type="submit" class="btn btn-primary w-100" :disabled="busy">
+                <span x-text="busy ? 'Mengirim…' : 'Kirim ' + count + ' Laporan'">Kirim Laporan</span>
+            </button>
+        </x-sg.sticky-actions>
 
-    @push('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            let reportIndex = 0;
-            const container = document.getElementById('report-container');
-            const addButton = document.getElementById('add-report');
-            const deleteModal = new bootstrap.Modal(document.getElementById('deleteReportModal'));
-            let formToDelete = null;
-
-            // Form submission with spinner
-            const form = document.getElementById('multipleReportForm');
-            const saveButton = document.getElementById('saveReportsBtn');
-            const spinner = document.getElementById('saveSpinner');
-
-            form.addEventListener('submit', function() {
-                spinner.classList.remove('d-none');
-                saveButton.disabled = true;
-            });
-
-            // Add new report form
-            addButton.addEventListener('click', function() {
-                reportIndex++;
-                const newIndex = reportIndex;
-
-                // Clone the first form as a template
-                const template = document.querySelector('.report-form').cloneNode(true);
-
-                // Update form index and title (preserve icon)
-                template.setAttribute('data-index', newIndex);
-                template.querySelector('.report-title').innerHTML =
-                    `<i class="fas fa-clipboard-list me-2"></i>Report #${newIndex + 1}`;
-
-                // Enable remove button
-                const removeButton = template.querySelector('.remove-form');
-                removeButton.classList.remove('d-none');
-
-                // Update all input names and ids
-                template.querySelectorAll('input, select, textarea').forEach(function(input) {
-                    const name = input.getAttribute('name');
-                    if (name) {
-                        input.setAttribute('name', name.replace(/\[0\]/g, `[${newIndex}]`));
-                    }
-
-                    const id = input.getAttribute('id');
-                    if (id) {
-                        const newId = id.replace(/_0$/, `_${newIndex}`);
-                        input.setAttribute('id', newId);
-
-                        const label = template.querySelector(`label[for="${id}"]`);
-                        if (label) {
-                            label.setAttribute('for', newId);
-                        }
-                    }
-
-                    // Clear values except status and hidden department id
-                    const currentName = input.getAttribute('name') || '';
-                    if (!currentName.includes('[status]')) {
-                        if (input.tagName === 'SELECT') {
-                            input.selectedIndex = 0;
-                        } else if (input.type === 'radio') {
-                            input.checked = (input.value === 'pending');
-                        } else if (input.type === 'file') {
-                            // file inputs cannot be cleared programmatically (browser restriction)
-                        } else if (input.type !== 'hidden' && !input.readOnly) {
-                            input.value = '';
-                        }
-                    }
-                });
-
-                // Set default report date
-                const reportDateInput = template.querySelector(`input[name="reports[${newIndex}][report_date]"]`);
-                if (reportDateInput) {
-                    reportDateInput.value = new Date().toISOString().split('T')[0];
-                }
-
-                // Make sure status buttons have responsive classes
-                template.querySelectorAll('.btn-outline-warning, .btn-outline-info, .btn-outline-success').forEach(function(btn) {
-                    if (btn.classList.contains('py-3')) {
-                        btn.classList.remove('py-3');
-                        btn.classList.add('py-2', 'py-md-3');
-                    }
-                });
-
-                // Add to container
-                container.appendChild(template);
-
-                // Scroll to the new form
-                template.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-                // Setup remove button
-                setupRemoveButton(template.querySelector('.remove-form'));
-            });
-
-            // Setup remove buttons function
-            function setupRemoveButton(button) {
-                button.addEventListener('click', function() {
-                    formToDelete = this.closest('.report-form');
-                    deleteModal.show();
-                });
-            }
-
-            // Handle confirm delete
-            document.getElementById('confirmRemoveReport').addEventListener('click', function() {
-                if (formToDelete) {
-                    formToDelete.remove();
-                    formToDelete = null;
-                    deleteModal.hide();
-                }
-            });
-
-            // Setup existing remove buttons
-            document.querySelectorAll('.remove-form').forEach(setupRemoveButton);
-        });
-    </script>
-    @endpush
+        {{-- Sheet pilih PIC --}}
+        <x-sg.sheet id="pic-sheet" title="Pilih PIC (Atasan)">
+            <p class="small text-muted">Hanya atasan yang berhak menyetujui laporan Anda yang ditampilkan.</p>
+            <div class="sg-search mb-3">
+                <label for="pic-search" class="visually-hidden">Cari atasan</label>
+                <i class="bi bi-search" aria-hidden="true"></i>
+                <input type="search" id="pic-search" class="form-control" placeholder="Cari nama atasan" x-model="picQuery" autocomplete="off">
+            </div>
+            <div class="list-group">
+                <template x-for="pic in filteredPics" :key="pic.id">
+                    <button type="button" class="list-group-item list-group-item-action d-flex align-items-center gap-2 py-2"
+                            :class="{ active: picFor && picFor.job_pic === pic.id }" @click="selectPic(pic.id)">
+                        <span class="sg-avatar" style="width:36px;height:36px;font-size:13px" x-text="pic.name.split(' ').map(w => w[0]).slice(0, 2).join('')"></span>
+                        <span class="fw-semibold" x-text="pic.name"></span>
+                        <i class="bi bi-check2 ms-auto" x-show="picFor && picFor.job_pic === pic.id" aria-hidden="true"></i>
+                    </button>
+                </template>
+            </div>
+            <p class="small text-muted mt-3 mb-0" x-show="!filteredPics.length">Tidak ada atasan dengan nama itu.</p>
+        </x-sg.sheet>
+    </form>
 </x-app-layout>

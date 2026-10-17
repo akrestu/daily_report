@@ -9,14 +9,14 @@
             <div class="modal-body text-center py-4">
                 <div class="mb-3">
                     <div class="pwa-success-icon mx-auto mb-3">
-                        <i class="fas fa-check-circle text-success"></i>
+                        <i class="bi bi-check-circle text-success"></i>
                     </div>
                     <h5 class="fw-bold">Instalasi Berhasil!</h5>
                     <p class="text-muted mb-0">SiGAP telah terinstall di perangkat Anda</p>
                 </div>
                 <div class="d-grid gap-2">
                     <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
-                        <i class="fas fa-check me-1"></i> OK
+                        <i class="bi bi-check-lg me-1"></i> OK
                     </button>
                 </div>
             </div>
@@ -30,7 +30,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
-                    <i class="fas fa-info-circle text-primary me-2"></i>
+                    <i class="bi bi-info-circle text-primary me-2"></i>
                     Cara Install SiGAP
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -41,12 +41,12 @@
                     <div class="instruction-item mb-4">
                         <div class="d-flex align-items-start">
                             <div class="instruction-icon me-3">
-                                <i class="fab fa-chrome text-primary"></i>
+                                <i class="bi bi-browser-chrome text-primary"></i>
                             </div>
                             <div>
                                 <h6 class="fw-bold mb-2">Android (Chrome)</h6>
                                 <ol class="small mb-0 ps-3">
-                                    <li>Tap menu <i class="fas fa-ellipsis-v"></i> di pojok kanan atas</li>
+                                    <li>Tap menu <i class="bi bi-three-dots-vertical"></i> di pojok kanan atas</li>
                                     <li>Pilih "Add to Home screen" atau "Install app"</li>
                                     <li>Tap "Add" atau "Install"</li>
                                 </ol>
@@ -58,12 +58,12 @@
                     <div class="instruction-item mb-4">
                         <div class="d-flex align-items-start">
                             <div class="instruction-icon me-3">
-                                <i class="fab fa-safari text-primary"></i>
+                                <i class="bi bi-browser-safari text-primary"></i>
                             </div>
                             <div>
                                 <h6 class="fw-bold mb-2">iOS (Safari)</h6>
                                 <ol class="small mb-0 ps-3">
-                                    <li>Tap tombol Share <i class="fas fa-share"></i> di bawah</li>
+                                    <li>Tap tombol Share <i class="bi bi-share"></i> di bawah</li>
                                     <li>Scroll dan pilih "Add to Home Screen"</li>
                                     <li>Tap "Add"</li>
                                 </ol>
@@ -75,13 +75,13 @@
                     <div class="instruction-item">
                         <div class="d-flex align-items-start">
                             <div class="instruction-icon me-3">
-                                <i class="fas fa-desktop text-primary"></i>
+                                <i class="bi bi-display text-primary"></i>
                             </div>
                             <div>
                                 <h6 class="fw-bold mb-2">Desktop (Chrome/Edge)</h6>
                                 <ol class="small mb-0 ps-3">
-                                    <li>Klik icon install <i class="fas fa-plus-circle"></i> di address bar</li>
-                                    <li>Atau klik menu <i class="fas fa-ellipsis-v"></i> > "Install SiGAP"</li>
+                                    <li>Klik icon install <i class="bi bi-plus-circle"></i> di address bar</li>
+                                    <li>Atau klik menu <i class="bi bi-three-dots-vertical"></i> > "Install SiGAP"</li>
                                     <li>Klik "Install"</li>
                                 </ol>
                             </div>
@@ -90,7 +90,7 @@
                 </div>
 
                 <div class="alert alert-info mt-4 mb-0">
-                    <i class="fas fa-lightbulb me-2"></i>
+                    <i class="bi bi-lightbulb me-2"></i>
                     <small>Setelah terinstall, Anda dapat membuka SiGAP seperti aplikasi native dan menggunakannya secara offline!</small>
                 </div>
             </div>

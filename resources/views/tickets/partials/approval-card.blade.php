@@ -5,7 +5,7 @@
 <div class="card shadow-sm mb-3 border-{{ $ticket->approval_status === 'approved' ? 'success' : ($ticket->approval_status === 'rejected' ? 'danger' : 'warning') }}">
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
-            <h6 class="fw-bold mb-0"><i class="fas fa-user-tie me-1"></i>Persetujuan Atasan</h6>
+            <h6 class="fw-bold mb-0"><i class="bi bi-person-badge me-1"></i>Persetujuan Atasan</h6>
             <span class="badge {{ $ticket->approval_badge_class }}">{{ $ticket->approval_label }}</span>
         </div>
 
@@ -20,11 +20,11 @@
 
         <div class="d-flex flex-wrap gap-2 mb-2">
             <a href="{{ $printUrl }}" target="_blank" class="btn btn-outline-secondary btn-sm">
-                <i class="fas fa-print me-1"></i>Cetak Formulir Persetujuan
+                <i class="bi bi-printer me-1"></i>Cetak Formulir Persetujuan
             </a>
             @if($ticket->approval_proof_path)
                 <a href="{{ $proofUrl }}" target="_blank" class="btn btn-outline-primary btn-sm">
-                    <i class="fas fa-file-signature me-1"></i>Lihat Bukti
+                    <i class="bi bi-file-earmark-text me-1"></i>Lihat Bukti
                 </a>
             @endif
         </div>
@@ -53,10 +53,10 @@
                 <form action="{{ $verifyUrl }}" method="POST" class="d-inline">
                     @csrf
                     <input type="hidden" name="decision" value="approve">
-                    <button type="submit" class="btn btn-success btn-sm"><i class="fas fa-check me-1"></i>Sah, setujui</button>
+                    <button type="submit" class="btn btn-success btn-sm"><i class="bi bi-check-lg me-1"></i>Sah, setujui</button>
                 </form>
                 <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="collapse" data-bs-target="#rejectApprovalForm">
-                    <i class="fas fa-times me-1"></i>Tolak
+                    <i class="bi bi-x-lg me-1"></i>Tolak
                 </button>
                 <form action="{{ $verifyUrl }}" method="POST" class="collapse mt-2" id="rejectApprovalForm">
                     @csrf

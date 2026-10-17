@@ -6,7 +6,7 @@
             <div class="row align-items-center">
                 <div class="col-md-6 mb-2 mb-md-0">
                     <h5 class="mb-0 fw-bold">
-                        <i class="fas fa-ticket-alt text-primary me-2"></i>Tiket Masuk
+                        <i class="bi bi-ticket-perforated text-primary me-2"></i>Tiket Masuk
                         @if($openCount > 0)
                             <span class="badge bg-danger ms-1">{{ $openCount }} terbuka</span>
                         @endif
@@ -21,13 +21,13 @@
                         <div id="batchActions" class="d-none">
                             <button type="button" onclick="confirmBatchDelete()"
                                 class="btn btn-danger btn-sm">
-                                <i class="fas fa-trash me-1"></i>Hapus (<span id="selectedCount">0</span>)
+                                <i class="bi bi-trash3 me-1"></i>Hapus (<span id="selectedCount">0</span>)
                             </button>
                         </div>
                     </form>
                     @endcan
                     <a href="{{ route('tickets.public.form') }}" target="_blank" class="btn btn-outline-primary btn-sm">
-                        <i class="fas fa-external-link-alt me-1"></i>Buka Form Publik
+                        <i class="bi bi-box-arrow-up-right me-1"></i>Buka Form Publik
                     </a>
                 </div>
             </div>
@@ -76,10 +76,10 @@
                 <div class="col-md-2">
                     <div class="d-flex gap-1">
                         <button type="submit" class="btn btn-primary btn-sm flex-fill">
-                            <i class="fas fa-search me-1"></i>Filter
+                            <i class="bi bi-search me-1"></i>Filter
                         </button>
                         <a href="{{ route('tickets.index') }}" class="btn btn-outline-secondary btn-sm">
-                            <i class="fas fa-times"></i>
+                            <i class="bi bi-x-lg"></i>
                         </a>
                     </div>
                 </div>
@@ -89,13 +89,13 @@
         <div class="card-body p-0">
             @if(session('success'))
                 <div class="alert alert-success alert-dismissible fade show m-3 mb-0" role="alert">
-                    <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+                    <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             @endif
             @if(session('error'))
                 <div class="alert alert-danger alert-dismissible fade show m-3 mb-0" role="alert">
-                    <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+                    <i class="bi bi-exclamation-circle me-2"></i>{{ session('error') }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             @endif
@@ -135,7 +135,7 @@
                             <td>
                                 <div class="fw-semibold small">{{ $ticket->title }}</div>
                                 <div class="text-muted" style="font-size: 0.75rem">
-                                    <i class="fas fa-user me-1"></i>{{ $ticket->requester_name }}
+                                    <i class="bi bi-person me-1"></i>{{ $ticket->requester_name }}
                                     &bull; {{ $ticket->requester_department }}
                                     @if($ticket->requester_phone)
                                         &bull; {{ $ticket->requester_phone }}
@@ -150,7 +150,7 @@
                                 @endif</td>
                             <td class="small">
                                 @if($ticket->assignedUser)
-                                    <i class="fas fa-user-check text-success me-1"></i>{{ $ticket->assignedUser->name }}
+                                    <i class="bi bi-person-check text-success me-1"></i>{{ $ticket->assignedUser->name }}
                                 @else
                                     <span class="text-muted">—</span>
                                 @endif
@@ -159,14 +159,14 @@
                             <td class="small text-muted">{{ $ticket->created_at->format('d M Y') }}</td>
                             <td class="text-center">
                                 <a href="{{ route('tickets.show', $ticket) }}" class="btn btn-sm btn-outline-primary">
-                                    <i class="fas fa-eye"></i>
+                                    <i class="bi bi-eye"></i>
                                 </a>
                             </td>
                         </tr>
                         @empty
                         <tr>
                             <td colspan="{{ auth()->user()->isAdmin() ? 10 : 9 }}" class="text-center py-5 text-muted">
-                                <i class="fas fa-ticket-alt fa-2x mb-2 d-block opacity-25"></i>
+                                <i class="bi bi-ticket-perforated fs-3 mb-2 d-block opacity-25"></i>
                                 Tidak ada tiket yang ditemukan.
                             </td>
                         </tr>

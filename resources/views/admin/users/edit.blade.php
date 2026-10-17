@@ -11,7 +11,7 @@
                 </div>
                 <div class="col text-end">
                     <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-left me-1"></i> Back to Users
+                        <i class="bi bi-arrow-left me-1"></i> Back to Users
                     </a>
                 </div>
             </div>
@@ -106,7 +106,7 @@
                 <div class="d-flex justify-content-end gap-2 mt-4">
                     <a href="{{ route('admin.users.index') }}" class="btn btn-secondary">Cancel</a>
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save me-1"></i> Update User
+                        <i class="bi bi-floppy me-1"></i> Update User
                     </button>
                 </div>
             </form>
@@ -128,7 +128,7 @@
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn btn-danger" data-confirm="Are you sure you want to delete this user? This action cannot be undone.">
-                        <i class="fas fa-trash me-1"></i> Delete User
+                        <i class="bi bi-trash3 me-1"></i> Delete User
                     </button>
                 </form>
             </div>

@@ -10,7 +10,7 @@
         <div class="col-lg-8">
             <div class="card shadow-sm border-0">
                 <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-bold"><i class="fas fa-ticket-alt text-primary me-2"></i>Buat Tiket Layanan IT</h5>
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-ticket-perforated text-primary me-2"></i>Buat Tiket Layanan IT</h5>
                 </div>
                 <div class="card-body">
                     @if ($errors->any())
@@ -26,7 +26,7 @@
                     <form action="{{ route('tickets.store') }}" method="POST" enctype="multipart/form-data" id="ticketForm">
                         @csrf
 
-                        <p class="section-title"><i class="fas fa-user me-1"></i>Pemohon</p>
+                        <p class="section-title"><i class="bi bi-person me-1"></i>Pemohon</p>
                         <div class="row g-3 mb-4">
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold small">Nama</label>
@@ -61,7 +61,7 @@
                         <div class="d-flex gap-2 justify-content-end">
                             <a href="{{ route('tickets.mine') }}" class="btn btn-outline-secondary">Batal</a>
                             <button type="submit" class="btn btn-primary fw-semibold" id="submitBtn">
-                                <i class="fas fa-paper-plane me-2"></i>Kirim Tiket
+                                <i class="bi bi-send me-2"></i>Kirim Tiket
                             </button>
                         </div>
                     </form>

@@ -13,7 +13,7 @@
                 <div class="fw-semibold small">
                     {{ $comment->author_display_name }}
                     @if($comment->is_internal)
-                        <span class="badge bg-warning text-dark ms-1"><i class="fas fa-lock me-1"></i>Internal</span>
+                        <span class="badge bg-warning text-dark ms-1"><i class="bi bi-lock me-1"></i>Internal</span>
                     @endif
                     <span class="text-muted fw-normal">&middot; {{ $comment->created_at->diffForHumans() }}</span>
                 </div>

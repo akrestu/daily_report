@@ -1,0 +1,79 @@
+/* =========================================================================
+   SiGAP — jembatan untuk view lama (Fase 5)
+   Menyelaraskan kelas Bootstrap yang dipakai view lama dengan token desain
+   (warna brand, dark mode, radius). Kurangi isinya bila view sudah ditulis ulang.
+   ========================================================================= */
+
+/* Latar & teks yang di-hardcode putih/terang → ikut tema */
+.sg-app .bg-white, .sg-public .bg-white { background-color: var(--sg-surface) !important; }
+.sg-app .bg-light, .sg-public .bg-light { background-color: var(--sg-surface-2) !important; }
+.sg-app .text-dark, .sg-public .text-dark { color: var(--sg-text) !important; }
+.sg-app .card-header, .sg-app .card-footer { background: var(--sg-surface); border-color: var(--sg-border); }
+.sg-app .card-header h5, .sg-app .card-header h6 { font-family: var(--sg-font-heading); font-weight: 700; }
+.sg-app .list-group-item { background: var(--sg-surface); color: var(--sg-text); border-color: var(--sg-border); }
+.sg-app .dropdown-menu { background: var(--sg-surface); border-color: var(--sg-border); border-radius: var(--sg-radius-card); }
+.sg-app .dropdown-item { color: var(--sg-text); min-height: 40px; display: flex; align-items: center; }
+.sg-app .dropdown-item:hover { background: var(--sg-surface-2); }
+.sg-app .modal-content { background: var(--sg-surface); border-color: var(--sg-border); border-radius: var(--sg-radius-card); }
+.sg-app .modal-header, .sg-app .modal-footer { border-color: var(--sg-border); }
+.sg-app .form-text { color: var(--sg-muted); }
+
+/* Tombol semantik lama → Setujui / Tolak / sekunder */
+.btn-success { --bs-btn-bg: var(--sg-approve); --bs-btn-border-color: var(--sg-approve); --bs-btn-hover-bg: #166534; --bs-btn-hover-border-color: #166534; --bs-btn-color: #fff; --bs-btn-hover-color: #fff; }
+.btn-danger { --bs-btn-bg: var(--sg-reject); --bs-btn-border-color: var(--sg-reject); --bs-btn-hover-bg: #991B1B; --bs-btn-hover-border-color: #991B1B; }
+.btn-outline-primary, .btn-outline-info, .btn-outline-success, .btn-light, .btn-secondary {
+  --bs-btn-color: var(--sg-text); --bs-btn-bg: var(--sg-surface); --bs-btn-border-color: var(--sg-border);
+  --bs-btn-hover-color: var(--sg-text); --bs-btn-hover-bg: var(--sg-surface-2); --bs-btn-hover-border-color: #CBD5E1;
+  --bs-btn-active-color: var(--sg-text); --bs-btn-active-bg: var(--sg-surface-2); --bs-btn-active-border-color: var(--sg-border); }
+.btn-outline-danger { --bs-btn-color: var(--sg-reject); --bs-btn-border-color: #FCA5A5; --bs-btn-hover-bg: var(--sg-danger-bg); --bs-btn-hover-color: var(--sg-reject); --bs-btn-hover-border-color: #FCA5A5; }
+.btn.rounded-pill { border-radius: var(--sg-radius-input) !important; }
+.btn-sm { min-height: 36px; }
+
+/* Tab lama: garis bawah primary, bukan biru */
+.sg-app .nav-tabs { border-color: var(--sg-border); }
+.sg-app .nav-tabs .nav-link { color: var(--sg-muted); border: 0; border-bottom: 2px solid transparent; font-weight: 600; min-height: var(--sg-touch); }
+.sg-app .nav-tabs .nav-link.active { color: var(--sg-text); background: transparent; border-bottom-color: var(--sg-primary); }
+.sg-app .nav-pills .nav-link.active { background: var(--sg-primary); color: var(--sg-on-primary); }
+
+/* Tabel lama: header seperti .sg-table */
+.sg-app .table { --bs-table-bg: transparent; --bs-table-color: var(--sg-text); --bs-table-hover-bg: var(--sg-surface-2); border-color: var(--sg-border); }
+.sg-app .table > thead th, .sg-app .table-light th { background: var(--sg-surface-2); color: var(--sg-muted); font-size: 13px; font-weight: 600; border-color: var(--sg-border); }
+
+/* Badge Bootstrap lama → nada status SiGAP */
+.badge.bg-warning { background: var(--sg-pending-bg) !important; color: var(--sg-pending-fg) !important; }
+.badge.bg-success { background: var(--sg-success-bg) !important; color: var(--sg-success-fg) !important; }
+.badge.bg-danger { background: var(--sg-danger-bg) !important; color: var(--sg-danger-fg) !important; }
+.badge.bg-info { background: var(--sg-progress-bg) !important; color: var(--sg-progress-fg) !important; }
+.badge.bg-secondary, .badge.bg-light { background: var(--sg-surface-2) !important; color: var(--sg-text) !important; }
+.badge { font-weight: 600; }
+
+/* Alert: radius & latar token */
+.alert { border-radius: var(--sg-radius-card); }
+.alert-info { background: var(--sg-progress-bg); color: var(--sg-progress-fg); border-color: transparent; }
+.alert-success { background: var(--sg-success-bg); color: var(--sg-success-fg); border-color: transparent; }
+.alert-warning { background: var(--sg-pending-bg); color: var(--sg-pending-fg); border-color: transparent; }
+.alert-danger { background: var(--sg-danger-bg); color: var(--sg-danger-fg); border-color: transparent; }
+
+/* Ikon berputar (pengganti fa-spin) */
+.sg-spin { display: inline-block; animation: sg-rotate 1s linear infinite; }
+@keyframes sg-rotate { to { transform: rotate(360deg); } }
+
+/* ---------- Layout publik (tiket tanpa login) ---------- */
+.sg-public { min-height: 100vh; background: var(--sg-bg); }
+.sg-public__header { position: relative; overflow: hidden; display: flex; align-items: center; gap: 12px; padding: calc(14px + env(safe-area-inset-top)) 16px 64px;
+  background: var(--sg-brand-panel); color: #fff; }
+.sg-public__header::before { content: ""; position: absolute; inset: 0; background: url('/images/brand/topo-yellow.png') right -120px top -80px / 820px auto no-repeat; opacity: .22; pointer-events: none; }
+.sg-public__header > * { position: relative; }
+.sg-public__brand { display: flex; align-items: center; gap: 10px; color: #fff; text-decoration: none; }
+.sg-public__brand img { background: #fff; border-radius: 10px; padding: 3px; }
+.sg-public__brand strong { display: block; font-family: var(--sg-font-heading); font-size: 18px; line-height: 1.1; }
+.sg-public__brand small { display: block; font-size: 12px; color: var(--sg-accent); font-weight: 600; }
+.sg-public__nav { margin-left: auto; display: flex; gap: 4px; }
+.sg-public__nav a { min-height: 40px; padding: 0 12px; display: inline-flex; align-items: center; border-radius: 999px; color: #fff; font-size: 14px; font-weight: 600; text-decoration: none; opacity: .85; }
+.sg-public__nav a.active, .sg-public__nav a:hover { opacity: 1; background: rgba(255, 255, 255, .12); color: #fff; }
+.sg-public__main { max-width: 760px; margin: -48px auto 0; padding: 0 12px calc(24px + env(safe-area-inset-bottom)); position: relative; }
+.sg-public__card { background: var(--sg-surface); border: 1px solid var(--sg-border); border-radius: 16px; padding: 20px 16px; box-shadow: 0 10px 30px rgba(15, 23, 42, .08); }
+@media (min-width: 576px) { .sg-public__card { padding: 28px; } }
+.sg-public__foot { text-align: center; font-size: 12px; color: var(--sg-muted); margin: 16px 0 0; }
+.sg-public .section-title { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--sg-muted); margin: 8px 0 12px; }
+.sg-public h5 { font-family: var(--sg-font-heading); font-weight: 800; }

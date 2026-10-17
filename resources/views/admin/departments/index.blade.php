@@ -11,7 +11,7 @@
                 </div>
                 <div class="col-md-6 text-md-end">
                     <button type="button" class="btn btn-primary w-100 w-md-auto" data-bs-toggle="modal" data-bs-target="#createDepartmentModal">
-                        <i class="fas fa-plus me-1"></i> New Department
+                        <i class="bi bi-plus-lg me-1"></i> New Department
                     </button>
                 </div>
             </div>
@@ -23,7 +23,7 @@
                     <div class="col-md-4 col-12">
                         <div class="input-group">
                             <span class="input-group-text bg-light">
-                                <i class="fas fa-search"></i>
+                                <i class="bi bi-search"></i>
                             </span>
                             <input type="text" name="search" class="form-control" placeholder="Search..." value="{{ request('search') }}" style="height: 42px;">
                         </div>
@@ -77,7 +77,7 @@
                                             data-dept-name="{{ $department->name }}"
                                             data-dept-code="{{ $department->code }}"
                                             data-dept-description="{{ $department->description }}">
-                                        <i class="fas fa-edit"></i>
+                                        <i class="bi bi-pencil-square"></i>
                                     </button>
                                     <button type="button" class="btn btn-sm btn-outline-danger dept-delete-btn"
                                             data-bs-toggle="modal" 
@@ -85,7 +85,7 @@
                                             data-dept-id="{{ $department->id }}"
                                             data-dept-name="{{ $department->name }}"
                                             data-dept-users="{{ $department->users_count }}">
-                                        <i class="fas fa-trash"></i>
+                                        <i class="bi bi-trash3"></i>
                                     </button>
                                 </div>
                             </div>
@@ -96,7 +96,7 @@
                     <div class="mt-3 d-flex justify-content-between align-items-center">
                         <div>
                             <button type="button" class="btn btn-danger mobile-bulk-delete-btn" disabled data-bs-toggle="modal" data-bs-target="#bulkDeleteModal">
-                                <i class="fas fa-trash me-1"></i> Delete Selected
+                                <i class="bi bi-trash3 me-1"></i> Delete Selected
                             </button>
                         </div>
                         <div>
@@ -166,7 +166,7 @@
                                                 data-dept-name="{{ $department->name }}"
                                                 data-dept-code="{{ $department->code }}"
                                                 data-dept-description="{{ $department->description }}">
-                                            <i class="fas fa-edit"></i>
+                                            <i class="bi bi-pencil-square"></i>
                                         </button>
                                         <button type="button" class="btn btn-sm btn-outline-danger dept-delete-btn"
                                                 data-bs-toggle="modal" 
@@ -174,7 +174,7 @@
                                                 data-dept-id="{{ $department->id }}"
                                                 data-dept-name="{{ $department->name }}"
                                                 data-dept-users="{{ $department->users_count }}">
-                                            <i class="fas fa-trash"></i>
+                                            <i class="bi bi-trash3"></i>
                                         </button>
                                     </div>
                                 </td>
@@ -186,7 +186,7 @@
                     <div class="mt-3 d-flex justify-content-between align-items-center">
                         <div>
                             <button type="button" class="btn btn-danger bulk-delete-btn" disabled data-bs-toggle="modal" data-bs-target="#bulkDeleteModal">
-                                <i class="fas fa-trash me-1"></i> Delete Selected
+                                <i class="bi bi-trash3 me-1"></i> Delete Selected
                             </button>
                         </div>
                         <div>
@@ -197,7 +197,7 @@
             </div>
             @else
             <div class="alert alert-info">
-                <i class="fas fa-info-circle me-2"></i> No departments found matching your criteria.
+                <i class="bi bi-info-circle me-2"></i> No departments found matching your criteria.
             </div>
             @endif
         </div>
@@ -281,7 +281,7 @@
                 <div class="modal-body">
                     <p>Are you sure you want to delete department <strong id="delete-dept-name"></strong>?</p>
                     <div id="delete-dept-warning" class="alert alert-danger d-none">
-                        <i class="fas fa-exclamation-triangle me-2"></i> This department has <span id="delete-dept-users-count"></span> users assigned to it. You cannot delete it until all users are reassigned.
+                        <i class="bi bi-exclamation-triangle me-2"></i> This department has <span id="delete-dept-users-count"></span> users assigned to it. You cannot delete it until all users are reassigned.
                     </div>
                     <p class="text-danger">This action cannot be undone.</p>
                 </div>

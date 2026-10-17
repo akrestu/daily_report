@@ -2,7 +2,7 @@
 @php($labels = ['running' => ['Berjalan', 'text-primary'], 'breached' => ['Terlewat', 'text-danger'], 'paused' => ['Dijeda', 'text-secondary'], 'met' => ['Tercapai', 'text-success'], 'none' => ['-', 'text-muted']])
 <div class="card shadow-sm border-0 mb-3">
     <div class="card-header bg-white py-3">
-        <h6 class="mb-0 fw-bold"><i class="fas fa-stopwatch text-danger me-2"></i>SLA</h6>
+        <h6 class="mb-0 fw-bold"><i class="bi bi-stopwatch text-danger me-2"></i>SLA</h6>
         <div class="small text-muted">Dihitung dalam jam kerja (Senin–Sabtu {{ config('tickets.working_hours.start') }}–{{ config('tickets.working_hours.end') }})</div>
     </div>
     <div class="card-body small">
@@ -38,7 +38,7 @@
         @if(auth()->user()->can('assign', \App\Models\Ticket::class) && $ticket->isActive())
             <hr class="my-2">
             <button type="button" class="btn btn-link btn-sm p-0" data-bs-toggle="collapse" data-bs-target="#priorityForm">
-                <i class="fas fa-flag me-1"></i>Koreksi prioritas
+                <i class="bi bi-flag me-1"></i>Koreksi prioritas
             </button>
             <form action="{{ route('tickets.priority', $ticket) }}" method="POST" class="collapse mt-2" id="priorityForm">
                 @csrf

@@ -1,0 +1,210 @@
+/* =========================================================================
+   SiGAP Design Tokens — v1.0 (17 Okt 2026)
+   Sumber: canvas "SiGAP — Mockup UI" (Main.dc.html = Design System)
+   Pakai bersama Bootstrap 5.3. File ini di-load SETELAH bootstrap.min.css.
+   Tema: <html data-bs-theme="light|dark">
+   ========================================================================= */
+
+:root,
+[data-bs-theme="light"] {
+  /* --- Brand (diambil dari logo) --- */
+  --sg-primary: #111111;          /* tombol utama, link, menu aktif */
+  --sg-on-primary: #FFFFFF;       /* teks di atas primary */
+  --sg-accent: #F5D334;           /* kuning logo: FAB icon, sorotan, chart "hari ini" */
+  --sg-accent-tint: #FEF6CC;      /* baris terpilih, catatan internal, menu aktif bg */
+  --sg-accent-border: #EBD679;
+  --sg-brand-panel: linear-gradient(135deg, #111111 0%, #2A2A2A 100%); /* + topo kuning */
+
+  /* --- Netral (slate) --- */
+  --sg-bg: #F8FAFC;
+  --sg-surface: #FFFFFF;
+  --sg-surface-2: #F1F5F9;
+  --sg-border: #E2E8F0;
+  --sg-text: #0F172A;             /* 17.9:1 di surface */
+  --sg-muted: #64748B;            /* 4.8:1 — jangan di bawah 13px */
+
+  /* --- Status semantik (bg / fg / dot) --- */
+  --sg-pending-bg: #FEF3C7;  --sg-pending-fg: #92400E;  --sg-pending-dot: #D97706;   /* Menunggu */
+  --sg-success-bg: #DCFCE7;  --sg-success-fg: #166534;  --sg-success-dot: #16A34A;   /* Disetujui / Selesai */
+  --sg-danger-bg:  #FEE2E2;  --sg-danger-fg:  #991B1B;  --sg-danger-dot:  #DC2626;   /* Ditolak / Dibatalkan */
+  --sg-progress-bg:#DBEAFE;  --sg-progress-fg:#1E40AF;  --sg-progress-dot:#2563EB;   /* Dalam Proses */
+  --sg-open-bg:    #E0E7FF;  --sg-open-fg:    #3730A3;  --sg-open-dot:    #4F46E5;   /* Baru / Open */
+  --sg-closed-bg:  #E2E8F0;  --sg-closed-fg:  #1E293B;  --sg-closed-dot:  #334155;   /* Ditutup */
+
+  /* --- Prioritas tiket --- */
+  --sg-p1-bg: #FEE2E2; --sg-p1-fg: #991B1B;   /* Kritis */
+  --sg-p2-bg: #FFEDD5; --sg-p2-fg: #9A3412;   /* Tinggi */
+  --sg-p3-bg: #E0F2FE; --sg-p3-fg: #075985;   /* Sedang */
+  --sg-p4-bg: #F1F5F9; --sg-p4-fg: #334155;   /* Rendah */
+
+  /* --- Aksi khusus --- */
+  --sg-approve: #15803D;  /* tombol Setujui */
+  --sg-reject:  #B91C1C;  /* tombol Tolak / destruktif */
+
+  /* --- Tipografi --- */
+  --sg-font-heading: "Plus Jakarta Sans", Inter, system-ui, sans-serif;
+  --sg-font-body: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --sg-fs-body-mobile: 16px;   /* minimal 16px di mobile (cegah auto-zoom iOS) */
+  --sg-fs-body-desktop: 14px;
+
+  /* --- Bentuk & ruang --- */
+  --sg-radius-card: 12px;
+  --sg-radius-input: 10px;
+  --sg-radius-sheet: 20px;
+  --sg-radius-pill: 999px;
+  --sg-space: 8px;             /* grid 8px */
+  --sg-touch: 44px;            /* target sentuh minimum */
+  --sg-shadow-1: 0 1px 2px rgba(15, 23, 42, .05);
+  --sg-shadow-sheet: 0 -10px 30px rgba(15, 23, 42, .25);
+  --sg-focus-ring: 0 0 0 3px rgba(17, 17, 17, .5);
+  --sg-motion: 180ms cubic-bezier(.2, 0, 0, 1);
+
+  /* --- Bootstrap 5.3 overrides --- */
+  --bs-body-bg: var(--sg-bg);
+  --bs-body-color: var(--sg-text);
+  --bs-body-font-family: var(--sg-font-body);
+  --bs-border-color: var(--sg-border);
+  --bs-secondary-color: var(--sg-muted);
+  --bs-primary: var(--sg-primary);
+  --bs-primary-rgb: 17, 17, 17;
+  --bs-link-color: var(--sg-primary);
+  --bs-link-color-rgb: 17, 17, 17;
+  --bs-link-hover-color: #000;
+  --bs-border-radius: var(--sg-radius-input);
+  --bs-border-radius-lg: var(--sg-radius-card);
+  --bs-focus-ring-color: rgba(17, 17, 17, .5);
+}
+
+[data-bs-theme="dark"] {
+  --sg-primary: #F5D334;          /* di dark, tombol utama kuning + teks hitam */
+  --sg-on-primary: #111111;
+  --sg-accent-tint: #2E2706;
+  --sg-accent-border: #5C4D10;
+
+  --sg-bg: #0B1120;
+  --sg-surface: #111A2E;
+  --sg-surface-2: #1A2540;
+  --sg-border: #26324A;
+  --sg-text: #F1F5F9;
+  --sg-muted: #9AA8BD;
+
+  --sg-pending-bg: #3A2A0A;  --sg-pending-fg: #FCD34D;  --sg-pending-dot: #F59E0B;
+  --sg-success-bg: #0D2E1C;  --sg-success-fg: #86EFAC;  --sg-success-dot: #22C55E;
+  --sg-danger-bg:  #3A1212;  --sg-danger-fg:  #FCA5A5;  --sg-danger-dot:  #EF4444;
+  --sg-progress-bg:#10264D;  --sg-progress-fg:#93C5FD;  --sg-progress-dot:#3B82F6;
+  --sg-open-bg:    #1E1B4B;  --sg-open-fg:    #A5B4FC;  --sg-open-dot:    #818CF8;
+  --sg-closed-bg:  #1E293B;  --sg-closed-fg:  #CBD5E1;  --sg-closed-dot:  #94A3B8;
+
+  --sg-focus-ring: 0 0 0 3px rgba(245, 211, 52, .6);
+
+  --bs-body-bg: var(--sg-bg);
+  --bs-body-color: var(--sg-text);
+  --bs-border-color: var(--sg-border);
+  --bs-secondary-color: var(--sg-muted);
+  --bs-primary-rgb: 245, 211, 52;
+  --bs-link-color: var(--sg-primary);
+  --bs-link-color-rgb: 245, 211, 52;
+}
+
+/* =========================================================================
+   Komponen dasar (kelas utilitas SiGAP, prefix .sg-)
+   ========================================================================= */
+body { font-size: var(--sg-fs-body-mobile); line-height: 1.5; }
+@media (min-width: 992px) { body { font-size: var(--sg-fs-body-desktop); } }
+
+h1, h2, h3, h4, .sg-heading { font-family: var(--sg-font-heading); letter-spacing: -0.01em; }
+.sg-num { font-variant-numeric: tabular-nums; }
+
+/* Tombol */
+.btn { min-height: var(--sg-touch); border-radius: var(--sg-radius-input); font-weight: 600; }
+.btn-primary { --bs-btn-bg: var(--sg-primary); --bs-btn-border-color: var(--sg-primary); --bs-btn-color: var(--sg-on-primary);
+  --bs-btn-hover-bg: #000; --bs-btn-hover-border-color: #000; --bs-btn-hover-color: var(--sg-on-primary);
+  --bs-btn-active-bg: #000; --bs-btn-active-color: var(--sg-on-primary); }
+[data-bs-theme="dark"] .btn-primary { --bs-btn-hover-bg: #E9C51F; --bs-btn-hover-border-color: #E9C51F; --bs-btn-active-bg: #E9C51F; }
+.btn-approve { background: var(--sg-approve); border-color: var(--sg-approve); color: #fff; }
+.btn-reject-outline { background: var(--sg-surface); border: 1px solid #FCA5A5; color: var(--sg-reject); }
+.btn:focus-visible, .form-control:focus, .form-select:focus { box-shadow: var(--sg-focus-ring); border-color: var(--sg-primary); outline: 0; }
+@media (max-width: 575.98px) { .sg-sticky-actions .btn { min-height: 52px; } }
+
+/* Input */
+.form-control, .form-select { min-height: 48px; border-radius: var(--sg-radius-input); font-size: 16px; }
+@media (min-width: 992px) { .form-control, .form-select { min-height: 40px; font-size: 14px; } }
+
+/* Kartu */
+.card { border-radius: var(--sg-radius-card); border-color: var(--sg-border); background: var(--sg-surface); box-shadow: var(--sg-shadow-1); }
+
+/* Badge status: dot + label (jangan hanya warna) */
+.sg-badge { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: var(--sg-radius-pill);
+  font-size: 13px; font-weight: 600; white-space: nowrap; }
+.sg-badge::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.sg-badge--pending  { background: var(--sg-pending-bg);  color: var(--sg-pending-fg); }
+.sg-badge--pending::before  { background: var(--sg-pending-dot); }
+.sg-badge--approved { background: var(--sg-success-bg);  color: var(--sg-success-fg); }
+.sg-badge--approved::before { background: var(--sg-success-dot); }
+.sg-badge--rejected { background: var(--sg-danger-bg);   color: var(--sg-danger-fg); }
+.sg-badge--rejected::before { background: var(--sg-danger-dot); }
+.sg-badge--progress { background: var(--sg-progress-bg); color: var(--sg-progress-fg); }
+.sg-badge--progress::before { background: var(--sg-progress-dot); }
+.sg-badge--open     { background: var(--sg-open-bg);     color: var(--sg-open-fg); }
+.sg-badge--open::before     { background: var(--sg-open-dot); }
+.sg-badge--closed   { background: var(--sg-closed-bg);   color: var(--sg-closed-fg); }
+.sg-badge--closed::before   { background: var(--sg-closed-dot); }
+
+/* Badge prioritas: kotak (radius 6) + ikon batang sinyal */
+.sg-priority { display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+.sg-priority--p1 { background: var(--sg-p1-bg); color: var(--sg-p1-fg); }
+.sg-priority--p2 { background: var(--sg-p2-bg); color: var(--sg-p2-fg); }
+.sg-priority--p3 { background: var(--sg-p3-bg); color: var(--sg-p3-fg); }
+.sg-priority--p4 { background: var(--sg-p4-bg); color: var(--sg-p4-fg); }
+
+/* Badge level jabatan 1–8 + Admin (skala netral → biru → ungu tua) */
+.sg-level { display: inline-flex; align-items: center; height: 20px; padding: 0 7px; border-radius: 6px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.sg-level--1 { background: #F1F5F9; color: #334155; }
+.sg-level--2 { background: #E2E8F0; color: #1E293B; }
+.sg-level--3 { background: #DBEAFE; color: #1E40AF; }
+.sg-level--4 { background: #BFDBFE; color: #1E3A8A; }
+.sg-level--5 { background: #93C5FD; color: #172554; }
+.sg-level--6 { background: #2563EB; color: #FFFFFF; }
+.sg-level--7 { background: #1E40AF; color: #FFFFFF; }
+.sg-level--8 { background: #4C1D95; color: #FFFFFF; }
+.sg-level--admin { background: #0F172A; color: #FFFFFF; }
+
+/* SLA */
+.sg-sla { display: inline-flex; align-items: center; gap: 4px; height: 24px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.sg-sla--ok     { background: var(--sg-success-bg); color: var(--sg-success-fg); }
+.sg-sla--warn   { background: var(--sg-pending-bg); color: var(--sg-pending-fg); }
+.sg-sla--breach { background: var(--sg-reject); color: #FFFFFF; }
+.sg-sla--paused { background: var(--sg-surface-2); color: var(--sg-muted); }
+
+/* Chip filter */
+.sg-chip { display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 14px; border-radius: var(--sg-radius-pill);
+  border: 1px solid var(--sg-border); background: var(--sg-surface); color: var(--sg-text); font-size: 14px; font-weight: 500; }
+.sg-chip.active { background: var(--sg-primary); border-color: var(--sg-primary); color: var(--sg-on-primary); }
+.sg-chip-row { display: flex; flex-wrap: wrap; gap: 8px; }  /* WAJIB wrap — tidak ada scroll horizontal di mobile */
+
+/* Catatan internal tiket */
+.sg-internal-note { background: var(--sg-accent-tint); border: 1px solid var(--sg-accent-border); border-radius: var(--sg-radius-card); }
+
+/* Bottom sheet (offcanvas-bottom) */
+.offcanvas-bottom.sg-sheet { height: auto; max-height: 85vh; border-radius: var(--sg-radius-sheet) var(--sg-radius-sheet) 0 0; box-shadow: var(--sg-shadow-sheet); }
+.sg-sheet-handle { width: 40px; height: 5px; border-radius: 3px; background: #CBD5E1; margin: 10px auto 6px; }
+
+/* Sticky action bar & bottom nav: hormati safe-area */
+.sg-sticky-actions { position: sticky; bottom: 0; background: var(--sg-surface); border-top: 1px solid var(--sg-border);
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); display: flex; gap: 10px; z-index: 1020; }
+.sg-bottom-nav { position: fixed; left: 0; right: 0; bottom: 0; height: calc(64px + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom); background: var(--sg-surface); border-top: 1px solid var(--sg-border); z-index: 1030; }
+.sg-fab { width: 60px; height: 60px; margin-top: -20px; border-radius: 20px; background: #111111; color: var(--sg-accent);
+  border: 4px solid var(--sg-surface); box-shadow: 0 8px 20px rgba(17, 17, 17, .25); }
+
+/* Teks dipotong */
+.sg-clamp-1 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sg-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* Skeleton */
+.sg-skeleton { background: var(--sg-surface-2); border-radius: 6px; animation: sg-pulse 1.2s ease-in-out infinite; }
+@keyframes sg-pulse { 50% { opacity: .55; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

@@ -43,7 +43,7 @@
 
     <div class="page">
         <div class="header">
-            <img src="{{ asset('Sigap.png') }}" alt="">
+            <img src="{{ asset('images/brand/logo-sigap.png') }}" alt="">
             <div>
                 <h1>Formulir Persetujuan Permintaan Layanan IT</h1>
                 <div class="sub">PT. WBK &mdash; Departemen IT</div>

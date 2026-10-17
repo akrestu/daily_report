@@ -6,21 +6,21 @@
     <!-- Flash Messages -->
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+            <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
 
     @if(session('error'))
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+            <i class="bi bi-exclamation-circle me-2"></i>{{ session('error') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
 
     @if(session('warning'))
         <div class="alert alert-warning alert-dismissible fade show" role="alert">
-            <i class="fas fa-exclamation-triangle me-2"></i>{{ session('warning') }}
+            <i class="bi bi-exclamation-triangle me-2"></i>{{ session('warning') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
@@ -33,7 +33,7 @@
                 </div>
                 <div class="col-md-6 text-md-end">
                     <button type="button" class="btn btn-primary w-100 w-md-auto" data-bs-toggle="modal" data-bs-target="#createSectionModal">
-                        <i class="fas fa-plus me-1"></i> New Section
+                        <i class="bi bi-plus-lg me-1"></i> New Section
                     </button>
                 </div>
             </div>
@@ -45,7 +45,7 @@
                     <div class="col-md-4 col-12">
                         <div class="input-group">
                             <span class="input-group-text bg-light">
-                                <i class="fas fa-search"></i>
+                                <i class="bi bi-search"></i>
                             </span>
                             <input type="text" name="search" class="form-control" placeholder="Search..." value="{{ request('search') }}" style="height: 42px;">
                         </div>
@@ -82,7 +82,7 @@
                             <div class="d-flex justify-content-between align-items-start mb-2">
                                 <div class="d-flex align-items-center">
                                     <div class="avatar-sm me-2 bg-success rounded-circle text-white d-flex align-items-center justify-content-center">
-                                        <i class="fas fa-layer-group"></i>
+                                        <i class="bi bi-layers"></i>
                                     </div>
                                     <div>
                                         <h6 class="mb-0">{{ $section->name }}</h6>
@@ -122,7 +122,7 @@
                                             data-section-department="{{ $section->department_id }}"
                                             data-section-description="{{ $section->description }}"
                                             data-section-active="{{ $section->is_active ? '1' : '0' }}">
-                                        <i class="fas fa-edit"></i>
+                                        <i class="bi bi-pencil-square"></i>
                                     </button>
                                     <button type="button" class="btn btn-sm btn-outline-danger section-delete-btn"
                                             data-bs-toggle="modal"
@@ -130,7 +130,7 @@
                                             data-section-id="{{ $section->id }}"
                                             data-section-name="{{ $section->name }}"
                                             data-section-reports="{{ $section->daily_reports_count }}">
-                                        <i class="fas fa-trash"></i>
+                                        <i class="bi bi-trash3"></i>
                                     </button>
                                 </div>
                             </div>
@@ -141,7 +141,7 @@
                     <div class="mt-3 d-flex justify-content-between align-items-center">
                         <div>
                             <button type="button" class="btn btn-danger mobile-bulk-delete-btn" disabled data-bs-toggle="modal" data-bs-target="#bulkDeleteModal">
-                                <i class="fas fa-trash me-1"></i> Delete Selected
+                                <i class="bi bi-trash3 me-1"></i> Delete Selected
                             </button>
                         </div>
                         <div>
@@ -183,7 +183,7 @@
                                 <td>
                                     <div class="d-flex align-items-center">
                                         <div class="avatar-sm me-2 bg-success rounded-circle text-white d-flex align-items-center justify-content-center">
-                                            <i class="fas fa-layer-group"></i>
+                                            <i class="bi bi-layers"></i>
                                         </div>
                                         <div>
                                             <a href="#" class="fw-medium text-decoration-none section-edit-btn"
@@ -226,7 +226,7 @@
                                                 data-section-department="{{ $section->department_id }}"
                                                 data-section-description="{{ $section->description }}"
                                                 data-section-active="{{ $section->is_active ? '1' : '0' }}">
-                                            <i class="fas fa-edit"></i>
+                                            <i class="bi bi-pencil-square"></i>
                                         </button>
                                         <button type="button" class="btn btn-sm btn-outline-danger section-delete-btn"
                                                 data-bs-toggle="modal"
@@ -234,7 +234,7 @@
                                                 data-section-id="{{ $section->id }}"
                                                 data-section-name="{{ $section->name }}"
                                                 data-section-reports="{{ $section->daily_reports_count }}">
-                                            <i class="fas fa-trash"></i>
+                                            <i class="bi bi-trash3"></i>
                                         </button>
                                     </div>
                                 </td>
@@ -246,7 +246,7 @@
                     <div class="mt-3 d-flex justify-content-between align-items-center">
                         <div>
                             <button type="button" class="btn btn-danger bulk-delete-btn" disabled data-bs-toggle="modal" data-bs-target="#bulkDeleteModal">
-                                <i class="fas fa-trash me-1"></i> Delete Selected
+                                <i class="bi bi-trash3 me-1"></i> Delete Selected
                             </button>
                         </div>
                         <div>
@@ -257,7 +257,7 @@
             </div>
             @else
             <div class="alert alert-info">
-                <i class="fas fa-info-circle me-2"></i> No sections found matching your criteria.
+                <i class="bi bi-info-circle me-2"></i> No sections found matching your criteria.
             </div>
             @endif
         </div>
@@ -398,7 +398,7 @@
                 <div class="modal-body">
                     <p>Are you sure you want to delete section <strong id="delete-section-name"></strong>?</p>
                     <div id="delete-section-warning" class="alert alert-danger d-none">
-                        <i class="fas fa-exclamation-triangle me-2"></i> This section has <span id="delete-section-reports-count"></span> reports associated with it. You cannot delete it until all reports are reassigned.
+                        <i class="bi bi-exclamation-triangle me-2"></i> This section has <span id="delete-section-reports-count"></span> reports associated with it. You cannot delete it until all reports are reassigned.
                     </div>
                     <p class="text-danger">This action cannot be undone.</p>
                 </div>

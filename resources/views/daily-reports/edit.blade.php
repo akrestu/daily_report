@@ -11,7 +11,7 @@
                 </div>
                 <div class="col text-end">
                     <a href="javascript:history.back()" class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-left me-1"></i> Back
+                        <i class="bi bi-arrow-left me-1"></i> Back
                     </a>
                 </div>
             </div>
@@ -192,7 +192,7 @@
                 <div class="d-flex justify-content-end gap-2">
                     <a href="javascript:history.back()" class="btn btn-secondary">Cancel</a>
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save me-1"></i> Update Report
+                        <i class="bi bi-floppy me-1"></i> Update Report
                     </button>
                 </div>
             </form>

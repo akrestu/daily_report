@@ -7,7 +7,7 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h2 class="mb-0">System Settings</h2>
                 <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-secondary">
-                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                    <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
                 </a>
             </div>
             
@@ -17,7 +17,7 @@
                 </div>
                 <div class="card-body p-4">
                     <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i>
+                        <i class="bi bi-info-circle me-2"></i>
                         Settings page is currently under development. This feature will be available soon.
                     </div>
                     
@@ -36,7 +36,7 @@
                         </div>
                         
                         <button type="button" class="btn btn-primary" disabled>
-                            <i class="fas fa-save me-2"></i>Save Settings
+                            <i class="bi bi-floppy me-2"></i>Save Settings
                         </button>
                     </form>
                 </div>

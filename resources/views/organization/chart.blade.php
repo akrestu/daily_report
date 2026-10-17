@@ -11,7 +11,7 @@
         <div class="card shadow-sm border-0">
             <div class="card-header bg-white py-3">
                 <h4 class="card-title mb-0">
-                    <i class="fas fa-sitemap me-2 text-primary"></i>
+                    <i class="bi bi-diagram-3 me-2 text-primary"></i>
                     {{ $department->name }} Organization Chart
                 </h4>
             </div>
@@ -316,7 +316,7 @@
         }
 
         .level5-node {
-            border-color: #0d6efd;
+            border-color: var(--sg-primary);
             border-width: 2px;
         }
 
@@ -346,7 +346,7 @@
 
         /* Legacy nodes */
         .head-node {
-            border-color: #0d6efd;
+            border-color: var(--sg-primary);
             border-width: 2px;
         }
 
@@ -391,7 +391,7 @@
 
         .level5 {
             background-color: rgba(13, 110, 253, 0.1);
-            color: #0d6efd;
+            color: var(--sg-primary);
         }
 
         .level4 {
@@ -417,7 +417,7 @@
         /* Legacy badges */
         .department-head {
             background-color: rgba(13, 110, 253, 0.1);
-            color: #0d6efd;
+            color: var(--sg-primary);
         }
 
         .leader {

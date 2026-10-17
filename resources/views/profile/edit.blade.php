@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="d-flex align-items-center">
-            <i class="fas fa-user-circle fs-4 me-2 text-primary"></i>
+            <i class="bi bi-person-circle fs-4 me-2 text-primary"></i>
             <span>Profile Settings</span>
         </div>
     </x-slot>
@@ -29,7 +29,7 @@
                         <div>
                             <div class="d-grid">
                                 <label for="mobile_profile_picture" class="btn btn-primary">
-                                    <i class="fas fa-camera me-1"></i> Change Picture
+                                    <i class="bi bi-camera me-1"></i> Change Picture
                                 </label>
                                 <input type="file" class="d-none" id="mobile_profile_picture" name="profile_picture" accept="image/*">
                             </div>
@@ -62,11 +62,11 @@
                             <h4 class="mb-1 text-white">{{ $user->name }}</h4>
                             <div>
                                 <span class="badge bg-white text-dark me-2">
-                                    <i class="fas fa-building me-1 text-secondary"></i>
+                                    <i class="bi bi-building me-1 text-secondary"></i>
                                     {{ $user->department->name ?? 'No Department' }}
                                 </span>
                                 <span class="badge bg-white text-dark">
-                                    <i class="fas fa-user-tag me-1 text-secondary"></i>
+                                    <i class="bi bi-person-vcard me-1 text-secondary"></i>
                                     {{ $user->role->name ?? 'No Role' }}
                                 </span>
                             </div>
@@ -75,7 +75,7 @@
                             <form action="{{ route('profile.update-picture') }}" method="POST" enctype="multipart/form-data" id="profilePictureForm" class="mb-0">
                                 @csrf
                                 <label for="profile_picture" class="btn btn-light btn-sm shadow-sm">
-                                    <i class="fas fa-camera me-1"></i> Change Photo
+                                    <i class="bi bi-camera me-1"></i> Change Photo
                                 </label>
                                 <input type="file" class="d-none" id="profile_picture" name="profile_picture" accept="image/*">
                             </form>
@@ -85,17 +85,17 @@
                     <ul class="nav nav-tabs mt-4 border-0">
                         <li class="nav-item">
                             <a class="nav-link active px-3" href="#profile-info" data-bs-toggle="tab">
-                                <i class="fas fa-user me-2"></i>Profile
+                                <i class="bi bi-person me-2"></i>Profile
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link px-3" href="#security" data-bs-toggle="tab">
-                                <i class="fas fa-shield-alt me-2"></i>Security
+                                <i class="bi bi-shield-check me-2"></i>Security
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link px-3" href="#account-settings" data-bs-toggle="tab">
-                                <i class="fas fa-cog me-2"></i>Account
+                                <i class="bi bi-gear me-2"></i>Account
                             </a>
                         </li>
                     </ul>
@@ -111,7 +111,7 @@
                     <div class="card shadow-sm border-0 mb-4">
                         <div class="card-header bg-white py-3 border-bottom">
                             <div class="d-flex align-items-center">
-                                <i class="fas fa-id-card text-primary me-2"></i>
+                                <i class="bi bi-person-vcard text-primary me-2"></i>
                                 <h5 class="mb-0">Profile Information</h5>
                             </div>
                         </div>
@@ -142,16 +142,16 @@
                                     @if($user->email)
                                         @if($user->email_verified_at)
                                             <div class="form-text text-success">
-                                                <i class="fas fa-check-circle me-1"></i> Your email is verified.
+                                                <i class="bi bi-check-circle me-1"></i> Your email is verified.
                                             </div>
                                         @else
                                             <div class="form-text text-muted">
-                                                <i class="fas fa-info-circle me-1"></i> Email verification is optional.
+                                                <i class="bi bi-info-circle me-1"></i> Email verification is optional.
                                             </div>
                                         @endif
                                     @else
                                         <div class="form-text text-muted">
-                                            <i class="fas fa-info-circle me-1"></i> Email is optional.
+                                            <i class="bi bi-info-circle me-1"></i> Email is optional.
                                         </div>
                                     @endif
                                 </div>
@@ -169,7 +169,7 @@
                                 
                                 <div class="d-grid d-sm-flex justify-content-sm-end">
                                     <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-save me-1"></i> Update Profile
+                                        <i class="bi bi-floppy me-1"></i> Update Profile
                                     </button>
                                 </div>
                             </form>
@@ -182,7 +182,7 @@
                     <div class="card shadow-sm border-0 mb-4">
                         <div class="card-header bg-white py-3 border-bottom">
                             <div class="d-flex align-items-center">
-                                <i class="fas fa-lock text-primary me-2"></i>
+                                <i class="bi bi-lock text-primary me-2"></i>
                                 <h5 class="mb-0">Change Password</h5>
                             </div>
                         </div>
@@ -225,7 +225,7 @@
                                 
                                 <div class="alert alert-info mb-3">
                                     <div class="d-flex">
-                                        <i class="fas fa-info-circle me-2 mt-1"></i>
+                                        <i class="bi bi-info-circle me-2 mt-1"></i>
                                         <div>
                                             <strong>Password tips:</strong>
                                             <ul class="mb-0 ps-3 mt-1">
@@ -239,7 +239,7 @@
                                 
                                 <div class="d-grid d-sm-flex justify-content-sm-end">
                                     <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-key me-1"></i> Change Password
+                                        <i class="bi bi-key me-1"></i> Change Password
                                     </button>
                                 </div>
                             </form>
@@ -252,7 +252,7 @@
                     <div class="card shadow-sm border-0 mb-4">
                         <div class="card-header bg-white py-3 border-bottom">
                             <div class="d-flex align-items-center">
-                                <i class="fas fa-user-cog text-primary me-2"></i>
+                                <i class="bi bi-person-gear text-primary me-2"></i>
                                 <h5 class="mb-0">Account Details</h5>
                             </div>
                         </div>
@@ -285,7 +285,7 @@
                                 
                                 <div class="d-flex justify-content-end">
                                     <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
-                                        <i class="fas fa-trash me-1"></i> Delete Account
+                                        <i class="bi bi-trash3 me-1"></i> Delete Account
                                     </button>
                                 </div>
                             </div>
@@ -329,16 +329,16 @@
                                 @if($user->email)
                                     @if($user->email_verified_at)
                                         <div class="form-text text-success">
-                                            <i class="fas fa-check-circle me-1"></i> Your email is verified.
+                                            <i class="bi bi-check-circle me-1"></i> Your email is verified.
                                         </div>
                                     @else
                                         <div class="form-text text-muted">
-                                            <i class="fas fa-info-circle me-1"></i> Email verification is optional.
+                                            <i class="bi bi-info-circle me-1"></i> Email verification is optional.
                                         </div>
                                     @endif
                                 @else
                                     <div class="form-text text-muted">
-                                        <i class="fas fa-info-circle me-1"></i> Email is optional.
+                                        <i class="bi bi-info-circle me-1"></i> Email is optional.
                                     </div>
                                 @endif
                             </div>
@@ -356,7 +356,7 @@
                             
                             <div class="d-grid d-sm-flex justify-content-sm-end">
                                 <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-save me-1"></i> Update Profile
+                                    <i class="bi bi-floppy me-1"></i> Update Profile
                                 </button>
                             </div>
                         </form>
@@ -405,7 +405,7 @@
                             
                             <div class="d-grid d-sm-flex justify-content-sm-end">
                                 <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-key me-1"></i> Change Password
+                                    <i class="bi bi-key me-1"></i> Change Password
                                 </button>
                             </div>
                         </form>
@@ -446,7 +446,7 @@
                     <div class="d-flex mb-3">
                         <div class="flex-shrink-0 me-3">
                             <div class="icon-circle bg-light text-primary">
-                                <i class="fas fa-shield-alt"></i>
+                                <i class="bi bi-shield-check"></i>
                             </div>
                         </div>
                         <div>
@@ -457,7 +457,7 @@
                     <div class="d-flex mb-3">
                         <div class="flex-shrink-0 me-3">
                             <div class="icon-circle bg-light text-primary">
-                                <i class="fas fa-envelope"></i>
+                                <i class="bi bi-envelope"></i>
                             </div>
                         </div>
                         <div>
@@ -468,7 +468,7 @@
                     <div class="d-flex">
                         <div class="flex-shrink-0 me-3">
                             <div class="icon-circle bg-light text-primary">
-                                <i class="fas fa-user-edit"></i>
+                                <i class="bi bi-person-gear"></i>
                             </div>
                         </div>
                         <div>
@@ -512,7 +512,7 @@
                     
                     <div class="d-grid">
                         <button type="button" class="btn btn-danger btn-lg py-3" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
-                            <i class="fas fa-trash me-1"></i> Delete Account
+                            <i class="bi bi-trash3 me-1"></i> Delete Account
                         </button>
                     </div>
                 </div>
@@ -559,7 +559,7 @@
         <div class="col-md-12">
             <div class="card shadow-sm">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-bell me-2"></i>Notification Preferences</h5>
+                    <h5 class="mb-0"><i class="bi bi-bell me-2"></i>Notification Preferences</h5>
                 </div>
                 <div class="card-body">
                     <form id="notificationPreferencesForm">
@@ -616,7 +616,7 @@
                         
                         <div class="text-end mt-4">
                             <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save me-2"></i>Save Preferences
+                                <i class="bi bi-floppy me-2"></i>Save Preferences
                             </button>
                         </div>
                     </form>

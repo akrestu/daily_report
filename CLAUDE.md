@@ -173,11 +173,18 @@ Uses Laravel Excel (maatwebsite/excel) for:
 - Export user lists
 - Import users from template
 
-### UI/UX Design
-**Branding**:
-- Custom logo: `public/Sigap.png` (bar chart and document graphic)
-- Logo displayed in: login screen (circular container) and sidebar navigation
-- Color scheme: Gradient theme with blue (#0d6efd) and purple (#6610f2)
+### UI/UX Design System (redesign 2026 — sedang berjalan)
+Rencana & progres: `docs/ui-redesign-plan.md`. Sumber desain: `design/` (baca `design/CLAUDE.md`, `design/design-system/DESIGN_SYSTEM.md`, mockup di `design/mockups/dc-source/`).
+- **Mobile-first** (mayoritas pengguna di HP). Breakpoint: `<576` mobile, `576–991` tablet, `≥992` desktop. Tidak ada scroll horizontal di mobile.
+- Warna lewat token `resources/css/tokens.css` (`--sg-*`, kelas `.sg-*`), **jangan hardcode hex**. Primary hitam #111111 (dark: kuning #F5D334), kuning hanya aksen. Tidak ada gradien biru-ungu, tidak ada emoji.
+- Stack UI: Bootstrap 5.3 + Alpine.js + Bootstrap Icons, font Inter/Plus Jakarta Sans self-host (`@fontsource`). **Tailwind tidak dipakai.**
+- Entry CSS `resources/css/app.css` (Bootstrap → ikon/font → tokens → `legacy.css`). `legacy.css` = gaya lama, dihapus bertahap.
+- Label/tone badge dari `config/sigap-ui.php`; format tampilan via `App\Support\Format` (`17 Okt 2026, 14:30`, `1.248`, `91,4%`).
+- Tema di `localStorage('sg-theme')`, diterapkan `resources/views/partials/theme-init.blade.php`.
+- Badge status = dot + label. Status Approval (pill) ≠ Progres Pekerjaan (kotak + ikon). Modal mobile = bottom sheet; aksi utama mobile = sticky bottom bar; target sentuh ≥ 44px; input mobile 16px.
+- **Deploy:** `public/build` di-commit (Plesk tanpa Node). Selalu `npm run build` dan commit hasilnya setelah mengubah CSS/JS.
+
+**Branding**: logo `public/images/brand/logo-sigap.png`; aset login & pola topografi di `public/images/brand/`.
 
 **Report Details Interface**:
 - Tabbed layout: Desc → Remarks → Comments (optimized order for natural reading flow)

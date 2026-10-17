@@ -6,21 +6,21 @@
     <!-- Flash Messages -->
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+            <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
 
     @if(session('error'))
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+            <i class="bi bi-exclamation-circle me-2"></i>{{ session('error') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
 
     @if(session('warning'))
         <div class="alert alert-warning alert-dismissible fade show" role="alert">
-            <i class="fas fa-exclamation-triangle me-2"></i>{{ session('warning') }}
+            <i class="bi bi-exclamation-triangle me-2"></i>{{ session('warning') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
@@ -33,7 +33,7 @@
                 </div>
                 <div class="col-md-6 text-md-end">
                     <button type="button" class="btn btn-primary w-100 w-md-auto" data-bs-toggle="modal" data-bs-target="#createJobSiteModal">
-                        <i class="fas fa-plus me-1"></i> New Job Site
+                        <i class="bi bi-plus-lg me-1"></i> New Job Site
                     </button>
                 </div>
             </div>
@@ -45,7 +45,7 @@
                     <div class="col-md-4 col-12">
                         <div class="input-group">
                             <span class="input-group-text bg-light">
-                                <i class="fas fa-search"></i>
+                                <i class="bi bi-search"></i>
                             </span>
                             <input type="text" name="search" class="form-control" placeholder="Search..." value="{{ request('search') }}" style="height: 42px;">
                         </div>
@@ -72,7 +72,7 @@
                             <div class="d-flex justify-content-between align-items-start mb-2">
                                 <div class="d-flex align-items-center">
                                     <div class="avatar-sm me-2 bg-primary rounded-circle text-white d-flex align-items-center justify-content-center">
-                                        <i class="fas fa-map-marker-alt"></i>
+                                        <i class="bi bi-geo-alt"></i>
                                     </div>
                                     <div>
                                         <h6 class="mb-0">{{ $jobSite->name }}</h6>
@@ -87,7 +87,7 @@
                             @if($jobSite->location)
                             <div class="mb-2">
                                 <span class="text-muted small">
-                                    <i class="fas fa-map-marker-alt me-1"></i>{{ $jobSite->location }}
+                                    <i class="bi bi-geo-alt me-1"></i>{{ $jobSite->location }}
                                 </span>
                             </div>
                             @endif
@@ -114,7 +114,7 @@
                                             data-jobsite-location="{{ $jobSite->location }}"
                                             data-jobsite-description="{{ $jobSite->description }}"
                                             data-jobsite-active="{{ $jobSite->is_active ? '1' : '0' }}">
-                                        <i class="fas fa-edit"></i>
+                                        <i class="bi bi-pencil-square"></i>
                                     </button>
                                     <button type="button" class="btn btn-sm btn-outline-danger jobsite-delete-btn"
                                             data-bs-toggle="modal"
@@ -122,7 +122,7 @@
                                             data-jobsite-id="{{ $jobSite->id }}"
                                             data-jobsite-name="{{ $jobSite->name }}"
                                             data-jobsite-reports="{{ $jobSite->daily_reports_count }}">
-                                        <i class="fas fa-trash"></i>
+                                        <i class="bi bi-trash3"></i>
                                     </button>
                                 </div>
                             </div>
@@ -133,7 +133,7 @@
                     <div class="mt-3 d-flex justify-content-between align-items-center">
                         <div>
                             <button type="button" class="btn btn-danger mobile-bulk-delete-btn" disabled data-bs-toggle="modal" data-bs-target="#bulkDeleteModal">
-                                <i class="fas fa-trash me-1"></i> Delete Selected
+                                <i class="bi bi-trash3 me-1"></i> Delete Selected
                             </button>
                         </div>
                         <div>
@@ -175,7 +175,7 @@
                                 <td>
                                     <div class="d-flex align-items-center">
                                         <div class="avatar-sm me-2 bg-primary rounded-circle text-white d-flex align-items-center justify-content-center">
-                                            <i class="fas fa-map-marker-alt"></i>
+                                            <i class="bi bi-geo-alt"></i>
                                         </div>
                                         <div>
                                             <a href="#" class="fw-medium text-decoration-none jobsite-edit-btn"
@@ -198,7 +198,7 @@
                                 <td>{{ $jobSite->code }}</td>
                                 <td>
                                     @if($jobSite->location)
-                                        <i class="fas fa-map-marker-alt text-muted me-1"></i>{{ $jobSite->location }}
+                                        <i class="bi bi-geo-alt text-muted me-1"></i>{{ $jobSite->location }}
                                     @else
                                         <span class="text-muted">-</span>
                                     @endif
@@ -222,7 +222,7 @@
                                                 data-jobsite-location="{{ $jobSite->location }}"
                                                 data-jobsite-description="{{ $jobSite->description }}"
                                                 data-jobsite-active="{{ $jobSite->is_active ? '1' : '0' }}">
-                                            <i class="fas fa-edit"></i>
+                                            <i class="bi bi-pencil-square"></i>
                                         </button>
                                         <button type="button" class="btn btn-sm btn-outline-danger jobsite-delete-btn"
                                                 data-bs-toggle="modal"
@@ -230,7 +230,7 @@
                                                 data-jobsite-id="{{ $jobSite->id }}"
                                                 data-jobsite-name="{{ $jobSite->name }}"
                                                 data-jobsite-reports="{{ $jobSite->daily_reports_count }}">
-                                            <i class="fas fa-trash"></i>
+                                            <i class="bi bi-trash3"></i>
                                         </button>
                                     </div>
                                 </td>
@@ -242,7 +242,7 @@
                     <div class="mt-3 d-flex justify-content-between align-items-center">
                         <div>
                             <button type="button" class="btn btn-danger bulk-delete-btn" disabled data-bs-toggle="modal" data-bs-target="#bulkDeleteModal">
-                                <i class="fas fa-trash me-1"></i> Delete Selected
+                                <i class="bi bi-trash3 me-1"></i> Delete Selected
                             </button>
                         </div>
                         <div>
@@ -253,7 +253,7 @@
             </div>
             @else
             <div class="alert alert-info">
-                <i class="fas fa-info-circle me-2"></i> No job sites found matching your criteria.
+                <i class="bi bi-info-circle me-2"></i> No job sites found matching your criteria.
             </div>
             @endif
         </div>
@@ -384,7 +384,7 @@
                 <div class="modal-body">
                     <p>Are you sure you want to delete job site <strong id="delete-jobsite-name"></strong>?</p>
                     <div id="delete-jobsite-warning" class="alert alert-danger d-none">
-                        <i class="fas fa-exclamation-triangle me-2"></i> This job site has <span id="delete-jobsite-reports-count"></span> reports associated with it. You cannot delete it until all reports are reassigned.
+                        <i class="bi bi-exclamation-triangle me-2"></i> This job site has <span id="delete-jobsite-reports-count"></span> reports associated with it. You cannot delete it until all reports are reassigned.
                     </div>
                     <p class="text-danger">This action cannot be undone.</p>
                 </div>

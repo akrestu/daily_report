@@ -44,7 +44,7 @@
                 </select>
             </div>
             <div class="col-md-2">
-                <button type="submit" class="btn btn-primary btn-sm w-100"><i class="fas fa-filter me-1"></i>Terapkan</button>
+                <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-funnel me-1"></i>Terapkan</button>
             </div>
             <div class="col-12 small text-muted">
                 {{ $from->translatedFormat('d M Y') }} – {{ $to->translatedFormat('d M Y') }} &bull;
@@ -208,7 +208,7 @@
 
             const trend = @json($trend);
             const breakdowns = @json($breakdowns);
-            const blue = '#0d6efd', green = '#198754', palette = ['#0d6efd', '#6610f2', '#20c997', '#fd7e14', '#d63384', '#0dcaf0', '#6c757d', '#ffc107'];
+            const blue = '#111111', green = '#16A34A', palette = ['#111111', '#F5D334', '#2563EB', '#16A34A', '#DC2626', '#EA580C', '#4F46E5', '#94A3B8'];
             const common = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } };
             const integerAxis = { beginAtZero: true, ticks: { precision: 0 } };
 

@@ -6,12 +6,12 @@
             <div class="row align-items-center">
                 <div class="col-md-6 col-sm-12 mb-2 mb-md-0">
                     <h5 class="mb-0 fw-bold">
-                        <i class="fas fa-clipboard-check text-primary me-2"></i>Buat Job Plan Baru
+                        <i class="bi bi-clipboard-check text-primary me-2"></i>Buat Job Plan Baru
                     </h5>
                 </div>
                 <div class="col-md-6 col-sm-12 text-md-end mt-2 mt-md-0">
                     <a href="{{ route('job-plans.index') }}" class="btn btn-outline-secondary rounded-pill px-4">
-                        <i class="fas fa-arrow-left me-1"></i> Kembali
+                        <i class="bi bi-arrow-left me-1"></i> Kembali
                     </a>
                 </div>
             </div>
@@ -24,7 +24,7 @@
                 @if ($errors->any())
                     <div class="alert alert-danger mb-4 border-0 shadow-sm">
                         <div class="d-flex">
-                            <i class="fas fa-exclamation-circle text-danger fa-2x me-3"></i>
+                            <i class="bi bi-exclamation-circle text-danger fs-3 me-3"></i>
                             <div>
                                 <h5 class="alert-heading mb-1">Terdapat kesalahan</h5>
                                 <ul class="mb-0 ps-3">
@@ -76,7 +76,7 @@
                     <div class="col-lg-6 col-md-12 mb-3 mb-lg-0">
                         <label class="form-label fw-medium">Departemen</label>
                         <div class="input-group">
-                            <span class="input-group-text bg-white"><i class="fas fa-building text-primary"></i></span>
+                            <span class="input-group-text bg-white"><i class="bi bi-building text-primary"></i></span>
                             <input type="text" class="form-control bg-light"
                                 value="{{ $user->department->name ?? '-' }}" readonly>
                             <input type="hidden" name="department_id" value="{{ $user->department_id }}">
@@ -87,7 +87,7 @@
                     <div class="col-lg-6 col-md-12">
                         <label for="job_site_id" class="form-label fw-medium">Job Site</label>
                         <div class="input-group">
-                            <span class="input-group-text bg-white"><i class="fas fa-map-marker-alt text-primary"></i></span>
+                            <span class="input-group-text bg-white"><i class="bi bi-geo-alt text-primary"></i></span>
                             <select class="form-select @error('job_site_id') is-invalid @enderror" id="job_site_id" name="job_site_id">
                                 <option value="">Pilih job site (opsional)</option>
                                 @foreach ($jobSites as $site)
@@ -108,7 +108,7 @@
                     <div class="col-lg-6 col-md-12 mb-3 mb-lg-0">
                         <label for="section_id" class="form-label fw-medium">Section</label>
                         <div class="input-group">
-                            <span class="input-group-text bg-white"><i class="fas fa-layer-group text-primary"></i></span>
+                            <span class="input-group-text bg-white"><i class="bi bi-layers text-primary"></i></span>
                             <select class="form-select @error('section_id') is-invalid @enderror" id="section_id" name="section_id">
                                 <option value="">Pilih section (opsional)</option>
                                 @foreach ($sections as $section)
@@ -127,7 +127,7 @@
                     <div class="col-lg-6 col-md-12">
                         <label for="assignee_id" class="form-label fw-medium">Ditugaskan Kepada <span class="text-danger">*</span></label>
                         <div class="input-group">
-                            <span class="input-group-text bg-white"><i class="fas fa-user-check text-primary"></i></span>
+                            <span class="input-group-text bg-white"><i class="bi bi-person-check text-primary"></i></span>
                             <select class="form-select @error('assignee_id') is-invalid @enderror" id="assignee_id" name="assignee_id" required>
                                 <option value="">Pilih anggota tim</option>
                                 @foreach ($eligibleAssignees as $assignee)
@@ -148,7 +148,7 @@
                     <div class="col-lg-6 col-md-12 mb-3 mb-lg-0">
                         <label for="planned_date" class="form-label fw-medium">Tanggal Rencana <span class="text-danger">*</span></label>
                         <div class="input-group">
-                            <span class="input-group-text bg-white"><i class="fas fa-calendar-day text-primary"></i></span>
+                            <span class="input-group-text bg-white"><i class="bi bi-calendar-event text-primary"></i></span>
                             <input type="date" class="form-control @error('planned_date') is-invalid @enderror"
                                 id="planned_date" name="planned_date"
                                 value="{{ old('planned_date', date('Y-m-d')) }}" required>
@@ -162,7 +162,7 @@
                     <div class="col-lg-6 col-md-12">
                         <label for="due_date" class="form-label fw-medium">Batas Waktu <span class="text-danger">*</span></label>
                         <div class="input-group">
-                            <span class="input-group-text bg-white"><i class="fas fa-calendar-alt text-primary"></i></span>
+                            <span class="input-group-text bg-white"><i class="bi bi-calendar3 text-primary"></i></span>
                             <input type="date" class="form-control @error('due_date') is-invalid @enderror"
                                 id="due_date" name="due_date"
                                 value="{{ old('due_date', date('Y-m-d')) }}" required>
@@ -175,7 +175,7 @@
 
                 <!-- Remark -->
                 <div class="mb-4">
-                    <label for="remark" class="form-label fw-medium"><i class="fas fa-comment-dots me-1 text-primary"></i> Catatan Tambahan</label>
+                    <label for="remark" class="form-label fw-medium"><i class="bi bi-chat-dots me-1 text-primary"></i> Catatan Tambahan</label>
                     <textarea class="form-control @error('remark') is-invalid @enderror"
                         id="remark" name="remark" rows="3"
                         placeholder="Catatan atau instruksi tambahan (opsional)"
@@ -188,10 +188,10 @@
                 <!-- Submit -->
                 <div class="d-flex gap-3 justify-content-end pt-2">
                     <a href="{{ route('job-plans.index') }}" class="btn btn-outline-secondary rounded-pill px-4">
-                        <i class="fas fa-times me-1"></i> Batal
+                        <i class="bi bi-x-lg me-1"></i> Batal
                     </a>
                     <button type="submit" class="btn btn-primary rounded-pill px-4">
-                        <i class="fas fa-paper-plane me-1"></i> Kirim Job Plan
+                        <i class="bi bi-send me-1"></i> Kirim Job Plan
                     </button>
                 </div>
             </form>

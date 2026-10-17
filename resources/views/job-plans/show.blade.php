@@ -3,7 +3,7 @@
 
     @if (session('success'))
         <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-3" role="alert">
-            <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+            <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     @endif
@@ -16,7 +16,7 @@
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <h5 class="mb-1 fw-bold">
-                                <i class="fas fa-clipboard-check text-primary me-2"></i>{{ $plan->job_name }}
+                                <i class="bi bi-clipboard-check text-primary me-2"></i>{{ $plan->job_name }}
                             </h5>
                             <div class="d-flex gap-2 flex-wrap">
                                 @if($plan->isConverted())
@@ -26,7 +26,7 @@
                                 @endif
                                 @if($plan->section)
                                     <span class="badge bg-light text-dark border rounded-pill">
-                                        <i class="fas fa-layer-group me-1 text-primary"></i>{{ $plan->section->name }}
+                                        <i class="bi bi-layers me-1 text-primary"></i>{{ $plan->section->name }}
                                     </span>
                                 @endif
                             </div>
@@ -34,12 +34,12 @@
                         <div class="d-flex gap-2">
                             @can('update', $plan)
                             <a href="{{ route('job-plans.edit', $plan) }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
-                                <i class="fas fa-edit me-1"></i>Edit
+                                <i class="bi bi-pencil-square me-1"></i>Edit
                             </a>
                             @endcan
                             @can('convert', $plan)
                             <a href="{{ route('job-plans.convert', $plan) }}" class="btn btn-sm btn-success rounded-pill px-3">
-                                <i class="fas fa-file-alt me-1"></i>Jadikan Report
+                                <i class="bi bi-file-earmark-text me-1"></i>Jadikan Report
                             </a>
                             @endcan
                         </div>
@@ -50,7 +50,7 @@
                     <!-- Description -->
                     <div class="mb-4">
                         <h6 class="text-muted fw-semibold small text-uppercase mb-2">
-                            <i class="fas fa-align-left me-1"></i>Deskripsi Pekerjaan
+                            <i class="bi bi-text-left me-1"></i>Deskripsi Pekerjaan
                         </h6>
                         <div class="p-3 bg-light rounded-3" style="white-space: pre-wrap;">{{ $plan->description }}</div>
                     </div>
@@ -59,7 +59,7 @@
                     <!-- Remark -->
                     <div class="mb-4">
                         <h6 class="text-muted fw-semibold small text-uppercase mb-2">
-                            <i class="fas fa-comment-dots me-1"></i>Catatan Tambahan
+                            <i class="bi bi-chat-dots me-1"></i>Catatan Tambahan
                         </h6>
                         <div class="p-3 bg-light rounded-3" style="white-space: pre-wrap;">{{ $plan->remark }}</div>
                     </div>
@@ -69,7 +69,7 @@
                     @if($plan->isConverted() && $plan->convertedReports->isNotEmpty())
                     <div class="mb-0">
                         <h6 class="text-muted fw-semibold small text-uppercase mb-2">
-                            <i class="fas fa-file-check me-1 text-success"></i>Laporan Hasil Konversi
+                            <i class="bi bi-file-earmark-check me-1 text-success"></i>Laporan Hasil Konversi
                         </h6>
                         <div class="list-group list-group-flush rounded-3 border">
                             @foreach($plan->convertedReports as $report)
@@ -96,7 +96,7 @@
             <div class="card shadow-sm border-0 mb-3">
                 <div class="card-header bg-white py-3">
                     <h6 class="mb-0 fw-bold text-muted small text-uppercase">
-                        <i class="fas fa-info-circle me-1"></i>Informasi
+                        <i class="bi bi-info-circle me-1"></i>Informasi
                     </h6>
                 </div>
                 <div class="card-body p-0">
@@ -104,14 +104,14 @@
                         <li class="list-group-item d-flex justify-content-between align-items-start py-3">
                             <span class="text-muted small">Dibuat Oleh</span>
                             <span class="fw-semibold text-end">
-                                <i class="fas fa-user-tie me-1 text-muted small"></i>{{ $plan->creator->name ?? '-' }}
+                                <i class="bi bi-person-badge me-1 text-muted small"></i>{{ $plan->creator->name ?? '-' }}
                                 <br><small class="text-muted fw-normal">{{ $plan->creator->role->name ?? '' }}</small>
                             </span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-start py-3">
                             <span class="text-muted small">Ditugaskan Kepada</span>
                             <span class="fw-semibold text-end">
-                                <i class="fas fa-user me-1 text-muted small"></i>{{ $plan->assignee->name ?? '-' }}
+                                <i class="bi bi-person me-1 text-muted small"></i>{{ $plan->assignee->name ?? '-' }}
                                 <br><small class="text-muted fw-normal">{{ $plan->assignee->role->name ?? '' }}</small>
                             </span>
                         </li>
@@ -141,7 +141,7 @@
                             <span class="text-muted small">Batas Waktu</span>
                             <span class="fw-semibold {{ !$plan->isConverted() && $plan->due_date?->isPast() ? 'text-danger' : '' }}">
                                 @if(!$plan->isConverted() && $plan->due_date?->isPast())
-                                    <i class="fas fa-exclamation-triangle me-1 small"></i>
+                                    <i class="bi bi-exclamation-triangle me-1 small"></i>
                                 @endif
                                 {{ $plan->due_date?->translatedFormat('d M Y') ?? '-' }}
                             </span>
@@ -154,7 +154,7 @@
                         <li class="list-group-item d-flex justify-content-between align-items-center py-3">
                             <span class="text-muted small">Dikonversi Pada</span>
                             <span class="fw-semibold small text-success">
-                                <i class="fas fa-check-circle me-1"></i>{{ $plan->converted_at->translatedFormat('d M Y, H:i') }}
+                                <i class="bi bi-check-circle me-1"></i>{{ $plan->converted_at->translatedFormat('d M Y, H:i') }}
                             </span>
                         </li>
                         @endif
@@ -166,16 +166,16 @@
             <div class="card shadow-sm border-0">
                 <div class="card-body p-3 d-flex flex-column gap-2">
                     <a href="{{ url()->previous() }}" class="btn btn-outline-secondary rounded-pill">
-                        <i class="fas fa-arrow-left me-1"></i>Kembali
+                        <i class="bi bi-arrow-left me-1"></i>Kembali
                     </a>
                     @can('convert', $plan)
                     <a href="{{ route('job-plans.convert', $plan) }}" class="btn btn-success rounded-pill">
-                        <i class="fas fa-file-alt me-1"></i>Jadikan Report
+                        <i class="bi bi-file-earmark-text me-1"></i>Jadikan Report
                     </a>
                     @endcan
                     @can('update', $plan)
                     <a href="{{ route('job-plans.edit', $plan) }}" class="btn btn-outline-primary rounded-pill">
-                        <i class="fas fa-edit me-1"></i>Edit Plan
+                        <i class="bi bi-pencil-square me-1"></i>Edit Plan
                     </a>
                     @endcan
                     @can('delete', $plan)
@@ -183,7 +183,7 @@
                         onsubmit="return confirm('Hapus job plan ini? Tindakan ini tidak dapat dibatalkan.')">
                         @csrf @method('DELETE')
                         <button type="submit" class="btn btn-outline-danger rounded-pill w-100">
-                            <i class="fas fa-trash me-1"></i>Hapus Plan
+                            <i class="bi bi-trash3 me-1"></i>Hapus Plan
                         </button>
                     </form>
                     @endcan

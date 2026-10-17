@@ -5,7 +5,7 @@
 @section('content')
 <div class="mb-3">
     <h5 class="fw-bold text-dark mb-1">
-        <i class="fas fa-ticket-alt text-primary me-2"></i>Form Request Bantuan / Work Order
+        <i class="bi bi-ticket-perforated text-primary me-2"></i>Form Request Bantuan / Work Order
     </h5>
     <p class="text-muted small mb-0">Isi form di bawah untuk mengajukan permintaan bantuan. Tim kami akan segera menindaklanjuti.</p>
     <p class="small mb-0 mt-1">Sudah punya tiket? <a href="{{ route('tickets.public.track') }}">Cek status tiket</a></p>
@@ -13,7 +13,7 @@
 
 @if ($errors->any())
     <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
-        <i class="fas fa-exclamation-circle me-2"></i>
+        <i class="bi bi-exclamation-circle me-2"></i>
         <strong>Terdapat kesalahan:</strong>
         <ul class="mb-0 mt-1">
             @foreach ($errors->all() as $error)
@@ -28,7 +28,7 @@
     @csrf
 
     {{-- Informasi Pemohon --}}
-    <p class="section-title"><i class="fas fa-user me-1"></i>Informasi Pemohon</p>
+    <p class="section-title"><i class="bi bi-person me-1"></i>Informasi Pemohon</p>
     <div class="row g-3 mb-4">
         <div class="col-md-6">
             <label class="form-label fw-semibold small">NIK Karyawan <span class="text-danger">*</span></label>
@@ -49,7 +49,7 @@
         </div>
         <div class="col-12 d-none" id="employeeCard">
             <div class="alert alert-success small mb-0 py-2">
-                <i class="fas fa-user-check me-1"></i>
+                <i class="bi bi-person-check me-1"></i>
                 <strong id="employeeName"></strong> &mdash; <span id="employeeDept"></span>
             </div>
         </div>
@@ -72,7 +72,7 @@
 
     <div class="d-grid">
         <button type="submit" class="btn btn-primary btn-lg fw-semibold" id="submitBtn">
-            <i class="fas fa-paper-plane me-2"></i>Kirim Permintaan
+            <i class="bi bi-send me-2"></i>Kirim Permintaan
         </button>
     </div>
 </form>

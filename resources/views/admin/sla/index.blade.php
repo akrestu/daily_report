@@ -2,7 +2,7 @@
     <x-slot name="header">Pengaturan SLA</x-slot>
 
     @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show"><i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+        <div class="alert alert-success alert-dismissible fade show"><i class="bi bi-check-circle me-2"></i>{{ session('success') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
     @endif
     @if($errors->any())
@@ -51,7 +51,7 @@
                             </table>
                         </div>
                         <div class="alert alert-light border small">
-                            <i class="fas fa-info-circle text-primary me-1"></i>
+                            <i class="bi bi-info-circle text-primary me-1"></i>
                             Perubahan berlaku untuk tiket baru. Tiket yang sudah berjalan tetap memakai tenggat lama,
                             kecuali prioritasnya dikoreksi.
                         </div>
@@ -96,7 +96,7 @@
                         @csrf
                         <div class="col-5"><input type="date" name="date" class="form-control form-control-sm" required value="{{ old('date') }}"></div>
                         <div class="col-7"><input type="text" name="name" class="form-control form-control-sm" placeholder="Keterangan" required maxlength="255" value="{{ old('name') }}"></div>
-                        <div class="col-12"><button type="submit" class="btn btn-outline-primary btn-sm w-100"><i class="fas fa-plus me-1"></i>Tambah Hari Libur</button></div>
+                        <div class="col-12"><button type="submit" class="btn btn-outline-primary btn-sm w-100"><i class="bi bi-plus-lg me-1"></i>Tambah Hari Libur</button></div>
                     </form>
 
                     <ul class="list-group list-group-flush small">
@@ -106,7 +106,7 @@
                                 <form method="POST" action="{{ route('admin.sla.holidays.destroy', $holiday) }}" onsubmit="return confirm('Hapus hari libur ini?')">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-link btn-sm text-danger p-0"><i class="fas fa-trash"></i></button>
+                                    <button type="submit" class="btn btn-link btn-sm text-danger p-0"><i class="bi bi-trash3"></i></button>
                                 </form>
                             </li>
                         @empty

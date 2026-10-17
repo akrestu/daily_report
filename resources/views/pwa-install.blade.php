@@ -10,7 +10,7 @@
                 <div class="card border-0 shadow-sm mb-4 overflow-hidden">
                     <div class="card-body p-0">
                         <div class="row g-0">
-                            <div class="col-md-6 d-flex align-items-center justify-content-center p-5" style="background: linear-gradient(135deg, #0d6efd 0%, #6610f2 100%);">
+                            <div class="col-md-6 d-flex align-items-center justify-content-center p-5" style="background: var(--sg-brand-panel);">
                                 <div class="text-center text-white">
                                     <img src="{{ asset('icons/icon-192x192.png?v=2.0') }}" alt="SiGAP" class="mb-4" style="width: 128px; height: 128px; border-radius: 28px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
                                     <h3 class="fw-bold mb-2">SiGAP PWA</h3>
@@ -21,22 +21,22 @@
                                 <h4 class="fw-bold mb-4">Kenapa Install SiGAP?</h4>
                                 <ul class="list-unstyled">
                                     <li class="mb-3">
-                                        <i class="fas fa-check-circle text-success me-2"></i>
+                                        <i class="bi bi-check-circle text-success me-2"></i>
                                         <strong>Akses Lebih Cepat</strong><br>
                                         <small class="text-muted ms-4">Buka aplikasi langsung dari home screen</small>
                                     </li>
                                     <li class="mb-3">
-                                        <i class="fas fa-check-circle text-success me-2"></i>
+                                        <i class="bi bi-check-circle text-success me-2"></i>
                                         <strong>Mode Offline</strong><br>
                                         <small class="text-muted ms-4">Tetap dapat melihat data yang sudah di-cache</small>
                                     </li>
                                     <li class="mb-3">
-                                        <i class="fas fa-check-circle text-success me-2"></i>
+                                        <i class="bi bi-check-circle text-success me-2"></i>
                                         <strong>Hemat Storage</strong><br>
                                         <small class="text-muted ms-4">Ukuran lebih kecil dibanding aplikasi native</small>
                                     </li>
                                     <li class="mb-3">
-                                        <i class="fas fa-check-circle text-success me-2"></i>
+                                        <i class="bi bi-check-circle text-success me-2"></i>
                                         <strong>Auto Update</strong><br>
                                         <small class="text-muted ms-4">Selalu mendapat versi terbaru otomatis</small>
                                     </li>
@@ -44,11 +44,11 @@
 
                                 <div class="d-grid gap-2 mt-4">
                                     <button class="btn btn-primary btn-lg" id="installPwaPageBtn">
-                                        <i class="fas fa-download me-2"></i>
+                                        <i class="bi bi-download me-2"></i>
                                         Install Sekarang
                                     </button>
                                     <button class="btn btn-outline-secondary" id="showInstructionsBtn">
-                                        <i class="fas fa-question-circle me-2"></i>
+                                        <i class="bi bi-question-circle me-2"></i>
                                         Lihat Panduan Install
                                     </button>
                                 </div>
@@ -63,7 +63,7 @@
                         <div class="card h-100 border-0 shadow-sm">
                             <div class="card-body text-center p-4">
                                 <div class="feature-icon bg-primary bg-opacity-10 rounded-circle p-3 d-inline-flex mb-3">
-                                    <i class="fas fa-bolt text-primary fa-2x"></i>
+                                    <i class="bi bi-lightning-charge text-primary fs-3"></i>
                                 </div>
                                 <h5 class="fw-bold mb-2">Performa Tinggi</h5>
                                 <p class="text-muted small mb-0">Loading lebih cepat dengan teknologi caching modern</p>
@@ -75,7 +75,7 @@
                         <div class="card h-100 border-0 shadow-sm">
                             <div class="card-body text-center p-4">
                                 <div class="feature-icon bg-success bg-opacity-10 rounded-circle p-3 d-inline-flex mb-3">
-                                    <i class="fas fa-wifi text-success fa-2x"></i>
+                                    <i class="bi bi-wifi text-success fs-3"></i>
                                 </div>
                                 <h5 class="fw-bold mb-2">Offline Ready</h5>
                                 <p class="text-muted small mb-0">Tetap dapat mengakses data saat tidak ada koneksi</p>
@@ -87,7 +87,7 @@
                         <div class="card h-100 border-0 shadow-sm">
                             <div class="card-body text-center p-4">
                                 <div class="feature-icon bg-info bg-opacity-10 rounded-circle p-3 d-inline-flex mb-3">
-                                    <i class="fas fa-mobile-alt text-info fa-2x"></i>
+                                    <i class="bi bi-phone text-info fs-3"></i>
                                 </div>
                                 <h5 class="fw-bold mb-2">Responsive</h5>
                                 <p class="text-muted small mb-0">Tampilan sempurna di semua perangkat</p>
@@ -100,7 +100,7 @@
                 <div class="card border-0 shadow-sm mb-4">
                     <div class="card-header bg-white border-0 pt-4">
                         <h5 class="fw-bold mb-0">
-                            <i class="fas fa-info-circle text-primary me-2"></i>
+                            <i class="bi bi-info-circle text-primary me-2"></i>
                             Persyaratan Sistem
                         </h5>
                     </div>
@@ -108,7 +108,7 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <h6 class="fw-bold mb-3">
-                                    <i class="fab fa-android text-success me-2"></i>
+                                    <i class="bi bi-android2 text-success me-2"></i>
                                     Android
                                 </h6>
                                 <ul class="small text-muted">
@@ -120,7 +120,7 @@
                             </div>
                             <div class="col-md-6">
                                 <h6 class="fw-bold mb-3">
-                                    <i class="fab fa-apple text-dark me-2"></i>
+                                    <i class="bi bi-apple text-dark me-2"></i>
                                     iOS / iPadOS
                                 </h6>
                                 <ul class="small text-muted">
@@ -133,7 +133,7 @@
                         <div class="row mt-3">
                             <div class="col-12">
                                 <h6 class="fw-bold mb-3">
-                                    <i class="fas fa-desktop text-primary me-2"></i>
+                                    <i class="bi bi-display text-primary me-2"></i>
                                     Desktop
                                 </h6>
                                 <ul class="small text-muted">
@@ -150,7 +150,7 @@
                 <div class="card border-0 shadow-sm">
                     <div class="card-header bg-white border-0 pt-4">
                         <h5 class="fw-bold mb-0">
-                            <i class="fas fa-question-circle text-primary me-2"></i>
+                            <i class="bi bi-question-circle text-primary me-2"></i>
                             Pertanyaan Umum (FAQ)
                         </h5>
                     </div>

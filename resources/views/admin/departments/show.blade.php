@@ -11,10 +11,10 @@
                 </div>
                 <div class="col text-end">
                     <a href="{{ route('admin.departments.index') }}" class="btn btn-outline-secondary me-2">
-                        <i class="fas fa-arrow-left me-1"></i> Back to Departments
+                        <i class="bi bi-arrow-left me-1"></i> Back to Departments
                     </a>
                     <a href="{{ route('admin.departments.edit', $department) }}" class="btn btn-primary">
-                        <i class="fas fa-edit me-1"></i> Edit Department
+                        <i class="bi bi-pencil-square me-1"></i> Edit Department
                     </a>
                 </div>
             </div>
@@ -98,7 +98,7 @@
                                 <td>{{ $user->role->name ?? 'No Role' }}</td>
                                 <td>
                                     <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-sm btn-outline-secondary">
-                                        <i class="fas fa-user-edit me-1"></i> Edit User
+                                        <i class="bi bi-person-gear me-1"></i> Edit User
                                     </a>
                                 </td>
                             </tr>
@@ -108,14 +108,14 @@
                 </div>
             @else
                 <div class="alert alert-info">
-                    <i class="fas fa-info-circle me-2"></i> No users are assigned to this department.
+                    <i class="bi bi-info-circle me-2"></i> No users are assigned to this department.
                 </div>
             @endif
         </div>
         <div class="card-footer bg-white py-3">
             <div class="d-flex justify-content-end">
                 <a href="{{ route('admin.departments.edit', $department) }}" class="btn btn-primary">
-                    <i class="fas fa-edit me-1"></i> Edit Department
+                    <i class="bi bi-pencil-square me-1"></i> Edit Department
                 </a>
             </div>
         </div>

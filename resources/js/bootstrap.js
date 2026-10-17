@@ -20,8 +20,5 @@ if (csrfToken) {
     console.error('CSRF token not found: https://laravel.com/docs/csrf#csrf-x-csrf-token');
 }
 
-/**
- * Initialize Bootstrap
- */
-import * as bootstrap from 'bootstrap';
-window.bootstrap = bootstrap; 
+// Bootstrap JS dimuat sekali sebagai script klasik dari public/vendor (layout).
+// Jangan import 'bootstrap' di sini: dua salinan membuat dropdown/modal terbuka lalu langsung tertutup.

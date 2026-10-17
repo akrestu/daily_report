@@ -11,7 +11,7 @@
                 </div>
                 <div class="col text-end">
                     <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-left me-1"></i> Back to Users
+                        <i class="bi bi-arrow-left me-1"></i> Back to Users
                     </a>
                 </div>
             </div>
@@ -116,14 +116,14 @@
                 <!-- Replace welcome email checkbox with notification info -->
                 <div class="mb-3">
                     <div class="alert alert-info small">
-                        <i class="fas fa-info-circle me-1"></i> New users will automatically receive a welcome notification.
+                        <i class="bi bi-info-circle me-1"></i> New users will automatically receive a welcome notification.
                     </div>
                 </div>
                 
                 <div class="d-flex justify-content-end gap-2 mt-4">
                     <button type="reset" class="btn btn-secondary">Reset</button>
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save me-1"></i> Create User
+                        <i class="bi bi-floppy me-1"></i> Create User
                     </button>
                 </div>
             </form>

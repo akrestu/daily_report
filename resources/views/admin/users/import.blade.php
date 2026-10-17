@@ -10,7 +10,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">Import Users from Excel</h5>
                         <a href="{{ route('admin.users.index') }}" class="btn btn-sm btn-secondary">
-                            <i class="fas fa-arrow-left me-1"></i> Back to Users
+                            <i class="bi bi-arrow-left me-1"></i> Back to Users
                         </a>
                     </div>
                 </div>
@@ -46,7 +46,7 @@
                         </div>
 
                         <div class="alert alert-info">
-                            <h6 class="alert-heading"><i class="fas fa-info-circle me-2"></i>Import Guidelines</h6>
+                            <h6 class="alert-heading"><i class="bi bi-info-circle me-2"></i>Import Guidelines</h6>
                             <p>The Excel file should have the following columns with a header row:</p>
                             <ul class="mb-1">
                                 <li><strong>name</strong> (required): User's full name</li>
@@ -58,13 +58,13 @@
                                 <li><strong>email_verified</strong> (optional): Set to "Yes" for verified emails</li>
                             </ul>
                             <a href="{{ route('admin.users.export-template') }}" class="btn btn-sm btn-outline-primary mt-2">
-                                <i class="fas fa-download me-1"></i> Download Template
+                                <i class="bi bi-download me-1"></i> Download Template
                             </a>
                         </div>
 
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-file-import me-1"></i> Import Users
+                                <i class="bi bi-box-arrow-in-down me-1"></i> Import Users
                             </button>
                         </div>
                     </form>

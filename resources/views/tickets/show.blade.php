@@ -11,13 +11,13 @@
         <div class="col-lg-8">
             @if(session('success'))
                 <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+                    <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             @endif
             @if(session('error'))
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+                    <i class="bi bi-exclamation-circle me-2"></i>{{ session('error') }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             @endif
@@ -48,14 +48,14 @@
                     <div class="d-flex gap-1">
                         <a href="{{ auth()->user()->can('viewAny', App\Models\Ticket::class) ? route('tickets.index') : route('tickets.mine') }}"
                             class="btn btn-sm btn-outline-secondary">
-                            <i class="fas fa-arrow-left me-1"></i>Kembali
+                            <i class="bi bi-arrow-left me-1"></i>Kembali
                         </a>
                         @can('delete', $ticket)
                         <form action="{{ route('tickets.destroy', $ticket) }}" method="POST"
                             onsubmit="return confirm('Hapus tiket ini?')">
                             @csrf @method('DELETE')
                             <button type="submit" class="btn btn-sm btn-outline-danger">
-                                <i class="fas fa-trash"></i>
+                                <i class="bi bi-trash3"></i>
                             </button>
                         </form>
                         @endcan
@@ -89,14 +89,14 @@
                         <p class="fw-semibold small text-uppercase text-muted mb-1">Lampiran</p>
                         <a href="{{ route('tickets.attachment', $ticket) }}" target="_blank"
                             class="btn btn-sm btn-outline-primary">
-                            <i class="fas fa-paperclip me-1"></i>{{ $ticket->attachment_original_name ?? 'Lihat Lampiran' }}
+                            <i class="bi bi-paperclip me-1"></i>{{ $ticket->attachment_original_name ?? 'Lihat Lampiran' }}
                         </a>
                     </div>
                     @endif
 
                     @if($isStaff && $ticket->jobPlan)
                     <div class="alert alert-success d-flex align-items-start gap-2 mb-0">
-                        <i class="fas fa-link mt-1"></i>
+                        <i class="bi bi-link-45deg mt-1"></i>
                         <div>
                             <div class="fw-semibold">Job Plan Terhubung</div>
                             <div class="small">
@@ -108,7 +108,7 @@
                             </div>
                             <a href="{{ route('job-plans.show', $ticket->job_plan_id) }}"
                                 class="btn btn-sm btn-success mt-1">
-                                <i class="fas fa-external-link-alt me-1"></i>Lihat Job Plan
+                                <i class="bi bi-box-arrow-up-right me-1"></i>Lihat Job Plan
                             </a>
                         </div>
                     </div>
@@ -119,7 +119,7 @@
             {{-- Komentar --}}
             <div class="card shadow-sm border-0">
                 <div class="card-header bg-white py-3">
-                    <h6 class="mb-0 fw-bold"><i class="fas fa-comments text-primary me-2"></i>Komentar</h6>
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-chat-left-text text-primary me-2"></i>Komentar</h6>
                     @if($isStaff)
                         <div class="text-muted small">Balasan biasa terlihat oleh pemohon. Centang "catatan internal" untuk catatan tim IT saja.</div>
                     @endif
@@ -142,13 +142,13 @@
                             @if($isStaff)
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" name="is_internal" value="1" id="is_internal">
-                                    <label class="form-check-label small" for="is_internal"><i class="fas fa-lock me-1"></i>Catatan internal</label>
+                                    <label class="form-check-label small" for="is_internal"><i class="bi bi-lock me-1"></i>Catatan internal</label>
                                 </div>
                             @else
                                 <span></span>
                             @endif
                             <button type="submit" class="btn btn-primary btn-sm">
-                                <i class="fas fa-paper-plane me-1"></i>Kirim
+                                <i class="bi bi-send me-1"></i>Kirim
                             </button>
                         </div>
                     </form>
@@ -167,7 +167,7 @@
             {{-- Info Pemohon --}}
             <div class="card shadow-sm border-0 mb-3">
                 <div class="card-header bg-white py-3">
-                    <h6 class="mb-0 fw-bold"><i class="fas fa-user text-primary me-2"></i>Informasi Pemohon</h6>
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-person text-primary me-2"></i>Informasi Pemohon</h6>
                 </div>
                 <div class="card-body">
                     <dl class="row mb-0 small">
@@ -187,7 +187,7 @@
                         <dd class="col-7">
                             <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $ticket->requester_phone) }}"
                                 target="_blank" class="text-success">
-                                <i class="fab fa-whatsapp me-1"></i>{{ $ticket->requester_phone }}
+                                <i class="bi bi-whatsapp me-1"></i>{{ $ticket->requester_phone }}
                             </a>
                         </dd>
                         @endif
@@ -208,7 +208,7 @@
             <div class="card shadow-sm border-0 mb-3">
                 <div class="card-header bg-white py-3">
                     <h6 class="mb-0 fw-bold">
-                        <i class="fas fa-user-plus text-success me-2"></i>{{ $ticket->assigned_to ? 'Alihkan Penanganan' : 'Assign & Buat Job Plan' }}
+                        <i class="bi bi-person-plus text-success me-2"></i>{{ $ticket->assigned_to ? 'Alihkan Penanganan' : 'Assign & Buat Job Plan' }}
                     </h6>
                 </div>
                 <div class="card-body">
@@ -240,7 +240,7 @@
                         </div>
 
                         <div class="alert alert-light border small py-2 mb-3">
-                            <i class="fas fa-info-circle text-primary me-1"></i>
+                            <i class="bi bi-info-circle text-primary me-1"></i>
                             @if($ticket->assigned_to)
                                 Job Plan yang masih aktif akan dipindahkan ke anggota yang dipilih.
                             @else
@@ -249,7 +249,7 @@
                         </div>
 
                         <button type="submit" class="btn btn-success btn-sm w-100">
-                            <i class="fas fa-check me-1"></i>{{ $ticket->assigned_to ? 'Alihkan' : 'Assign & Buat Job Plan' }}
+                            <i class="bi bi-check-lg me-1"></i>{{ $ticket->assigned_to ? 'Alihkan' : 'Assign & Buat Job Plan' }}
                         </button>
                     </form>
                 </div>
@@ -260,7 +260,7 @@
             @if(count($transitions) > 0)
             <div class="card shadow-sm border-0 mb-3">
                 <div class="card-header bg-white py-3">
-                    <h6 class="mb-0 fw-bold"><i class="fas fa-sync-alt text-warning me-2"></i>Ubah Status</h6>
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-arrow-repeat text-warning me-2"></i>Ubah Status</h6>
                 </div>
                 <div class="card-body">
                     <form action="{{ route('tickets.update-status', $ticket) }}" method="POST">
@@ -277,7 +277,7 @@
                             placeholder="Catatan (opsional)">{{ old('note') }}</textarea>
                         <div class="form-text mb-2" id="statusNoteHelp"></div>
                         <button type="submit" class="btn btn-warning btn-sm text-dark w-100">
-                            <i class="fas fa-save me-1"></i>Simpan Status
+                            <i class="bi bi-floppy me-1"></i>Simpan Status
                         </button>
                     </form>
                 </div>
@@ -287,7 +287,7 @@
             @if($isStaff && $ticket->csat_rating)
             <div class="card shadow-sm border-0 mb-3">
                 <div class="card-body small">
-                    <div class="fw-bold mb-1"><i class="fas fa-star text-warning me-1"></i>Penilaian Pemohon</div>
+                    <div class="fw-bold mb-1"><i class="bi bi-star-fill text-warning me-1"></i>Penilaian Pemohon</div>
                     <div class="fs-5 text-warning">{!! str_repeat('&#9733;', $ticket->csat_rating) !!}<span class="text-muted">{!! str_repeat('&#9733;', 5 - $ticket->csat_rating) !!}</span></div>
                     @if($ticket->csat_comment)
                         <div class="bg-light rounded p-2 mt-1" style="white-space:pre-wrap">{{ $ticket->csat_comment }}</div>
@@ -300,7 +300,7 @@
             {{-- Riwayat --}}
             <div class="card shadow-sm border-0">
                 <div class="card-header bg-white py-3">
-                    <h6 class="mb-0 fw-bold"><i class="fas fa-history text-primary me-2"></i>Riwayat</h6>
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-clock-history text-primary me-2"></i>Riwayat</h6>
                     <div class="small text-muted">Ditangani: <strong>{{ $ticket->assignedUser->name ?? '—' }}</strong></div>
                 </div>
                 <div class="card-body">

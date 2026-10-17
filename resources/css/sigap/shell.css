@@ -1,0 +1,145 @@
+/* =========================================================================
+   SiGAP — app shell: sidebar (desktop) · rail (tablet / diciutkan) · app bar + bottom nav (mobile)
+   Rujukan: design/mockups/dc-source/Sidebar.dc.html, BottomNav.dc.html, DashTablet.dc.html
+   ========================================================================= */
+
+.sg-app { min-height: 100vh; background: var(--sg-bg); }
+.sg-skip { position: absolute; left: 8px; top: -60px; z-index: 2000; padding: 10px 14px; border-radius: 8px; background: var(--sg-primary); color: var(--sg-on-primary); }
+.sg-skip:focus { top: 8px; }
+
+/* ---------- Sidebar / rail ---------- */
+.sg-sidebar { position: fixed; inset: 0 auto 0 0; z-index: 1035; display: none; flex-direction: column; width: 248px;
+  background: var(--sg-surface); border-right: 1px solid var(--sg-border); padding: 16px 12px; }
+.sg-sidebar__brand { display: flex; align-items: center; gap: 10px; padding: 4px 8px 16px; }
+.sg-sidebar__brand img { width: 32px; height: 32px; }
+.sg-sidebar__name { font-family: var(--sg-font-heading); font-weight: 800; font-size: 20px; letter-spacing: -.02em; color: var(--sg-text); text-decoration: none; }
+.sg-sidebar__toggle { margin-left: auto; width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--sg-border); background: transparent;
+  color: var(--sg-muted); display: inline-flex; align-items: center; justify-content: center; }
+.sg-sidebar__nav { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; margin: 0 -4px; padding: 0 4px; }
+.sg-sidebar__group { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--sg-muted); padding: 16px 12px 6px; }
+.sg-nav-item { position: relative; display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border-radius: 8px;
+  color: var(--sg-text); font-size: 14px; font-weight: 500; text-decoration: none; }
+.sg-nav-item .bi { font-size: 18px; color: var(--sg-muted); flex: none; }
+.sg-nav-item:hover { background: var(--sg-surface-2); color: var(--sg-text); }
+.sg-nav-item.active { background: var(--sg-accent-tint); font-weight: 600; }
+.sg-nav-item.active .bi { color: var(--sg-text); }
+[data-bs-theme="dark"] .sg-nav-item.active, [data-bs-theme="dark"] .sg-nav-item.active .bi { color: var(--sg-accent); }
+.sg-nav-item__label { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sg-count { min-width: 22px; height: 20px; padding: 0 6px; border-radius: 10px; background: #DC2626; color: #fff; font-size: 12px; font-weight: 700;
+  display: inline-flex; align-items: center; justify-content: center; font-variant-numeric: tabular-nums; }
+.sg-sidebar__fab { display: none; align-items: center; justify-content: center; width: 56px; height: 56px; margin: 0 auto 10px; border-radius: 18px;
+  background: #111111; color: var(--sg-accent); font-size: 26px; text-decoration: none; box-shadow: 0 6px 16px rgba(17, 17, 17, .2); }
+.sg-sidebar__fab:hover { color: var(--sg-accent); }
+.sg-sidebar__user { display: flex; align-items: center; gap: 10px; padding: 12px 8px 0; margin-top: 8px; border-top: 1px solid var(--sg-border); }
+.sg-sidebar__user-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+@media (min-width: 576px) {
+  .sg-sidebar { display: flex; }
+  .sg-main { margin-left: 248px; }
+}
+
+/* Rail 80px: tablet, atau desktop saat diciutkan (kelas .sg-collapsed di <html>) */
+@media (min-width: 576px) and (max-width: 991.98px) {
+  .sg-sidebar { width: 80px; padding: 12px 6px; }
+  .sg-main { margin-left: 80px; }
+  .sg-sidebar .sg-sidebar__name, .sg-sidebar .sg-sidebar__group, .sg-sidebar .sg-sidebar__user-meta, .sg-sidebar .sg-sidebar__toggle { display: none; }
+  .sg-sidebar .sg-sidebar__brand { justify-content: center; padding: 4px 0 12px; }
+  .sg-sidebar .sg-sidebar__fab { display: flex; }
+  .sg-sidebar .sg-nav-item { flex-direction: column; justify-content: center; gap: 2px; min-height: 56px; padding: 6px 2px; font-size: 11px; font-weight: 600; text-align: center; }
+  .sg-sidebar .sg-nav-item__label { flex: none; white-space: normal; overflow: visible; line-height: 1.15; }
+  .sg-sidebar .sg-nav-item .bi { font-size: 22px; }
+  .sg-sidebar .sg-count { position: absolute; top: 4px; right: 8px; min-width: 18px; height: 18px; font-size: 11px; }
+  .sg-sidebar .sg-sidebar__user { justify-content: center; padding: 10px 0 0; }
+}
+@media (min-width: 992px) {
+  .sg-collapsed .sg-sidebar { width: 80px; padding: 12px 6px; }
+  .sg-collapsed .sg-main { margin-left: 80px; }
+  .sg-collapsed .sg-sidebar .sg-sidebar__name, .sg-collapsed .sg-sidebar .sg-sidebar__group, .sg-collapsed .sg-sidebar .sg-sidebar__user-meta { display: none; }
+  .sg-collapsed .sg-sidebar .sg-sidebar__brand { flex-direction: column; padding: 4px 0 12px; }
+  .sg-collapsed .sg-sidebar .sg-sidebar__toggle { margin: 8px 0 0; }
+  .sg-collapsed .sg-sidebar .sg-nav-item { flex-direction: column; justify-content: center; gap: 2px; min-height: 56px; padding: 6px 2px; font-size: 11px; font-weight: 600; text-align: center; }
+  .sg-collapsed .sg-sidebar .sg-nav-item__label { flex: none; white-space: normal; overflow: visible; line-height: 1.15; }
+  .sg-collapsed .sg-sidebar .sg-nav-item .bi { font-size: 22px; }
+  .sg-collapsed .sg-sidebar .sg-count { position: absolute; top: 4px; right: 8px; min-width: 18px; height: 18px; font-size: 11px; }
+  .sg-collapsed .sg-sidebar .sg-sidebar__user { justify-content: center; padding: 10px 0 0; }
+}
+
+/* ---------- App bar (mobile & tablet) ---------- */
+.sg-appbar { position: sticky; top: 0; z-index: 1030; display: flex; align-items: center; gap: 4px; min-height: 56px;
+  padding: env(safe-area-inset-top) 8px 0 16px; background: var(--sg-surface); border-bottom: 1px solid var(--sg-border); }
+.sg-appbar__title { flex: 1; min-width: 0; margin: 0; font-size: 18px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sg-icon-btn { position: relative; width: 44px; height: 44px; border-radius: 12px; border: 0; background: transparent; color: var(--sg-text);
+  display: inline-flex; align-items: center; justify-content: center; font-size: 22px; text-decoration: none; }
+.sg-icon-btn:hover { background: var(--sg-surface-2); color: var(--sg-text); }
+.sg-icon-btn .sg-count { position: absolute; top: 4px; right: 2px; min-width: 18px; height: 18px; font-size: 11px; border: 2px solid var(--sg-surface); }
+
+/* ---------- Topbar (desktop) ---------- */
+.sg-topbar { position: sticky; top: 0; z-index: 1030; display: none; align-items: center; gap: 12px; height: 64px; padding: 0 28px;
+  background: var(--sg-surface); border-bottom: 1px solid var(--sg-border); }
+@media (min-width: 992px) { .sg-topbar { display: flex; } .sg-appbar { display: none; } }
+.sg-topbar__crumbs { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--sg-muted); }
+.sg-topbar__crumbs a { color: var(--sg-muted); text-decoration: none; }
+.sg-topbar__crumbs strong { color: var(--sg-text); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sg-user-btn { display: flex; align-items: center; gap: 10px; padding: 4px 10px 4px 4px; border-radius: 999px; border: 1px solid var(--sg-border);
+  background: var(--sg-surface); color: var(--sg-text); font-size: 14px; font-weight: 600; }
+.sg-user-btn:hover { background: var(--sg-surface-2); }
+
+/* ---------- Konten ---------- */
+.sg-content { padding: 16px 16px calc(104px + env(safe-area-inset-bottom)); }
+@media (min-width: 576px) { .sg-content { padding: 20px 24px 32px; } }
+@media (min-width: 992px) { .sg-content { padding: 24px 28px 40px; } }
+.sg-legacy-header { margin-bottom: 16px; }
+.sg-legacy-header h2 { font-size: 22px; font-weight: 800; margin: 0; color: var(--sg-text); }
+@media (max-width: 991.98px) { .sg-legacy-header h2 { display: none; } } /* judul sudah tampil di app bar */
+.sg-footer { padding: 16px; text-align: center; font-size: 13px; color: var(--sg-muted); }
+@media (max-width: 575.98px) { .sg-footer { display: none; } }
+
+/* ---------- Bottom nav (mobile) ---------- */
+.sg-bottom-nav { display: flex; align-items: flex-start; padding-left: 8px; padding-right: 8px; }
+@media (min-width: 576px) { .sg-bottom-nav { display: none; } }
+.sg-bottom-nav__item { position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  min-height: 56px; color: var(--sg-muted); font-size: 12px; font-weight: 600; text-decoration: none; background: none; border: 0; padding: 0; }
+.sg-bottom-nav__item .bi { font-size: 24px; line-height: 1; }
+.sg-bottom-nav__item.active { color: var(--sg-text); }
+[data-bs-theme="dark"] .sg-bottom-nav__item.active { color: var(--sg-accent); }
+.sg-bottom-nav__item.active::before { content: ""; position: absolute; top: 0; width: 28px; height: 3px; border-radius: 0 0 3px 3px; background: var(--sg-primary); }
+.sg-bottom-nav__item .sg-count { position: absolute; top: 4px; left: calc(50% + 6px); min-width: 18px; height: 18px; font-size: 11px; }
+.sg-bottom-nav__fab-wrap { flex: 1; display: flex; justify-content: center; }
+.sg-fab { display: flex; align-items: center; justify-content: center; font-size: 28px; text-decoration: none; }
+.sg-fab:hover { color: var(--sg-accent); }
+
+/* Layar tugas (punya sticky action bar): bottom nav disembunyikan, bar menempel di bawah layar */
+@media (max-width: 991.98px) {
+  .sg-app .sg-sticky-actions { position: fixed; left: 0; right: 0; bottom: 0; }
+  .sg-app:has(.sg-sticky-actions) .sg-content { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+}
+@media (min-width: 576px) and (max-width: 991.98px) { .sg-app .sg-sticky-actions { left: 80px; } }
+@media (max-width: 575.98px) { .sg-app:has(.sg-sticky-actions) .sg-bottom-nav { display: none; } }
+
+/* ---------- Notifikasi (dropdown desktop) ---------- */
+.sg-notif-menu { width: 380px; padding: 0; border-radius: var(--sg-radius-card); border-color: var(--sg-border); overflow: hidden; background: var(--sg-surface); }
+.sg-notif-menu__head { display: flex; align-items: center; gap: 4px; padding: 8px 8px 8px 14px; border-bottom: 1px solid var(--sg-border); }
+.sg-notif-menu__list { max-height: 420px; overflow-y: auto; }
+.sg-notif { display: flex; gap: 12px; width: 100%; padding: 12px 14px; border: 0; border-bottom: 1px solid var(--sg-border); background: var(--sg-surface);
+  color: var(--sg-text); text-align: left; font-size: 14px; }
+.sg-notif:hover { background: var(--sg-surface-2); }
+.sg-notif.is-unread { background: var(--sg-accent-tint); }
+.sg-notif__icon { width: 36px; height: 36px; flex: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+.sg-notif__icon--approved { background: var(--sg-success-bg); color: var(--sg-success-fg); }
+.sg-notif__icon--rejected { background: var(--sg-danger-bg); color: var(--sg-danger-fg); }
+.sg-notif__icon--pending { background: var(--sg-pending-bg); color: var(--sg-pending-fg); }
+.sg-notif__icon--info { background: var(--sg-surface-2); color: var(--sg-muted); }
+.sg-notif__time { font-size: 12px; color: var(--sg-muted); margin-top: 2px; }
+.sg-unread-dot { width: 10px; height: 10px; flex: none; align-self: center; border-radius: 50%; background: var(--sg-accent); box-shadow: 0 0 0 2px var(--sg-accent-border); }
+.sg-notif-menu__foot { display: block; padding: 10px; text-align: center; font-size: 14px; font-weight: 600; text-decoration: none; color: var(--sg-text); }
+
+/* ---------- Sheet "Lainnya" ---------- */
+.sg-more-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.sg-more-item { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 84px; padding: 8px 4px;
+  border-radius: 12px; background: var(--sg-surface-2); color: var(--sg-text); font-size: 13px; font-weight: 600; text-align: center; text-decoration: none; line-height: 1.2; }
+.sg-more-item:hover { color: var(--sg-text); }
+.sg-more-item .bi { font-size: 22px; }
+.sg-more-item.active { background: var(--sg-accent-tint); outline: 1px solid var(--sg-accent-border); }
+.sg-more-item .sg-count { position: absolute; top: 6px; right: 6px; }
+
+.sg-sidebar, .sg-main { transition: width var(--sg-motion), margin-left var(--sg-motion); }

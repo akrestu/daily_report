@@ -4,7 +4,7 @@
     @foreach(['success' => 'check-circle', 'error' => 'exclamation-circle', 'warning' => 'exclamation-triangle'] as $type => $icon)
         @if(session($type))
             <div class="alert alert-{{ $type === 'error' ? 'danger' : $type }} alert-dismissible fade show" role="alert">
-                <i class="fas fa-{{ $icon }} me-2"></i>{{ session($type) }}
+                <i class="bi bi-{{ $icon }} me-2" aria-hidden="true"></i>{{ session($type) }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         @endif
@@ -32,13 +32,13 @@
                 </div>
                 <div class="col-md-7 text-md-end">
                     <a href="{{ route('admin.employees.template') }}" class="btn btn-outline-secondary btn-sm">
-                        <i class="fas fa-download me-1"></i>Template Excel
+                        <i class="bi bi-download me-1"></i>Template Excel
                     </a>
                     <button type="button" class="btn btn-outline-success btn-sm" data-bs-toggle="collapse" data-bs-target="#importPanel">
-                        <i class="fas fa-file-import me-1"></i>Import
+                        <i class="bi bi-box-arrow-in-down me-1"></i>Import
                     </button>
                     <a href="{{ route('admin.employees.create') }}" class="btn btn-primary btn-sm">
-                        <i class="fas fa-plus me-1"></i>Tambah Karyawan
+                        <i class="bi bi-plus-lg me-1"></i>Tambah Karyawan
                     </a>
                 </div>
             </div>
@@ -57,7 +57,7 @@
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <button type="submit" class="btn btn-success btn-sm w-100"><i class="fas fa-upload me-1"></i>Upload &amp; Import</button>
+                            <button type="submit" class="btn btn-success btn-sm w-100"><i class="bi bi-upload me-1"></i>Upload &amp; Import</button>
                         </div>
                     </div>
                 </form>
@@ -121,13 +121,13 @@
                             </td>
                             <td class="text-end text-nowrap">
                                 <a href="{{ route('admin.employees.edit', $employee) }}" class="btn btn-outline-primary btn-sm" title="Edit">
-                                    <i class="fas fa-edit"></i>
+                                    <i class="bi bi-pencil-square"></i>
                                 </a>
                                 <form action="{{ route('admin.employees.destroy', $employee) }}" method="POST" class="d-inline"
                                     onsubmit="return confirm('Hapus karyawan ini? Karyawan dengan riwayat tiket akan dinonaktifkan.')">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-outline-danger btn-sm" title="Hapus"><i class="fas fa-trash"></i></button>
+                                    <button type="submit" class="btn btn-outline-danger btn-sm" title="Hapus"><i class="bi bi-trash3"></i></button>
                                 </form>
                             </td>
                         </tr>

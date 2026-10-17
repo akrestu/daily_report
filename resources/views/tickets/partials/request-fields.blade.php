@@ -1,5 +1,5 @@
     {{-- Detail Permintaan --}}
-    <p class="section-title"><i class="fas fa-clipboard-list me-1"></i>Detail Permintaan</p>
+    <p class="section-title"><i class="bi bi-clipboard-data me-1"></i>Detail Permintaan</p>
     <div class="row g-3 mb-4">
         <div class="col-12">
             <label class="form-label fw-semibold small d-block">Jenis Tiket <span class="text-danger">*</span></label>
@@ -57,7 +57,7 @@
         </div>
         <div class="col-12" id="approvalSection" style="display:none">
             <div class="alert alert-warning small mb-2">
-                <i class="fas fa-user-tie me-1"></i>
+                <i class="bi bi-person-badge me-1"></i>
                 Kategori ini memerlukan <strong>persetujuan atasan</strong>. Setelah tiket dibuat, cetak formulir persetujuan,
                 minta tanda tangan atasan, lalu unggah foto/scan formulir di halaman tiket.
             </div>

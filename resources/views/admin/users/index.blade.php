@@ -13,14 +13,14 @@
                     <div class="d-flex flex-wrap justify-content-center justify-content-md-end gap-2">
                         <div class="btn-group me-md-2 mb-2 mb-md-0">
                             <a href="{{ route('admin.users.export') }}" class="btn btn-outline-primary">
-                                <i class="fas fa-file-export me-1"></i> <span class="d-none d-sm-inline">Export</span>
+                                <i class="bi bi-box-arrow-up me-1"></i> <span class="d-none d-sm-inline">Export</span>
                             </a>
                             <a href="{{ route('admin.users.show-import') }}" class="btn btn-outline-success">
-                                <i class="fas fa-file-import me-1"></i> <span class="d-none d-sm-inline">Import</span>
+                                <i class="bi bi-box-arrow-in-down me-1"></i> <span class="d-none d-sm-inline">Import</span>
                             </a>
                         </div>
                         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createUserModal">
-                            <i class="fas fa-user-plus me-1"></i> <span class="d-none d-sm-inline">New User</span>
+                            <i class="bi bi-person-plus me-1"></i> <span class="d-none d-sm-inline">New User</span>
                         </button>
                     </div>
                 </div>
@@ -33,7 +33,7 @@
                     <div class="col-12 col-md-3">
                         <div class="input-group">
                             <span class="input-group-text bg-light">
-                                <i class="fas fa-search"></i>
+                                <i class="bi bi-search"></i>
                             </span>
                             <input type="text" name="search" class="form-control" placeholder="Search..." value="{{ request('search') }}">
                         </div>
@@ -57,10 +57,10 @@
                     <div class="col-12 col-md-3">
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-primary flex-grow-1">
-                                <i class="fas fa-filter me-1"></i> <span class="d-none d-sm-inline">Filter</span>
+                                <i class="bi bi-funnel me-1"></i> <span class="d-none d-sm-inline">Filter</span>
                             </button>
                             <a href="{{ route('admin.users.index') }}" class="btn btn-secondary flex-grow-1">
-                                <i class="fas fa-redo-alt me-1"></i> <span class="d-none d-sm-inline">Reset</span>
+                                <i class="bi bi-arrow-clockwise me-1"></i> <span class="d-none d-sm-inline">Reset</span>
                             </a>
                         </div>
                     </div>
@@ -150,7 +150,7 @@
                                                 data-user-department="{{ $user->department_id }}"
                                                 data-user-jobsite="{{ $user->job_site_id }}"
                                                 data-user-userid="{{ $user->user_id }}">
-                                            <i class="fas fa-edit"></i>
+                                            <i class="bi bi-pencil-square"></i>
                                         </button>
                                         @if(auth()->id() !== $user->id)
                                         <button type="button" class="btn btn-sm btn-outline-danger user-delete-btn" 
@@ -158,7 +158,7 @@
                                                 data-bs-target="#deleteUserModal" 
                                                 data-user-id="{{ $user->id }}" 
                                                 data-user-name="{{ $user->name }}">
-                                            <i class="fas fa-trash"></i>
+                                            <i class="bi bi-trash3"></i>
                                         </button>
                                         @endif
                                     </div>
@@ -171,7 +171,7 @@
                     <div class="mt-3 d-flex justify-content-between align-items-center">
                         <div>
                             <button type="button" class="btn btn-danger bulk-delete-btn" disabled data-bs-toggle="modal" data-bs-target="#bulkDeleteModal">
-                                <i class="fas fa-trash me-1"></i> Delete Selected
+                                <i class="bi bi-trash3 me-1"></i> Delete Selected
                             </button>
                         </div>
                         <div>
@@ -193,7 +193,7 @@
                             <label class="form-check-label" for="mobileSelectAll">Select All</label>
                         </div>
                         <button type="button" class="btn btn-danger btn-sm mobile-bulk-delete-btn" disabled data-bs-toggle="modal" data-bs-target="#bulkDeleteModal">
-                            <i class="fas fa-trash me-1"></i> Delete
+                            <i class="bi bi-trash3 me-1"></i> Delete
                         </button>
                     </div>
                     
@@ -220,13 +220,13 @@
                                     <div class="row g-2 mb-3">
                                         <div class="col-6">
                                             <div class="d-flex align-items-center">
-                                                <i class="fas fa-user-tag text-primary me-2 small"></i>
+                                                <i class="bi bi-person-vcard text-primary me-2 small"></i>
                                                 <span class="small text-truncate">{{ $user->role->name ?? 'No Role' }}</span>
                                             </div>
                                         </div>
                                         <div class="col-6">
                                             <div class="d-flex align-items-center">
-                                                <i class="fas fa-building text-primary me-2 small"></i>
+                                                <i class="bi bi-building text-primary me-2 small"></i>
                                                 <span class="small text-truncate">{{ $user->department->name ?? 'No Department' }}</span>
                                             </div>
                                         </div>
@@ -253,7 +253,7 @@
                                                 data-user-department="{{ $user->department_id }}"
                                                 data-user-jobsite="{{ $user->job_site_id }}"
                                                 data-user-userid="{{ $user->user_id }}">
-                                                <i class="fas fa-edit me-1"></i> Edit
+                                                <i class="bi bi-pencil-square me-1"></i> Edit
                                             </button>
                                             @if(auth()->id() !== $user->id)
                                             <button type="button" class="btn btn-sm btn-outline-danger user-delete-btn" 
@@ -261,7 +261,7 @@
                                                 data-bs-target="#deleteUserModal" 
                                                 data-user-id="{{ $user->id }}" 
                                                 data-user-name="{{ $user->name }}">
-                                                <i class="fas fa-trash me-1"></i> Delete
+                                                <i class="bi bi-trash3 me-1"></i> Delete
                                             </button>
                                             @endif
                                         </div>
@@ -279,7 +279,7 @@
             </div>
             @else
             <div class="alert alert-info">
-                <i class="fas fa-info-circle me-2"></i> No users found matching your criteria.
+                <i class="bi bi-info-circle me-2"></i> No users found matching your criteria.
             </div>
             @endif
         </div>
@@ -351,7 +351,7 @@
                                 <div class="input-group">
                                     <input type="password" class="form-control" id="password" name="password" required>
                                     <button class="btn btn-outline-secondary toggle-password" type="button" data-target="password">
-                                        <i class="fas fa-eye"></i>
+                                        <i class="bi bi-eye"></i>
                                     </button>
                                 </div>
                             </div>
@@ -360,14 +360,14 @@
                                 <div class="input-group">
                                     <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" required>
                                     <button class="btn btn-outline-secondary toggle-password" type="button" data-target="password_confirmation">
-                                        <i class="fas fa-eye"></i>
+                                        <i class="bi bi-eye"></i>
                                     </button>
                                 </div>
                             </div>
                         </div>
                         <div class="mb-3">
                             <div class="alert alert-info small">
-                                <i class="fas fa-info-circle me-1"></i> New users will automatically receive a welcome notification.
+                                <i class="bi bi-info-circle me-1"></i> New users will automatically receive a welcome notification.
                             </div>
                         </div>
                     </div>
@@ -445,7 +445,7 @@
                                 <div class="input-group">
                                     <input type="password" class="form-control" id="edit_password" name="password">
                                     <button class="btn btn-outline-secondary toggle-password" type="button" data-target="edit_password">
-                                        <i class="fas fa-eye"></i>
+                                        <i class="bi bi-eye"></i>
                                     </button>
                                 </div>
                             </div>
@@ -562,8 +562,8 @@
                     passwordInput.setAttribute('type', type);
                     
                     // Toggle the icon
-                    this.querySelector('i').classList.toggle('fa-eye');
-                    this.querySelector('i').classList.toggle('fa-eye-slash');
+                    this.querySelector('i').classList.toggle('bi-eye');
+                    this.querySelector('i').classList.toggle('bi-eye-slash');
                 });
             });
             

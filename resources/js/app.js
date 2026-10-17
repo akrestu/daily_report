@@ -1,10 +1,9 @@
 import './bootstrap';
 import Alpine from 'alpinejs';
-import Chart from 'chart.js/auto';
 import { Workbox } from 'workbox-window';
+import { registerSigap } from './sigap';
 
-// Make Chart.js available globally
-window.Chart = Chart;
+// Bootstrap JS & Chart.js dimuat sebagai script klasik dari public/vendor (lihat scripts/copy-vendor.mjs)
 
 // ===== AGGRESSIVE PWA CACHE CLEARING =====
 // This ensures old cached icons and assets are removed immediately
@@ -41,6 +40,7 @@ if ('caches' in window) {
 if (!window.__alpine_was_already_initialized) {
     window.Alpine = Alpine;
     window.__alpine_was_already_initialized = true;
+    registerSigap(Alpine);
     console.log('Alpine.js first initialization marked');
     Alpine.start();
 } else {

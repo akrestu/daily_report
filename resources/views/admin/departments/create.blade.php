@@ -11,7 +11,7 @@
                 </div>
                 <div class="col text-end">
                     <a href="{{ route('admin.departments.index') }}" class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-left me-1"></i> Back to Departments
+                        <i class="bi bi-arrow-left me-1"></i> Back to Departments
                     </a>
                 </div>
             </div>
@@ -52,7 +52,7 @@
                 <div class="d-flex justify-content-end gap-2 mt-4">
                     <button type="reset" class="btn btn-secondary">Reset</button>
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save me-1"></i> Create Department
+                        <i class="bi bi-floppy me-1"></i> Create Department
                     </button>
                 </div>
             </form>

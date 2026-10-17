@@ -27,7 +27,7 @@
             </div>
             <div class="modal-body">
                 <div class="d-flex align-items-center">
-                    <i class="fas fa-exclamation-circle text-warning me-3" style="font-size: 1.5rem;"></i>
+                    <i class="bi bi-exclamation-circle text-warning me-3" style="font-size: 1.5rem;"></i>
                     <p id="alertMessage" class="mb-0"></p>
                 </div>
             </div>
@@ -48,7 +48,7 @@
             </div>
             <div class="modal-body">
                 <div class="d-flex align-items-center">
-                    <i id="notificationIcon" class="fas me-3" style="font-size: 1.5rem;"></i>
+                    <i id="notificationIcon" class="bi me-3" style="font-size: 1.5rem;"></i>
                     <p id="notificationMessage" class="mb-0"></p>
                 </div>
             </div>
@@ -69,7 +69,7 @@
             </div>
             <div class="modal-body">
                 <div class="d-flex align-items-center">
-                    <i class="fas fa-trash-alt text-danger me-3" style="font-size: 1.5rem;"></i>
+                    <i class="bi bi-trash3 text-danger me-3" style="font-size: 1.5rem;"></i>
                     <div>
                         <p id="deleteMessage" class="mb-1">Are you sure you want to delete this item?</p>
                         <p class="text-muted small mb-0">This action cannot be undone.</p>
@@ -123,19 +123,19 @@
             
             @if(session('success'))
                 notificationTitle.textContent = 'Success';
-                notificationIcon.className = 'fas fa-check-circle text-success me-3';
+                notificationIcon.className = 'bi bi-check-circle text-success me-3';
                 notificationMessage.textContent = "{{ session('success') }}";
             @elseif(session('error'))
                 notificationTitle.textContent = 'Error';
-                notificationIcon.className = 'fas fa-times-circle text-danger me-3';
+                notificationIcon.className = 'bi bi-x-circle text-danger me-3';
                 notificationMessage.textContent = "{{ session('error') }}";
             @elseif(session('warning'))
                 notificationTitle.textContent = 'Warning';
-                notificationIcon.className = 'fas fa-exclamation-triangle text-warning me-3';
+                notificationIcon.className = 'bi bi-exclamation-triangle text-warning me-3';
                 notificationMessage.textContent = "{{ session('warning') }}";
             @elseif(session('info'))
                 notificationTitle.textContent = 'Information';
-                notificationIcon.className = 'fas fa-info-circle text-info me-3';
+                notificationIcon.className = 'bi bi-info-circle text-info me-3';
                 notificationMessage.textContent = "{{ session('info') }}";
             @endif
             

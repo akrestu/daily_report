@@ -1,0 +1,64 @@
+/* Login — gaya khusus (foto tambang, input krem r16, tombol pill). Plus Jakarta Sans saja.
+   Mockup: LoginMobile.dc.html (390) & LoginDesktop.dc.html (≥992) */
+.sg-login { --lg-ink: #141414; --lg-muted: #5F5A51; --lg-field: #F5F3EE; --lg-line: #E7E3DA;
+  min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; background: #fff; color: var(--lg-ink); font-family: var(--sg-font-heading); }
+[data-bs-theme="dark"] .sg-login { --lg-ink: #F1F5F9; --lg-muted: #9AA8BD; --lg-field: #1A2540; --lg-line: #26324A; background: var(--sg-surface); }
+
+.sg-login__hero { position: relative; isolation: isolate; height: 300px; flex: none; padding: calc(24px + env(safe-area-inset-top)) 20px 24px;
+  display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; }
+.sg-login__photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 62% 55%; z-index: -2; }
+.sg-login__hero::after { content: ""; position: absolute; inset: 0; z-index: -1;
+  background: linear-gradient(180deg, rgba(10,10,10,.30) 0%, rgba(255,255,255,0) 40%, rgba(255,255,255,.85) 85%, #fff 100%); }
+[data-bs-theme="dark"] .sg-login__hero::after { background: linear-gradient(180deg, rgba(10,10,10,.30) 0%, rgba(17,26,46,0) 40%, rgba(17,26,46,.85) 85%, var(--sg-surface) 100%); }
+.sg-login__brand { align-self: flex-start; display: inline-flex; align-items: center; gap: 10px; padding: 6px 14px 6px 6px; border-radius: 999px;
+  background: rgba(255,255,255,.92); color: #141414; font-size: 12px; font-weight: 800; letter-spacing: .1em; }
+.sg-login__tagline { color: #fff; font-size: 22px; font-weight: 700; line-height: 1.35; max-width: 520px; margin: 0; }
+
+.sg-login__panel { position: relative; isolation: isolate; flex: 1; display: flex; justify-content: center; padding: 0 24px calc(20px + env(safe-area-inset-bottom)); overflow: hidden; }
+.sg-login__panel::before { content: ""; position: absolute; right: -300px; bottom: -140px; width: 760px; height: 760px; z-index: -1; pointer-events: none;
+  background: url('/images/brand/topo-login-soft.png') center / contain no-repeat; opacity: .35; }
+.sg-login__form { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 14px; }
+.sg-login__title { margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -.02em; color: var(--lg-ink); }
+.sg-login__lead { margin: 6px 0 0; font-size: 14px; color: var(--lg-muted); }
+.sg-login__label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; }
+.sg-login__input { width: 100%; height: 50px; border: 2px solid transparent; border-radius: 16px; padding: 0 16px; background: var(--lg-field);
+  color: var(--lg-ink); font: 500 16px var(--sg-font-heading); }
+.sg-login__input:focus { outline: 0; border-color: var(--lg-ink); }
+.sg-login__input.is-invalid { border-color: var(--sg-reject); }
+.sg-login__error { margin-top: 6px; font-size: 13px; color: var(--sg-reject); font-weight: 500; }
+[data-bs-theme="dark"] .sg-login__error { color: #FCA5A5; }
+.sg-login__eye { position: absolute; right: 3px; top: 3px; width: 44px; height: 44px; border: 0; border-radius: 12px; background: transparent; color: var(--lg-muted);
+  display: flex; align-items: center; justify-content: center; font-size: 20px; }
+.sg-login__remember { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: 13px; font-weight: 500; }
+.sg-login__remember input { width: 20px; height: 20px; accent-color: var(--lg-ink); }
+.sg-login__submit { height: 52px; border: 0; border-radius: 999px; background: #141414; color: #fff; font: 600 15px var(--sg-font-heading); }
+.sg-login__submit:hover { background: #000; }
+.sg-login__submit:disabled { opacity: .7; }
+[data-bs-theme="dark"] .sg-login__submit { background: var(--sg-accent); color: #111; }
+.sg-login__submit:focus-visible, .sg-login__ghost:focus-visible, .sg-login__eye:focus-visible { outline: 3px solid var(--lg-ink); outline-offset: 2px; }
+.sg-login__divider { display: flex; align-items: center; gap: 12px; font-size: 12px; color: var(--lg-muted); margin-top: 4px; }
+.sg-login__divider::before, .sg-login__divider::after { content: ""; flex: 1; height: 1px; background: var(--lg-line); }
+.sg-login__ghost { flex: 1; min-height: 48px; border-radius: 999px; border: 1px solid var(--lg-line); background: var(--sg-surface); color: var(--lg-ink);
+  display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; font-weight: 600; text-decoration: none; }
+.sg-login__ghost:hover { background: var(--lg-field); color: var(--lg-ink); }
+.sg-login__install { margin-top: auto; display: flex; align-items: center; gap: 10px; padding: 10px 10px 10px 12px; border-radius: 20px; background: #141414; color: #fff; font-size: 14px; }
+.sg-login__install-icon { width: 36px; height: 36px; flex: none; border-radius: 10px; background: var(--sg-accent); color: #141414; display: flex; align-items: center; justify-content: center; }
+.sg-login__install-text { font-size: 12px; color: #CFCAC0; }
+.sg-login__install-btn { height: 36px; padding: 0 14px; border: 0; border-radius: 999px; background: #fff; color: #141414; font-size: 13px; font-weight: 700; }
+
+@media (min-width: 992px) {
+  .sg-login { flex-direction: row; }
+  .sg-login__hero { flex: 1 1 560px; height: auto; min-height: 100vh; padding: 40px; }
+  .sg-login__hero::after { background: linear-gradient(180deg, rgba(10,10,10,.25) 0%, rgba(10,10,10,0) 40%, rgba(10,10,10,.65) 100%); }
+  .sg-login__brand { font-size: 13px; }
+  .sg-login__panel { flex: 1 1 480px; align-items: center; padding: 48px 24px; }
+  .sg-login__panel::before { right: -320px; bottom: -200px; width: 900px; height: 900px; }
+  .sg-login__form { gap: 16px; }
+  .sg-login__title { font-size: 32px; }
+  .sg-login__lead { font-size: 15px; }
+  .sg-login__ghost { font-size: 14px; }
+  .sg-login__install { margin-top: 8px; background: #F7F6F2; color: var(--lg-ink); border: 1px solid var(--lg-line); }
+  .sg-login__install-text { color: var(--lg-muted); }
+  .sg-login__install-btn { background: #141414; color: #fff; }
+  [data-bs-theme="dark"] .sg-login__install { background: var(--sg-surface-2); }
+}

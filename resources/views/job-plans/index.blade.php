@@ -3,13 +3,13 @@
 
     @if (session('success'))
         <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-3" role="alert">
-            <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+            <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     @endif
     @if (session('error'))
         <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm mb-3" role="alert">
-            <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+            <i class="bi bi-exclamation-circle me-2"></i>{{ session('error') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     @endif
@@ -22,7 +22,7 @@
                     <!-- Search: full width hingga lg -->
                     <div class="col-12 col-lg-3">
                         <div class="input-group">
-                            <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-primary"></i></span>
+                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-primary"></i></span>
                             <input type="text" name="search" class="form-control border-start-0 ps-0"
                                 placeholder="Cari nama pekerjaan" value="{{ request('search') }}">
                         </div>
@@ -30,7 +30,7 @@
                     <!-- Tanggal Dari -->
                     <div class="col-6 col-lg-2">
                         <div class="input-group">
-                            <span class="input-group-text bg-white border-end-0"><i class="fas fa-calendar-alt text-primary"></i></span>
+                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-calendar3 text-primary"></i></span>
                             <input type="date" name="date_from" class="form-control border-start-0 ps-0"
                                 value="{{ request('date_from', date('Y-m-d')) }}">
                         </div>
@@ -38,7 +38,7 @@
                     <!-- Tanggal Sampai -->
                     <div class="col-6 col-lg-2">
                         <div class="input-group">
-                            <span class="input-group-text bg-white border-end-0"><i class="fas fa-calendar-alt text-primary"></i></span>
+                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-calendar3 text-primary"></i></span>
                             <input type="date" name="date_to" class="form-control border-start-0 ps-0"
                                 value="{{ request('date_to', date('Y-m-d')) }}">
                         </div>
@@ -55,13 +55,13 @@
                     <div class="col-12 col-sm-6 col-lg-3">
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-primary rounded-pill flex-grow-1">
-                                <i class="fas fa-filter me-1"></i> Filter
+                                <i class="bi bi-funnel me-1"></i> Filter
                             </button>
                             <a href="{{ route('job-plans.index') }}" class="btn btn-outline-secondary rounded-pill px-3" title="Reset Filter">
-                                <i class="fas fa-redo"></i>
+                                <i class="bi bi-arrow-clockwise"></i>
                             </a>
                             <button type="button" class="btn btn-outline-success rounded-pill px-3" onclick="openShareWhatsApp()" title="Share ke WhatsApp">
-                                <i class="fab fa-whatsapp me-1"></i> WA
+                                <i class="bi bi-whatsapp me-1"></i> WA
                             </button>
                         </div>
                     </div>
@@ -75,21 +75,21 @@
         <div class="card-header bg-white py-3">
             <div class="d-flex justify-content-between align-items-center gap-2">
                 <h5 class="mb-0 fw-bold text-truncate">
-                    <i class="fas fa-clipboard-check text-primary me-2"></i><span class="d-none d-sm-inline">Job Plan Saya</span><span class="d-sm-none">Job Plans</span>
+                    <i class="bi bi-clipboard-check text-primary me-2"></i><span class="d-none d-sm-inline">Job Plan Saya</span><span class="d-sm-none">Job Plans</span>
                     <span class="badge bg-primary ms-1">{{ $plans->total() }}</span>
                 </h5>
                 <a href="{{ route('job-plans.create') }}" class="btn btn-primary rounded-pill px-3 flex-shrink-0">
-                    <i class="fas fa-plus-circle me-1"></i><span class="d-none d-sm-inline"> Buat Plan Baru</span><span class="d-sm-none"> Buat</span>
+                    <i class="bi bi-plus-circle me-1"></i><span class="d-none d-sm-inline"> Buat Plan Baru</span><span class="d-sm-none"> Buat</span>
                 </a>
             </div>
         </div>
         <div class="card-body p-0">
             @if($plans->isEmpty())
                 <div class="text-center py-5 text-muted">
-                    <i class="fas fa-clipboard fa-3x mb-3 opacity-25"></i>
+                    <i class="bi bi-clipboard fs-1 mb-3 opacity-25"></i>
                     <p class="mb-0">Belum ada job plan yang dibuat.</p>
                     <a href="{{ route('job-plans.create') }}" class="btn btn-primary rounded-pill mt-3">
-                        <i class="fas fa-plus-circle me-1"></i> Buat Job Plan Pertama
+                        <i class="bi bi-plus-circle me-1"></i> Buat Job Plan Pertama
                     </a>
                 </div>
             @else
@@ -118,7 +118,7 @@
                                 </td>
                                 <td>
                                     <span class="d-flex align-items-center gap-2">
-                                        <i class="fas fa-user text-muted small"></i>
+                                        <i class="bi bi-person text-muted small"></i>
                                         {{ $plan->assignee->name ?? '-' }}
                                     </span>
                                 </td>
@@ -141,11 +141,11 @@
                                 <td class="text-end pe-3">
                                     <div class="d-flex gap-1 justify-content-end">
                                         <a href="{{ route('job-plans.show', $plan) }}" class="btn btn-sm btn-outline-primary rounded-pill px-2" title="Lihat">
-                                            <i class="fas fa-eye"></i>
+                                            <i class="bi bi-eye"></i>
                                         </a>
                                         @can('update', $plan)
                                         <a href="{{ route('job-plans.edit', $plan) }}" class="btn btn-sm btn-outline-secondary rounded-pill px-2" title="Edit">
-                                            <i class="fas fa-edit"></i>
+                                            <i class="bi bi-pencil-square"></i>
                                         </a>
                                         @endcan
                                         @can('delete', $plan)
@@ -153,7 +153,7 @@
                                             onsubmit="return confirm('Hapus job plan ini?')">
                                             @csrf @method('DELETE')
                                             <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2" title="Hapus">
-                                                <i class="fas fa-trash"></i>
+                                                <i class="bi bi-trash3"></i>
                                             </button>
                                         </form>
                                         @endcan
@@ -179,7 +179,7 @@
             <div class="modal-content border-0 shadow">
                 <div class="modal-header" style="background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);">
                     <h5 class="modal-title text-white">
-                        <i class="fab fa-whatsapp me-2"></i>Preview Pesan WhatsApp — Job Plans
+                        <i class="bi bi-whatsapp me-2"></i>Preview Pesan WhatsApp — Job Plans
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
@@ -192,14 +192,14 @@
                         <div class="d-flex align-items-center gap-2 mb-3">
                             <span class="text-muted small fw-semibold">Format:</span>
                             <button type="button" id="waModeDetail" class="btn btn-sm btn-success rounded-pill px-3" onclick="setWaFormat('detail')">
-                                <i class="fas fa-list me-1"></i>Detail
+                                <i class="bi bi-list-ul me-1"></i>Detail
                             </button>
                             <button type="button" id="waModeRingkasan" class="btn btn-sm btn-outline-success rounded-pill px-3" onclick="setWaFormat('ringkasan')">
-                                <i class="fas fa-align-left me-1"></i>Ringkasan
+                                <i class="bi bi-text-left me-1"></i>Ringkasan
                             </button>
                         </div>
                         <div id="waShareLimitAlert" class="alert alert-warning border-0 py-2 mb-3" style="display:none;">
-                            <i class="fas fa-info-circle me-1"></i>
+                            <i class="bi bi-info-circle me-1"></i>
                             <span id="waShareLimitText"></span>
                         </div>
                         <label class="form-label fw-semibold text-muted small mb-1">Preview Pesan:</label>
@@ -213,13 +213,13 @@
                 </div>
                 <div class="modal-footer bg-light">
                     <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
-                        <i class="fas fa-times me-1"></i> Tutup
+                        <i class="bi bi-x-lg me-1"></i> Tutup
                     </button>
                     <button type="button" class="btn btn-outline-dark rounded-pill px-4" id="waCopyBtn" onclick="copyWaText()" style="display:none;">
-                        <i class="far fa-copy me-1"></i> Salin Teks
+                        <i class="bi bi-copy me-1"></i> Salin Teks
                     </button>
                     <a href="#" target="_blank" id="waOpenBtn" class="btn btn-success rounded-pill px-4" style="display:none;">
-                        <i class="fab fa-whatsapp me-1"></i> Buka WhatsApp
+                        <i class="bi bi-whatsapp me-1"></i> Buka WhatsApp
                     </a>
                 </div>
             </div>
@@ -300,7 +300,7 @@
             })
             .catch(function(err) {
                 document.getElementById('waShareLoading').innerHTML =
-                    '<div class="alert alert-danger border-0"><i class="fas fa-exclamation-circle me-2"></i>' + err.message + '</div>';
+                    '<div class="alert alert-danger border-0"><i class="bi bi-exclamation-circle me-2"></i>' + err.message + '</div>';
             });
         }
 
@@ -322,7 +322,7 @@
         function showCopyFeedback() {
             const btn = document.getElementById('waCopyBtn');
             const orig = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-check me-1"></i> Tersalin!';
+            btn.innerHTML = '<i class="bi bi-check-lg me-1"></i> Tersalin!';
             btn.classList.replace('btn-outline-dark', 'btn-success');
             setTimeout(function() { btn.innerHTML = orig; btn.classList.replace('btn-success', 'btn-outline-dark'); }, 2000);
         }

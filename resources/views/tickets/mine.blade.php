@@ -3,7 +3,7 @@
 
     <div class="card shadow-sm border-0">
         <div class="card-header bg-white py-3 d-flex flex-wrap gap-2 justify-content-between align-items-center">
-            <h5 class="mb-0 fw-bold"><i class="fas fa-ticket-alt text-primary me-2"></i>Tiket Saya</h5>
+            <h5 class="mb-0 fw-bold"><i class="bi bi-ticket-perforated text-primary me-2"></i>Tiket Saya</h5>
             <div class="d-flex gap-2">
                 <form method="GET" action="{{ route('tickets.mine') }}">
                     <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
@@ -14,14 +14,14 @@
                     </select>
                 </form>
                 <a href="{{ route('tickets.create') }}" class="btn btn-primary btn-sm text-nowrap">
-                    <i class="fas fa-plus me-1"></i>Buat Tiket
+                    <i class="bi bi-plus-lg me-1"></i>Buat Tiket
                 </a>
             </div>
         </div>
 
         <div class="card-body p-0">
             @if(session('success'))
-                <div class="alert alert-success m-3 mb-0"><i class="fas fa-check-circle me-2"></i>{{ session('success') }}</div>
+                <div class="alert alert-success m-3 mb-0"><i class="bi bi-check-circle me-2"></i>{{ session('success') }}</div>
             @endif
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
@@ -56,7 +56,7 @@
                         @empty
                         <tr>
                             <td colspan="6" class="text-center text-muted py-5">
-                                <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
+                                <i class="bi bi-inbox fs-3 mb-2 d-block"></i>
                                 Belum ada tiket. Semua permintaan ke tim IT diajukan melalui tiket.
                             </td>
                         </tr>
