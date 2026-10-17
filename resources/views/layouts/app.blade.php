@@ -22,8 +22,8 @@
 
     <link rel="icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}">
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('icons/icon-180x180.png?v=4.0') }}">
-    <link rel="manifest" href="{{ asset('site.webmanifest?v=4.0') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('icons/icon-180x180.png?v=5') }}">
+    <link rel="manifest" href="{{ asset('site.webmanifest?v=5') }}">
     <meta name="theme-color" content="#111111">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -260,7 +260,6 @@
     </x-sg.sheet>
 
     <x-sg.flash />
-    <x-pwa-install />
 
     {{-- Library UMD self-host (scripts/copy-vendor.mjs): harus sudah ada sebelum script halaman.
          Chart.js (70 KB gzip) hanya dimuat halaman yang memakainya: @push('scripts') di dashboard & tickets/dashboard. --}}

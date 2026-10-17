@@ -5,7 +5,7 @@
  */
 
 // Cache version for manual updates
-const CACHE_VERSION = 'v4.0.0';
+const CACHE_VERSION = 'v4.1.0';
 
 // Import Workbox from CDN
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.0.0/workbox-sw.js');
@@ -25,7 +25,7 @@ if (workbox) {
   // Precache important static assets
   // Only precache offline.html - icons will be cached on-demand via StaleWhileRevalidate
   workbox.precaching.precacheAndRoute([
-    { url: '/offline.html', revision: '1.2' },
+    { url: '/offline.html', revision: '2.0' },
   ]);
 
   // CACHING STRATEGIES
@@ -37,7 +37,7 @@ if (workbox) {
       request.destination === 'script' ||
       request.destination === 'font',
     new workbox.strategies.CacheFirst({
-      cacheName: 'static-assets',
+      cacheName: `static-assets-${CACHE_VERSION}`,
       plugins: [
         new workbox.cacheableResponse.CacheableResponsePlugin({
           statuses: [0, 200],
@@ -55,7 +55,7 @@ if (workbox) {
   workbox.routing.registerRoute(
     ({ request }) => request.destination === 'image',
     new workbox.strategies.CacheFirst({
-      cacheName: 'images',
+      cacheName: `images-${CACHE_VERSION}`,
       plugins: [
         new workbox.cacheableResponse.CacheableResponsePlugin({
           statuses: [0, 200],
@@ -72,7 +72,7 @@ if (workbox) {
   workbox.routing.registerRoute(
     ({ url }) => url.pathname.startsWith('/icons/'),
     new workbox.strategies.StaleWhileRevalidate({
-      cacheName: 'pwa-icons',
+      cacheName: `pwa-icons-${CACHE_VERSION}`,
       plugins: [
         new workbox.expiration.ExpirationPlugin({
           maxEntries: 20,
@@ -92,7 +92,7 @@ if (workbox) {
       url.pathname.includes('/dashboard') ||
       url.pathname.includes('/notifications')),
     new workbox.strategies.NetworkFirst({
-      cacheName: 'api-cache',
+      cacheName: `api-cache-${CACHE_VERSION}`,
       networkTimeoutSeconds: 5,
       plugins: [
         new workbox.cacheableResponse.CacheableResponsePlugin({
@@ -110,7 +110,7 @@ if (workbox) {
   workbox.routing.registerRoute(
     ({ url }) => url.origin === 'https://fonts.googleapis.com',
     new workbox.strategies.StaleWhileRevalidate({
-      cacheName: 'google-fonts-stylesheets',
+      cacheName: `google-fonts-stylesheets-${CACHE_VERSION}`,
     })
   );
 
@@ -118,7 +118,7 @@ if (workbox) {
   workbox.routing.registerRoute(
     ({ url }) => url.origin === 'https://fonts.gstatic.com',
     new workbox.strategies.CacheFirst({
-      cacheName: 'google-fonts-webfonts',
+      cacheName: `google-fonts-webfonts-${CACHE_VERSION}`,
       plugins: [
         new workbox.cacheableResponse.CacheableResponsePlugin({
           statuses: [0, 200],
@@ -137,7 +137,7 @@ if (workbox) {
       url.origin === 'https://cdn.jsdelivr.net' ||
       url.origin === 'https://cdnjs.cloudflare.com',
     new workbox.strategies.CacheFirst({
-      cacheName: 'cdn-resources',
+      cacheName: `cdn-resources-${CACHE_VERSION}`,
       plugins: [
         new workbox.cacheableResponse.CacheableResponsePlugin({
           statuses: [0, 200],
@@ -154,7 +154,7 @@ if (workbox) {
   workbox.routing.registerRoute(
     ({ request }) => request.destination === 'document',
     new workbox.strategies.NetworkFirst({
-      cacheName: 'pages',
+      cacheName: `pages-${CACHE_VERSION}`,
       networkTimeoutSeconds: 5,
       plugins: [
         new workbox.cacheableResponse.CacheableResponsePlugin({
@@ -185,23 +185,21 @@ if (workbox) {
     return Response.error();
   });
 
+  // Bersihkan cache runtime dari versi lama (nama cache memuat CACHE_VERSION). Precache dikelola Workbox sendiri.
+  self.addEventListener('activate', (event) => {
+    event.waitUntil(
+      caches.keys().then((keys) => Promise.all(
+        keys.filter((key) => !key.startsWith('workbox-precache') && !key.endsWith(CACHE_VERSION)).map((key) => caches.delete(key))
+      ))
+    );
+  });
+
   // Listen for messages from clients
   self.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'SKIP_WAITING') {
       self.skipWaiting();
     }
     
-    // Handle cache clearing request
-    if (event.data && event.data.type === 'CLEAR_OLD_CACHES') {
-      caches.keys().then(cacheNames => {
-        cacheNames.forEach(cacheName => {
-          if (cacheName.includes('v1') || cacheName.includes('1.1')) {
-            console.log('PWA: Clearing old cache:', cacheName);
-            caches.delete(cacheName);
-          }
-        });
-      });
-    }
   });
 
   console.log('SiGAP Service Worker: All routes registered');

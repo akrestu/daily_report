@@ -1,238 +1,78 @@
-<x-app-layout title="Pasang Aplikasi">
+{{-- Instal Aplikasi (PWA). Tombol "Pasang sekarang" memakai prompt bawaan browser bila tersedia (window.sgInstall, sigap/pwa.js). --}}
+<x-app-layout title="Instal Aplikasi">
+    <div x-data="{
+            can: !!window.__sgInstallPrompt,
+            installed: window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true,
+            platform: /iphone|ipad|ipod/i.test(navigator.userAgent) ? 'ios' : (/android/i.test(navigator.userAgent) ? 'android' : 'desktop'),
+            async install() { if (await window.sgInstall()) this.installed = true; this.can = false; },
+         }" @sg-install-available.document="can = true">
 
-    <div class="container-fluid px-4">
-        <div class="row justify-content-center">
-            <div class="col-lg-8">
-                <!-- Hero Section -->
-                <div class="card border-0 shadow-sm mb-4 overflow-hidden">
-                    <div class="card-body p-0">
-                        <div class="row g-0">
-                            <div class="col-md-6 d-flex align-items-center justify-content-center p-5" style="background: var(--sg-brand-panel);">
-                                <div class="text-center text-white">
-                                    <img src="{{ asset('icons/icon-192x192.png?v=2.0') }}" alt="SiGAP" class="mb-4" style="width: 128px; height: 128px; border-radius: 28px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
-                                    <h3 class="fw-bold mb-2">SiGAP PWA</h3>
-                                    <p class="mb-0 opacity-75">Progressive Web Application</p>
-                                </div>
-                            </div>
-                            <div class="col-md-6 p-5">
-                                <h4 class="fw-bold mb-4">Kenapa Install SiGAP?</h4>
-                                <ul class="list-unstyled">
-                                    <li class="mb-3">
-                                        <i class="bi bi-check-circle text-success me-2"></i>
-                                        <strong>Akses Lebih Cepat</strong><br>
-                                        <small class="text-muted ms-4">Buka aplikasi langsung dari home screen</small>
-                                    </li>
-                                    <li class="mb-3">
-                                        <i class="bi bi-check-circle text-success me-2"></i>
-                                        <strong>Mode Offline</strong><br>
-                                        <small class="text-muted ms-4">Tetap dapat melihat data yang sudah di-cache</small>
-                                    </li>
-                                    <li class="mb-3">
-                                        <i class="bi bi-check-circle text-success me-2"></i>
-                                        <strong>Hemat Storage</strong><br>
-                                        <small class="text-muted ms-4">Ukuran lebih kecil dibanding aplikasi native</small>
-                                    </li>
-                                    <li class="mb-3">
-                                        <i class="bi bi-check-circle text-success me-2"></i>
-                                        <strong>Auto Update</strong><br>
-                                        <small class="text-muted ms-4">Selalu mendapat versi terbaru otomatis</small>
-                                    </li>
-                                </ul>
-
-                                <div class="d-grid gap-2 mt-4">
-                                    <button class="btn btn-primary btn-lg" id="installPwaPageBtn">
-                                        <i class="bi bi-download me-2"></i>
-                                        Install Sekarang
-                                    </button>
-                                    <button class="btn btn-outline-secondary" id="showInstructionsBtn">
-                                        <i class="bi bi-question-circle me-2"></i>
-                                        Lihat Panduan Install
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+        <section class="card overflow-hidden mb-3">
+            <div class="row g-0">
+                <div class="col-md-5 sg-install-hero">
+                    <img src="{{ asset('images/brand/logo-sigap.png') }}" alt="" width="96" height="96">
+                    <h1 class="h4 fw-bold mt-3 mb-1">SiGAP</h1>
+                    <p class="mb-0 small">Laporan harian & persetujuan, langsung dari layar utama.</p>
                 </div>
+                <div class="col-md-7 p-3 p-lg-4">
+                    <h2 class="h5 fw-bold mb-3">Kenapa dipasang?</h2>
+                    <ul class="sg-install-list">
+                        <li><i class="bi bi-lightning-charge" aria-hidden="true"></i><span><strong>Buka lebih cepat</strong><br><span class="small text-muted">Langsung dari ikon di layar utama, tanpa mengetik alamat.</span></span></li>
+                        <li><i class="bi bi-wifi-off" aria-hidden="true"></i><span><strong>Tetap bisa melapor saat sinyal lemah</strong><br><span class="small text-muted">Laporan disimpan dan terkirim otomatis begitu online.</span></span></li>
+                        <li><i class="bi bi-arrow-repeat" aria-hidden="true"></i><span><strong>Selalu versi terbaru</strong><br><span class="small text-muted">Tidak perlu memperbarui lewat Play Store / App Store.</span></span></li>
+                    </ul>
 
-                <!-- Features -->
-                <div class="row g-4 mb-4">
-                    <div class="col-md-4">
-                        <div class="card h-100 border-0 shadow-sm">
-                            <div class="card-body text-center p-4">
-                                <div class="feature-icon bg-primary bg-opacity-10 rounded-circle p-3 d-inline-flex mb-3">
-                                    <i class="bi bi-lightning-charge text-primary fs-3"></i>
-                                </div>
-                                <h5 class="fw-bold mb-2">Performa Tinggi</h5>
-                                <p class="text-muted small mb-0">Loading lebih cepat dengan teknologi caching modern</p>
-                            </div>
-                        </div>
+                    <div class="sg-internal-note p-3 d-flex gap-2 align-items-center" x-show="installed" x-cloak>
+                        <i class="bi bi-check-circle fs-5" aria-hidden="true"></i><span>SiGAP sudah terpasang di perangkat ini.</span>
                     </div>
-
-                    <div class="col-md-4">
-                        <div class="card h-100 border-0 shadow-sm">
-                            <div class="card-body text-center p-4">
-                                <div class="feature-icon bg-success bg-opacity-10 rounded-circle p-3 d-inline-flex mb-3">
-                                    <i class="bi bi-wifi text-success fs-3"></i>
-                                </div>
-                                <h5 class="fw-bold mb-2">Offline Ready</h5>
-                                <p class="text-muted small mb-0">Tetap dapat mengakses data saat tidak ada koneksi</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <div class="card h-100 border-0 shadow-sm">
-                            <div class="card-body text-center p-4">
-                                <div class="feature-icon bg-info bg-opacity-10 rounded-circle p-3 d-inline-flex mb-3">
-                                    <i class="bi bi-phone text-info fs-3"></i>
-                                </div>
-                                <h5 class="fw-bold mb-2">Responsive</h5>
-                                <p class="text-muted small mb-0">Tampilan sempurna di semua perangkat</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- System Requirements -->
-                <div class="card border-0 shadow-sm mb-4">
-                    <div class="card-header bg-white border-0 pt-4">
-                        <h5 class="fw-bold mb-0">
-                            <i class="bi bi-info-circle text-primary me-2"></i>
-                            Persyaratan Sistem
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h6 class="fw-bold mb-3">
-                                    <i class="bi bi-android2 text-success me-2"></i>
-                                    Android
-                                </h6>
-                                <ul class="small text-muted">
-                                    <li>Chrome 89 atau lebih baru</li>
-                                    <li>Edge 89 atau lebih baru</li>
-                                    <li>Firefox 90 atau lebih baru</li>
-                                    <li>Samsung Internet 14 atau lebih baru</li>
-                                </ul>
-                            </div>
-                            <div class="col-md-6">
-                                <h6 class="fw-bold mb-3">
-                                    <i class="bi bi-apple text-dark me-2"></i>
-                                    iOS / iPadOS
-                                </h6>
-                                <ul class="small text-muted">
-                                    <li>Safari 14.5 atau lebih baru</li>
-                                    <li>iOS 14.5+ atau iPadOS 14.5+</li>
-                                    <li>Chrome di iOS (via Add to Home Screen)</li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="row mt-3">
-                            <div class="col-12">
-                                <h6 class="fw-bold mb-3">
-                                    <i class="bi bi-display text-primary me-2"></i>
-                                    Desktop
-                                </h6>
-                                <ul class="small text-muted">
-                                    <li>Windows: Chrome 89+, Edge 89+</li>
-                                    <li>macOS: Chrome 89+, Edge 89+, Safari 14.1+</li>
-                                    <li>Linux: Chrome 89+, Edge 89+</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- FAQ -->
-                <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-white border-0 pt-4">
-                        <h5 class="fw-bold mb-0">
-                            <i class="bi bi-question-circle text-primary me-2"></i>
-                            Pertanyaan Umum (FAQ)
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="accordion" id="faqAccordion">
-                            <div class="accordion-item border-0 mb-2">
-                                <h2 class="accordion-header">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
-                                        Apa perbedaan PWA dengan aplikasi biasa?
-                                    </button>
-                                </h2>
-                                <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                                    <div class="accordion-body text-muted">
-                                        PWA (Progressive Web App) adalah aplikasi web yang dapat diinstall dan berfungsi seperti aplikasi native. Perbedaannya adalah PWA lebih ringan, tidak memerlukan download dari store, dan selalu mendapat update terbaru secara otomatis.
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="accordion-item border-0 mb-2">
-                                <h2 class="accordion-header">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
-                                        Apakah SiGAP PWA menggunakan kuota internet?
-                                    </button>
-                                </h2>
-                                <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                                    <div class="accordion-body text-muted">
-                                        Setelah terinstall, SiGAP akan menyimpan data secara cache sehingga halaman yang sudah pernah dibuka dapat diakses tanpa koneksi internet. Data baru tetap memerlukan koneksi, tetapi penggunaan kuota lebih efisien berkat sistem caching.
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="accordion-item border-0 mb-2">
-                                <h2 class="accordion-header">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
-                                        Bagaimana cara uninstall PWA?
-                                    </button>
-                                </h2>
-                                <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                                    <div class="accordion-body text-muted">
-                                        <strong>Android:</strong> Tekan dan tahan icon aplikasi, lalu pilih "Uninstall" atau "App info" > "Uninstall".<br>
-                                        <strong>iOS:</strong> Tekan dan tahan icon aplikasi, pilih "Remove App" > "Delete App".<br>
-                                        <strong>Desktop:</strong> Buka aplikasi, klik menu (⋮) > "Uninstall SiGAP".
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="accordion-item border-0">
-                                <h2 class="accordion-header">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
-                                        Apakah PWA aman?
-                                    </button>
-                                </h2>
-                                <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                                    <div class="accordion-body text-muted">
-                                        Ya, sangat aman! PWA menggunakan protokol HTTPS yang terenkripsi, sama seperti saat Anda mengakses website banking. Semua data login dan aktivitas Anda dilindungi dengan enkripsi.
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    <div x-show="!installed">
+                        <button type="button" class="btn btn-primary w-100" x-show="can" x-cloak @click="install()">
+                            <i class="bi bi-download" aria-hidden="true"></i> Pasang sekarang
+                        </button>
+                        <p class="small text-muted mb-0" x-show="!can">Ikuti langkah di bawah sesuai perangkat Anda.</p>
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
+
+        <section class="card p-3 p-lg-4 mb-3" aria-labelledby="install-steps">
+            <h2 id="install-steps" class="h5 fw-bold mb-3">Cara memasang</h2>
+            <div class="sg-chip-row mb-3" role="tablist" aria-label="Perangkat">
+                <button type="button" class="sg-chip" role="tab" :class="{ active: platform === 'android' }" :aria-selected="platform === 'android'" @click="platform = 'android'"><i class="bi bi-android2" aria-hidden="true"></i> Android</button>
+                <button type="button" class="sg-chip" role="tab" :class="{ active: platform === 'ios' }" :aria-selected="platform === 'ios'" @click="platform = 'ios'"><i class="bi bi-apple" aria-hidden="true"></i> iPhone</button>
+                <button type="button" class="sg-chip" role="tab" :class="{ active: platform === 'desktop' }" :aria-selected="platform === 'desktop'" @click="platform = 'desktop'"><i class="bi bi-laptop" aria-hidden="true"></i> Komputer</button>
+            </div>
+            <ol class="sg-install-steps" x-show="platform === 'android'">
+                <li>Buka SiGAP di <strong>Chrome</strong>.</li>
+                <li>Ketuk menu <i class="bi bi-three-dots-vertical" aria-label="titik tiga"></i> di pojok kanan atas.</li>
+                <li>Pilih <strong>Instal aplikasi</strong> atau <strong>Tambahkan ke layar utama</strong>.</li>
+                <li>Ketuk <strong>Instal</strong>. Ikon SiGAP muncul di layar utama.</li>
+            </ol>
+            <ol class="sg-install-steps" x-show="platform === 'ios'" x-cloak>
+                <li>Buka SiGAP di <strong>Safari</strong> (bukan Chrome).</li>
+                <li>Ketuk tombol <strong>Bagikan</strong> <i class="bi bi-box-arrow-up" aria-label="ikon bagikan"></i> di bagian bawah.</li>
+                <li>Gulir dan pilih <strong>Tambah ke Layar Utama</strong>.</li>
+                <li>Ketuk <strong>Tambah</strong> di pojok kanan atas.</li>
+            </ol>
+            <ol class="sg-install-steps" x-show="platform === 'desktop'" x-cloak>
+                <li>Buka SiGAP di <strong>Chrome</strong> atau <strong>Edge</strong>.</li>
+                <li>Klik ikon <strong>instal</strong> <i class="bi bi-window-plus" aria-label="ikon instal"></i> di ujung kanan bilah alamat.</li>
+                <li>Klik <strong>Instal</strong>. SiGAP terbuka di jendela sendiri.</li>
+            </ol>
+        </section>
+
+        <section class="card p-3 p-lg-4" aria-labelledby="install-faq">
+            <h2 id="install-faq" class="h5 fw-bold mb-2">Pertanyaan umum</h2>
+            @foreach ([
+                ['Apakah memakan kuota?', 'Tampilan dan aset disimpan di perangkat, jadi pemakaian kuota lebih hemat. Data baru (laporan, notifikasi) tetap perlu internet.'],
+                ['Bagaimana menghapusnya?', 'Android: tekan lama ikon SiGAP → Hapus instalan. iPhone: tekan lama ikon → Hapus App. Komputer: buka SiGAP → menu ⋮ → Uninstal.'],
+                ['Apakah aman?', 'Aplikasi terpasang sama dengan situs SiGAP: memakai HTTPS dan akun yang sama. Tidak ada izin tambahan yang diminta.'],
+            ] as [$q, $a])
+                <details class="sg-faq">
+                    <summary>{{ $q }}</summary>
+                    <p class="small text-muted mb-0">{{ $a }}</p>
+                </details>
+            @endforeach
+        </section>
     </div>
-
-    @push('scripts')
-    <script>
-        // Handle install button on this page
-        document.getElementById('installPwaPageBtn')?.addEventListener('click', function() {
-            // Trigger the floating button click (which has the install logic)
-            const floatingBtn = document.getElementById('pwaFloatingBtn');
-            if (floatingBtn) {
-                floatingBtn.click();
-            } else {
-                // Show instructions if install not available
-                const instructionsModal = new bootstrap.Modal(document.getElementById('pwaInstructionsModal'));
-                instructionsModal.show();
-            }
-        });
-
-        // Show instructions modal
-        document.getElementById('showInstructionsBtn')?.addEventListener('click', function() {
-            const instructionsModal = new bootstrap.Modal(document.getElementById('pwaInstructionsModal'));
-            instructionsModal.show();
-        });
-    </script>
-    @endpush
 </x-app-layout>

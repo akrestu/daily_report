@@ -152,3 +152,16 @@
 
 /* ---------- Focus ring cadangan (keyboard) untuk elemen interaktif kustom ---------- */
 :where(a, button, summary, [role="button"], [tabindex]:not([tabindex="-1"])):focus-visible { outline: 2px solid var(--sg-primary); outline-offset: 2px; }
+
+/* ---------- Instal Aplikasi ---------- */
+.sg-install-hero { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 32px 20px;
+  background: var(--sg-brand-panel); color: #fff; }
+.sg-install-hero img { border-radius: 22px; background: #fff; padding: 8px; }
+.sg-install-hero p { color: rgba(255, 255, 255, .8); }
+.sg-install-list { list-style: none; padding: 0; margin: 0 0 16px; display: grid; gap: 12px; }
+.sg-install-list li { display: flex; gap: 12px; }
+.sg-install-list li > .bi { flex: none; width: 36px; height: 36px; display: grid; place-items: center; border-radius: 10px; background: var(--sg-accent-tint); color: var(--sg-text); font-size: 18px; }
+.sg-install-steps { margin: 0; padding-left: 20px; display: grid; gap: 8px; }
+.sg-faq { border-top: 1px solid var(--sg-border); padding: 12px 0; }
+.sg-faq summary { min-height: 32px; font-weight: 600; cursor: pointer; }
+.sg-faq p { margin-top: 8px; }

@@ -1,77 +1,23 @@
 {
     "name": "SiGAP - Smart Integrated Gateway for Activity & Performance",
     "short_name": "SiGAP",
-    "description": "Smart Integrated Gateway for Activity & Performance - Daily work reporting, planning and multi-level approval",
+    "description": "Laporan kerja harian, rencana kerja, dan persetujuan berjenjang.",
+    "lang": "id",
     "icons": [
-        {
-            "src": "/icons/icon-48x48.png?v=4.0",
-            "sizes": "48x48",
-            "type": "image/png",
-            "purpose": "any"
-        },
-        {
-            "src": "/icons/icon-72x72.png?v=4.0",
-            "sizes": "72x72",
-            "type": "image/png",
-            "purpose": "any"
-        },
-        {
-            "src": "/icons/icon-96x96.png?v=4.0",
-            "sizes": "96x96",
-            "type": "image/png",
-            "purpose": "any"
-        },
-        {
-            "src": "/icons/icon-144x144.png?v=4.0",
-            "sizes": "144x144",
-            "type": "image/png",
-            "purpose": "any"
-        },
-        {
-            "src": "/icons/icon-180x180.png?v=4.0",
-            "sizes": "180x180",
-            "type": "image/png",
-            "purpose": "any"
-        },
-        {
-            "src": "/icons/icon-192x192.png?v=4.0",
-            "sizes": "192x192",
-            "type": "image/png",
-            "purpose": "any maskable"
-        },
-        {
-            "src": "/icons/icon-512x512.png?v=4.0",
-            "sizes": "512x512",
-            "type": "image/png",
-            "purpose": "any maskable"
-        },
-        {
-            "src": "/Sigap.png?v=4.0",
-            "sizes": "512x512",
-            "type": "image/png",
-            "purpose": "any"
-        }
+        { "src": "/icons/icon-48x48.png?v=5", "sizes": "48x48", "type": "image/png", "purpose": "any" },
+        { "src": "/icons/icon-72x72.png?v=5", "sizes": "72x72", "type": "image/png", "purpose": "any" },
+        { "src": "/icons/icon-96x96.png?v=5", "sizes": "96x96", "type": "image/png", "purpose": "any" },
+        { "src": "/icons/icon-144x144.png?v=5", "sizes": "144x144", "type": "image/png", "purpose": "any" },
+        { "src": "/icons/icon-192x192.png?v=5", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+        { "src": "/icons/icon-512x512.png?v=5", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+        { "src": "/icons/maskable-192x192.png?v=5", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+        { "src": "/icons/maskable-512x512.png?v=5", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
     ],
-    "theme_color": "#0d6efd",
-    "background_color": "#ffffff",
+    "theme_color": "#111111",
+    "background_color": "#111111",
     "display": "standalone",
     "start_url": "/",
     "scope": "/",
     "orientation": "portrait-primary",
-    "id": "/",
-    "screenshots": [
-        {
-            "src": "/screenshots/desktop-screenshot.png",
-            "sizes": "1280x720",
-            "type": "image/png",
-            "form_factor": "wide",
-            "label": "SiGAP Dashboard - Desktop View"
-        },
-        {
-            "src": "/screenshots/mobile-screenshot.png",
-            "sizes": "750x1334",
-            "type": "image/png",
-            "label": "SiGAP Dashboard - Mobile View"
-        }
-    ]
+    "id": "/"
 }
