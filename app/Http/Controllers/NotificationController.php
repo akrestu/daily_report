@@ -53,7 +53,7 @@ class NotificationController extends Controller
         
         // Check if notification belongs to the authenticated user
         if ($notification->user_id !== Auth::id()) {
-            return response()->json(['error' => 'Unauthorized'], 403);
+            return response()->json(['error' => 'Tidak diizinkan'], 403);
         }
         
         $notification->update(['is_read' => true]);
@@ -95,7 +95,7 @@ class NotificationController extends Controller
         
         return response()->json([
             'success' => true,
-            'message' => 'All notifications have been cleared'
+            'message' => 'Semua notifikasi dihapus'
         ]);
     }
     
@@ -180,7 +180,7 @@ class NotificationController extends Controller
         
         return response()->json([
             'success' => true,
-            'message' => 'Notification preferences updated successfully',
+            'message' => 'Preferensi notifikasi tersimpan',
             'preferences' => $user->notificationPreferences()
         ]);
     }

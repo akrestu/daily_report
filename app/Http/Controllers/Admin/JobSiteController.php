@@ -73,13 +73,13 @@ class JobSiteController extends Controller
         if ($request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Job Site created successfully.',
+                'message' => 'Job site berhasil dibuat.',
                 'jobSite' => $jobSite
             ]);
         }
 
         return redirect()->route('admin.job-sites.index')
-            ->with('success', 'Job Site created successfully.');
+            ->with('success', 'Job site berhasil dibuat.');
     }
 
     /**
@@ -121,13 +121,13 @@ class JobSiteController extends Controller
         if ($request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Job Site updated successfully.',
+                'message' => 'Job site berhasil diperbarui.',
                 'jobSite' => $jobSite
             ]);
         }
 
         return redirect()->route('admin.job-sites.index')
-            ->with('success', 'Job Site updated successfully.');
+            ->with('success', 'Job site berhasil diperbarui.');
     }
 
     /**
@@ -143,12 +143,12 @@ class JobSiteController extends Controller
             if (request()->ajax()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Cannot delete job site because it has ' . $reportCount . ' reports associated with it.'
+                    'message' => 'Job site tidak bisa dihapus karena masih memiliki ' . $reportCount . ' laporan.'
                 ], 422);
             }
 
             return redirect()->route('admin.job-sites.index')
-                ->with('error', 'Cannot delete job site because it has ' . $reportCount . ' reports associated with it.');
+                ->with('error', 'Job site tidak bisa dihapus karena masih memiliki ' . $reportCount . ' laporan.');
         }
 
         $jobSite->delete();
@@ -156,12 +156,12 @@ class JobSiteController extends Controller
         if (request()->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Job Site deleted successfully.'
+                'message' => 'Job site berhasil dihapus.'
             ]);
         }
 
         return redirect()->route('admin.job-sites.index')
-            ->with('success', 'Job Site deleted successfully.');
+            ->with('success', 'Job site berhasil dihapus.');
     }
 
     /**
@@ -193,9 +193,9 @@ class JobSiteController extends Controller
             }
         }
 
-        $message = $deletedCount . ' job sites deleted successfully.';
+        $message = $deletedCount . ' job site berhasil dihapus.';
         if ($errorCount > 0) {
-            $message .= ' ' . $errorCount . ' job sites could not be deleted because they have reports associated.';
+            $message .= ' ' . $errorCount . ' job site tidak bisa dihapus karena masih memiliki laporan.';
 
             if ($request->ajax()) {
                 return response()->json([

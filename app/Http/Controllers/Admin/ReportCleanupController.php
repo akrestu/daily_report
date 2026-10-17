@@ -111,14 +111,14 @@ class ReportCleanupController extends Controller
                 
                 return response()->json([
                     'success' => true,
-                    'message' => "Successfully cleaned up {$deletedCount} old daily reports.",
+                    'message' => "{$deletedCount} laporan lama berhasil dibersihkan.",
                     'deleted_count' => (int) $deletedCount,
                     'output' => $output
                 ]);
             } else {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Cleanup command failed.',
+                    'message' => 'Pembersihan gagal dijalankan.',
                     'output' => $output
                 ], 500);
             }
@@ -128,7 +128,7 @@ class ReportCleanupController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'An error occurred during cleanup. Please try again or contact the administrator.'
+                'message' => 'Terjadi kesalahan saat pembersihan. Coba lagi atau hubungi admin.'
             ], 500);
         }
     }

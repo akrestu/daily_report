@@ -67,7 +67,7 @@ class JobCommentController extends Controller
                 ]);
             }
 
-            return redirect()->back()->with('success', 'Comment added successfully.');
+            return redirect()->back()->with('success', 'Komentar terkirim.');
         } catch (\Exception $e) {
             Log::error('Error saving comment', [
                 'error' => $e->getMessage(),
@@ -77,11 +77,11 @@ class JobCommentController extends Controller
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Error saving comment. Please try again or contact the administrator.'
+                    'message' => 'Gagal menyimpan komentar. Coba lagi.'
                 ], 500);
             }
 
-            return redirect()->back()->with('error', 'Error adding comment. Please try again or contact the administrator.');
+            return redirect()->back()->with('error', 'Gagal mengirim komentar. Coba lagi.');
         }
     }
     
@@ -144,11 +144,11 @@ class JobCommentController extends Controller
             if (request()->expectsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Error fetching comments. Please try again or contact the administrator.'
+                    'message' => 'Gagal memuat komentar. Coba lagi.'
                 ], 500);
             }
 
-            return redirect()->back()->with('error', 'Error fetching comments. Please try again or contact the administrator.');
+            return redirect()->back()->with('error', 'Gagal memuat komentar. Coba lagi.');
         }
     }
     
@@ -175,7 +175,7 @@ class JobCommentController extends Controller
 
                 return response()->json([
                     'success' => false,
-                    'message' => 'You are not authorized to delete this comment.',
+                    'message' => 'Anda tidak bisa menghapus komentar ini.',
                 ], 403);
             }
             
@@ -186,11 +186,11 @@ class JobCommentController extends Controller
             if (request()->expectsJson()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Comment deleted successfully.',
+                    'message' => 'Komentar dihapus.',
                 ]);
             }
 
-            return redirect()->back()->with('success', 'Comment deleted successfully.');
+            return redirect()->back()->with('success', 'Komentar dihapus.');
         } catch (\Exception $e) {
             Log::error('Error deleting comment', [
                 'commentId' => $commentId,
@@ -201,11 +201,11 @@ class JobCommentController extends Controller
             if (request()->expectsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Error deleting comment. Please try again or contact the administrator.'
+                    'message' => 'Gagal menghapus komentar. Coba lagi.'
                 ], 500);
             }
 
-            return redirect()->back()->with('error', 'Error deleting comment. Please try again or contact the administrator.');
+            return redirect()->back()->with('error', 'Gagal menghapus komentar. Coba lagi.');
         }
     }
 }

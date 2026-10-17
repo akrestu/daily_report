@@ -1,4 +1,4 @@
-@props(['disabled' => false, 'label' => '', 'name', 'options' => [], 'selected' => null, 'required' => false, 'placeholder' => '-- Select Option --'])
+@props(['disabled' => false, 'label' => '', 'name', 'options' => [], 'selected' => null, 'required' => false, 'placeholder' => '-- Pilih --'])
 
 <div class="mb-3">
     @if($label)

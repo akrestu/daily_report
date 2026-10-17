@@ -71,13 +71,13 @@ class DepartmentController extends Controller
         if ($request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Department created successfully.',
+                'message' => 'Departemen berhasil dibuat.',
                 'department' => $department
             ]);
         }
 
         return redirect()->route('admin.departments.index')
-            ->with('success', 'Department created successfully.');
+            ->with('success', 'Departemen berhasil dibuat.');
     }
 
     /**
@@ -116,13 +116,13 @@ class DepartmentController extends Controller
         if ($request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Department updated successfully.',
+                'message' => 'Departemen berhasil diperbarui.',
                 'department' => $department
             ]);
         }
 
         return redirect()->route('admin.departments.index')
-            ->with('success', 'Department updated successfully.');
+            ->with('success', 'Departemen berhasil diperbarui.');
     }
 
     /**
@@ -138,12 +138,12 @@ class DepartmentController extends Controller
             if (request()->ajax()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Cannot delete department because it has ' . $userCount . ' users assigned to it.'
+                    'message' => 'Departemen tidak bisa dihapus karena masih memiliki ' . $userCount . ' pengguna.'
                 ], 422);
             }
             
             return redirect()->route('admin.departments.index')
-                ->with('error', 'Cannot delete department because it has ' . $userCount . ' users assigned to it.');
+                ->with('error', 'Departemen tidak bisa dihapus karena masih memiliki ' . $userCount . ' pengguna.');
         }
         
         $department->delete();
@@ -151,12 +151,12 @@ class DepartmentController extends Controller
         if (request()->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Department deleted successfully.'
+                'message' => 'Departemen berhasil dihapus.'
             ]);
         }
 
         return redirect()->route('admin.departments.index')
-            ->with('success', 'Department deleted successfully.');
+            ->with('success', 'Departemen berhasil dihapus.');
     }
     
     /**
@@ -188,9 +188,9 @@ class DepartmentController extends Controller
             }
         }
 
-        $message = $deletedCount . ' departments deleted successfully.';
+        $message = $deletedCount . ' departemen berhasil dihapus.';
         if ($errorCount > 0) {
-            $message .= ' ' . $errorCount . ' departments could not be deleted because they have users assigned.';
+            $message .= ' ' . $errorCount . ' departemen tidak bisa dihapus karena masih memiliki pengguna.';
             
             if ($request->ajax()) {
                 return response()->json([

@@ -99,7 +99,7 @@ class UserController extends Controller
                 Log::info('User created successfully', ['user_id' => $user->id]);
                 
                 return redirect()->route('admin.users.index')
-                    ->with('success', 'User created successfully.');
+                    ->with('success', 'Pengguna berhasil dibuat.');
             } catch (\Exception $e) {
                 // Log detailed database error
                 Log::error('Database error creating user', [
@@ -110,7 +110,7 @@ class UserController extends Controller
                 
                 return redirect()->back()
                     ->withInput()
-                    ->with('error', 'Error creating user. Please try again or contact the administrator.');
+                    ->with('error', 'Gagal membuat pengguna. Coba lagi atau hubungi admin.');
             }
         } catch (\Exception $e) {
             // Log validation or other errors
@@ -121,7 +121,7 @@ class UserController extends Controller
             
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Error. Please try again or contact the administrator.');
+                ->with('error', 'Terjadi kesalahan. Coba lagi atau hubungi admin.');
         }
     }
 
@@ -191,7 +191,7 @@ class UserController extends Controller
         $user->update($data);
         
         return redirect()->route('admin.users.index')
-            ->with('success', 'User updated successfully.');
+            ->with('success', 'Data pengguna berhasil diperbarui.');
     }
 
     /**
@@ -213,7 +213,7 @@ class UserController extends Controller
             // Don't allow deleting your own account
             if ($user->id === Auth::id()) {
                 return redirect()->route('admin.users.index')
-                    ->with('error', 'You cannot delete your own account.');
+                    ->with('error', 'Anda tidak bisa menghapus akun sendiri.');
             }
             
             // Log user deletion attempt
@@ -224,12 +224,12 @@ class UserController extends Controller
             Log::info('User deleted successfully', ['user_id' => $id]);
             
             return redirect()->route('admin.users.index')
-                ->with('success', 'User deleted successfully.');
+                ->with('success', 'Pengguna berhasil dihapus.');
         } catch (\Exception $e) {
             Log::error('Error deleting user', ['user_id' => $id, 'error' => $e->getMessage()]);
             
             return redirect()->route('admin.users.index')
-                ->with('error', 'Error deleting user. Please try again or contact the administrator.');
+                ->with('error', 'Gagal menghapus pengguna. Coba lagi atau hubungi admin.');
         }
     }
 
@@ -244,7 +244,7 @@ class UserController extends Controller
             
             if (!$request->has('selected_users')) {
                 return redirect()->route('admin.users.index')
-                    ->with('error', 'No users selected for deletion.');
+                    ->with('error', 'Belum ada pengguna yang dipilih.');
             }
             
             $selectedUsers = $request->selected_users;
@@ -264,7 +264,7 @@ class UserController extends Controller
             
             if (empty($selectedUsers)) {
                 return redirect()->route('admin.users.index')
-                    ->with('error', 'Cannot delete your own account or no valid users selected.');
+                    ->with('error', 'Akun sendiri tidak bisa dihapus, atau tidak ada pengguna valid yang dipilih.');
             }
             
             // Delete the selected users
@@ -273,12 +273,12 @@ class UserController extends Controller
             Log::info('Batch delete successful', ['count' => $deletedCount]);
             
             return redirect()->route('admin.users.index')
-                ->with('success', $deletedCount . ' users deleted successfully.');
+                ->with('success', $deletedCount . ' pengguna berhasil dihapus.');
         } catch (\Exception $e) {
             Log::error('Error in batch delete', ['error' => $e->getMessage()]);
             
             return redirect()->route('admin.users.index')
-                ->with('error', 'Error deleting users. Please try again or contact the administrator.');
+                ->with('error', 'Gagal menghapus pengguna. Coba lagi atau hubungi admin.');
         }
     }
 
@@ -311,7 +311,7 @@ class UserController extends Controller
             Excel::import(new UsersImport, $request->file('file'));
             
             return redirect()->route('admin.users.index')
-                ->with('success', 'Users imported successfully.');
+                ->with('success', 'Data pengguna berhasil diimpor.');
         } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
             $failures = $e->failures();
             $errors = [];
@@ -325,7 +325,7 @@ class UserController extends Controller
             Log::error('Error importing users', ['error' => $e->getMessage()]);
             
             return redirect()->back()
-                ->with('error', 'Error importing users. Please try again or contact the administrator.');
+                ->with('error', 'Gagal mengimpor pengguna. Periksa format file atau hubungi admin.');
         }
     }
 

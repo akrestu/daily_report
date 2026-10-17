@@ -52,7 +52,7 @@ class DailyReportObserver
                 'user_id' => $dailyReport->user_id,
                 'daily_report_id' => $dailyReport->id,
                 'type' => 'job_approved',
-                'message' => "Your job '{$dailyReport->job_name}' has been approved.",
+                'message' => "Laporan '{$dailyReport->job_name}' disetujui.",
                 'is_read' => false,
             ]);
         }
@@ -71,7 +71,7 @@ class DailyReportObserver
                 'user_id' => $dailyReport->user_id,
                 'daily_report_id' => $dailyReport->id,
                 'type' => 'job_rejected',
-                'message' => "Your job '{$dailyReport->job_name}' has been rejected.",
+                'message' => "Laporan '{$dailyReport->job_name}' ditolak.",
                 'is_read' => false,
             ]);
         }
@@ -116,7 +116,7 @@ class DailyReportObserver
                     'user_id' => $approver->id,
                     'daily_report_id' => $dailyReport->id,
                     'type' => 'pending_approval',
-                    'message' => "New job report '{$dailyReport->job_name}' needs your approval.",
+                    'message' => "Laporan baru '{$dailyReport->job_name}' menunggu persetujuan Anda.",
                     'is_read' => false,
                 ]);
             }

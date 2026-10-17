@@ -82,13 +82,13 @@ class SectionController extends Controller
         if ($request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Section created successfully.',
+                'message' => 'Section berhasil dibuat.',
                 'section' => $section->load('department')
             ]);
         }
 
         return redirect()->route('admin.sections.index')
-            ->with('success', 'Section created successfully.');
+            ->with('success', 'Section berhasil dibuat.');
     }
 
     /**
@@ -131,13 +131,13 @@ class SectionController extends Controller
         if ($request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Section updated successfully.',
+                'message' => 'Section berhasil diperbarui.',
                 'section' => $section->load('department')
             ]);
         }
 
         return redirect()->route('admin.sections.index')
-            ->with('success', 'Section updated successfully.');
+            ->with('success', 'Section berhasil diperbarui.');
     }
 
     /**
@@ -153,12 +153,12 @@ class SectionController extends Controller
             if (request()->ajax()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Cannot delete section because it has ' . $reportCount . ' reports associated with it.'
+                    'message' => 'Section tidak bisa dihapus karena masih memiliki ' . $reportCount . ' laporan.'
                 ], 422);
             }
 
             return redirect()->route('admin.sections.index')
-                ->with('error', 'Cannot delete section because it has ' . $reportCount . ' reports associated with it.');
+                ->with('error', 'Section tidak bisa dihapus karena masih memiliki ' . $reportCount . ' laporan.');
         }
 
         $section->delete();
@@ -166,12 +166,12 @@ class SectionController extends Controller
         if (request()->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Section deleted successfully.'
+                'message' => 'Section berhasil dihapus.'
             ]);
         }
 
         return redirect()->route('admin.sections.index')
-            ->with('success', 'Section deleted successfully.');
+            ->with('success', 'Section berhasil dihapus.');
     }
 
     /**
@@ -203,9 +203,9 @@ class SectionController extends Controller
             }
         }
 
-        $message = $deletedCount . ' sections deleted successfully.';
+        $message = $deletedCount . ' section berhasil dihapus.';
         if ($errorCount > 0) {
-            $message .= ' ' . $errorCount . ' sections could not be deleted because they have reports associated.';
+            $message .= ' ' . $errorCount . ' section tidak bisa dihapus karena masih memiliki laporan.';
 
             if ($request->ajax()) {
                 return response()->json([

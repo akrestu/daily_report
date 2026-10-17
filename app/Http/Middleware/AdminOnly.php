@@ -20,7 +20,7 @@ class AdminOnly
         /** @var User|null $user */
         $user = Auth::user();
         if (!$user || !$user->isAdmin()) {
-            return redirect()->route('dashboard')->with('error', 'You do not have permission to access this page.');
+            return redirect()->route('dashboard')->with('error', 'Anda tidak punya akses ke halaman ini.');
         }
         
         return $next($request);

@@ -260,7 +260,6 @@
     </x-sg.sheet>
 
     <x-sg.flash />
-    <x-modal-dialogs />
     <x-pwa-install />
 
     {{-- Library UMD self-host (scripts/copy-vendor.mjs): harus sudah ada sebelum script halaman.

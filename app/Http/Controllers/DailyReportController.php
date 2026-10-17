@@ -447,14 +447,14 @@ class DailyReportController extends Controller
         // Validate PIC belongs to eligible PICs
         if (!in_array($validated['job_pic'], $eligiblePics)) {
             return redirect()->back()
-                ->with('error', 'The selected PIC is not valid based on your role level.')
+                ->with('error', 'PIC ini tidak sesuai dengan level Anda.')
                 ->withInput();
         }
 
         // Validate no self-PIC
         if ($validated['job_pic'] == $user->id) {
             return redirect()->back()
-                ->with('error', 'You cannot assign yourself as PIC.')
+                ->with('error', 'Anda tidak bisa memilih diri sendiri sebagai PIC.')
                 ->withInput();
         }
         
@@ -514,7 +514,7 @@ class DailyReportController extends Controller
             DB::commit();
             
             return redirect()->route('daily-reports.user-jobs')
-                ->with('success', 'Daily report created successfully.');
+                ->with('success', 'Laporan berhasil dikirim.');
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Failed to create daily report: ' . $e->getMessage());
@@ -531,7 +531,7 @@ class DailyReportController extends Controller
             }
 
             return redirect()->back()
-                ->with('error', 'Failed to create report. Please try again.')
+                ->with('error', 'Gagal menyimpan laporan. Coba lagi.')
                 ->withInput();
         }
     }
@@ -727,14 +727,14 @@ class DailyReportController extends Controller
             if ($request->expectsJson()) {
                 // Form Buat Laporan (fetch) lanjut ke halaman berikutnya: pesan sukses tampil di sana. Antrian offline tidak memakai flash.
                 if ($request->boolean('_flash')) {
-                    session()->flash('success', $createdCount . ' daily reports created successfully.');
+                    session()->flash('success', $createdCount . ' laporan berhasil dikirim.');
                 }
 
                 return response()->json(['ok' => true, 'count' => $createdCount, 'redirect' => route('daily-reports.user-jobs')]);
             }
 
             return redirect()->route('daily-reports.user-jobs')
-                ->with('success', $createdCount . ' daily reports created successfully.');
+                ->with('success', $createdCount . ' laporan berhasil dikirim.');
                 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -754,11 +754,11 @@ class DailyReportController extends Controller
             }
 
             if ($request->expectsJson()) {
-                return response()->json(['ok' => false, 'message' => 'Failed to create reports. Please try again or contact the administrator.'], 500);
+                return response()->json(['ok' => false, 'message' => 'Gagal menyimpan laporan. Coba lagi atau hubungi admin.'], 500);
             }
 
             return redirect()->back()
-                ->with('error', 'Failed to create reports. Please try again or contact the administrator.')
+                ->with('error', 'Gagal menyimpan laporan. Coba lagi atau hubungi admin.')
                 ->withInput();
         }
     }
@@ -768,7 +768,7 @@ class DailyReportController extends Controller
         // Check if user can access this report
         if (!$this->userCanAccessReport(Auth::user(), $dailyReport)) {
             return redirect()->route('daily-reports.index')
-                ->with('error', 'You do not have permission to view this report.');
+                ->with('error', 'Anda tidak punya akses ke laporan ini.');
         }
 
         // Eager load relationships
@@ -786,7 +786,7 @@ class DailyReportController extends Controller
         // Check if user can edit this report
         if (!$this->userCanAccessReport($user, $dailyReport, 'edit')) {
             return redirect()->route('daily-reports.user-jobs')
-                ->with('error', 'You do not have permission to edit this report.');
+                ->with('error', 'Anda tidak bisa mengedit laporan ini.');
         }
 
         // Fetch departments for dropdown
@@ -828,10 +828,10 @@ class DailyReportController extends Controller
         if (!$this->userCanAccessReport($user, $dailyReport, 'edit')) {
             if ($dailyReport->approved_by) {
                 return redirect()->route('daily-reports.show', $dailyReport)
-                    ->with('error', 'You cannot edit a report that has already been approved or rejected.');
+                    ->with('error', 'Laporan yang sudah disetujui atau ditolak tidak bisa diedit.');
             }
 
-            abort(403, 'Unauthorized action.');
+            abort(403, 'Anda tidak punya akses untuk tindakan ini.');
         }
 
         // Validate input data
@@ -843,14 +843,14 @@ class DailyReportController extends Controller
         // Check if PIC is in eligible list
         if (!in_array($validated['job_pic'], $eligiblePics)) {
             return redirect()->back()
-                ->with('error', 'The selected PIC is not valid based on your role level.')
+                ->with('error', 'PIC ini tidak sesuai dengan level Anda.')
                 ->withInput();
         }
 
         // Validate no self-PIC
         if ($validated['job_pic'] == $user->id) {
             return redirect()->back()
-                ->with('error', 'You cannot assign yourself as PIC.')
+                ->with('error', 'Anda tidak bisa memilih diri sendiri sebagai PIC.')
                 ->withInput();
         }
         
@@ -930,13 +930,13 @@ class DailyReportController extends Controller
             }
 
             return redirect()->route('daily-reports.user-jobs')
-                ->with('success', 'Daily report updated successfully.');
+                ->with('success', 'Laporan berhasil diperbarui.');
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Failed to update daily report: ' . $e->getMessage());
 
             return redirect()->back()
-                ->with('error', 'Failed to update report. Please try again.')
+                ->with('error', 'Gagal memperbarui laporan. Coba lagi.')
                 ->withInput();
         }
     }
@@ -949,10 +949,10 @@ class DailyReportController extends Controller
         if (!$this->userCanAccessReport($user, $dailyReport, 'delete')) {
             if ($dailyReport->approval_status !== 'pending') {
                 return redirect()->route('daily-reports.show', $dailyReport)
-                    ->with('error', 'You cannot delete a report that has already been processed.');
+                    ->with('error', 'Laporan yang sudah diproses tidak bisa dihapus.');
             }
             
-            abort(403, 'Unauthorized action.');
+            abort(403, 'Anda tidak punya akses untuk tindakan ini.');
         }
         
         // Use transaction for data integrity
@@ -975,13 +975,13 @@ class DailyReportController extends Controller
             DB::commit();
             
             return redirect()->route('daily-reports.user-jobs')
-                ->with('success', 'Daily report deleted successfully.');
+                ->with('success', 'Laporan berhasil dihapus.');
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Failed to delete daily report: ' . $e->getMessage());
             
             return redirect()->back()
-                ->with('error', 'Failed to delete report. Please try again.');
+                ->with('error', 'Gagal menghapus laporan. Coba lagi.');
         }
     }
 
@@ -993,7 +993,7 @@ class DailyReportController extends Controller
 
         // Check if user can approve/reject reports using the canApprove method
         if (!$reportOwner || !$user->canApprove($reportOwner)) {
-            abort(403, 'Unauthorized action. You cannot approve reports for this user.');
+            abort(403, 'Anda tidak berhak menyetujui laporan pengguna ini.');
         }
 
         // Additional checks for non-admin users
@@ -1001,12 +1001,12 @@ class DailyReportController extends Controller
             // Level 8 can approve cross-department within same job site
             if ($user->isLevel8()) {
                 if (!$user->job_site_id || $dailyReport->job_site_id !== $user->job_site_id) {
-                    abort(403, 'Unauthorized action. You can only approve reports from your job site.');
+                    abort(403, 'Anda hanya bisa menyetujui laporan dari job site Anda.');
                 }
             } else {
                 // Other users can only approve within same department (a user without department approves nothing)
                 if (!$user->department_id || $dailyReport->department_id !== $user->department_id) {
-                    abort(403, 'Unauthorized action. You can only approve reports from your department.');
+                    abort(403, 'Anda hanya bisa menyetujui laporan dari departemen Anda.');
                 }
             }
         }
@@ -1040,7 +1040,7 @@ class DailyReportController extends Controller
 
             DB::commit();
 
-            $successMessage = 'Daily report ' . $validated['status'] . ' successfully.';
+            $successMessage = $validated['status'] === 'approved' ? 'Laporan disetujui.' : 'Laporan ditolak.';
 
             // Antrian mobile (swipe) memanggil lewat fetch: balas JSON, tanpa redirect
             if ($request->expectsJson()) {
@@ -1073,11 +1073,11 @@ class DailyReportController extends Controller
             Log::error('Failed to update report approval status: ' . $e->getMessage());
             
             if ($request->expectsJson()) {
-                return response()->json(['ok' => false, 'message' => 'Failed to update approval status. Please try again.'], 500);
+                return response()->json(['ok' => false, 'message' => 'Gagal memproses persetujuan. Coba lagi.'], 500);
             }
 
             return redirect()->back()
-                ->with('error', 'Failed to update approval status. Please try again.');
+                ->with('error', 'Gagal memproses persetujuan. Coba lagi.');
         }
     }
 
@@ -1235,7 +1235,7 @@ class DailyReportController extends Controller
 
         // Only users with approval authority can batch approve
         if (!$user->isAdmin() && $user->getRoleLevel() < 2) {
-            return redirect()->back()->with('error', 'Unauthorized action.');
+            return redirect()->back()->with('error', 'Anda tidak punya akses untuk tindakan ini.');
         }
 
         try {
@@ -1249,12 +1249,12 @@ class DailyReportController extends Controller
 
             // Validate the ids
             if (empty($ids) || !is_array($ids)) {
-                return redirect()->back()->with('error', 'No reports selected for approval.');
+                return redirect()->back()->with('error', 'Belum ada laporan yang dipilih.');
             }
 
             // Prevent DoS: Limit batch size to 100 reports
             if (count($ids) > 100) {
-                return redirect()->back()->with('error', 'Cannot approve more than 100 reports at once. Please select fewer reports.');
+                return redirect()->back()->with('error', 'Maksimal 100 laporan sekali proses. Kurangi pilihan Anda.');
             }
 
             // Build query for reports to approve
@@ -1276,7 +1276,7 @@ class DailyReportController extends Controller
             $reports = $query->get();
 
             if ($reports->isEmpty()) {
-                return redirect()->back()->with('error', 'No reports found for approval. Reports may be from a different department or not at the correct approval stage.');
+                return redirect()->back()->with('error', 'Tidak ada laporan yang bisa disetujui. Laporan mungkin dari departemen lain atau sudah diproses.');
             }
 
             // Filter reports with comprehensive authorization checks
@@ -1326,7 +1326,7 @@ class DailyReportController extends Controller
             });
 
             if ($approvableReports->isEmpty()) {
-                return redirect()->back()->with('error', 'No valid reports found to approve. You may not have permission to approve the selected reports, or they are not at the correct approval stage.');
+                return redirect()->back()->with('error', 'Tidak ada laporan yang bisa Anda setujui dari pilihan ini.');
             }
 
             $approvedCount = 0;
@@ -1362,9 +1362,9 @@ class DailyReportController extends Controller
 
                 DB::commit();
 
-                $message = "{$approvedCount} reports have been approved successfully.";
+                $message = "{$approvedCount} laporan disetujui.";
                 if ($skippedCount > 0) {
-                    $message .= " {$skippedCount} reports were skipped due to authorization or workflow constraints.";
+                    $message .= " {$skippedCount} laporan dilewati karena di luar wewenang Anda atau sudah diproses.";
                 }
 
                 return redirect()->back()->with('success', $message);
@@ -1376,7 +1376,7 @@ class DailyReportController extends Controller
                     'trace' => $e->getTraceAsString()
                 ]);
 
-                return redirect()->back()->with('error', 'An error occurred while approving the reports. Please try again or contact the administrator.');
+                return redirect()->back()->with('error', 'Terjadi kesalahan saat menyetujui laporan. Coba lagi atau hubungi admin.');
             }
         } catch (\Exception $e) {
             Log::error('Error in batch approval', [
@@ -1385,7 +1385,7 @@ class DailyReportController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
 
-            return redirect()->back()->with('error', 'Error processing request. Please try again or contact the administrator.');
+            return redirect()->back()->with('error', 'Terjadi kesalahan. Coba lagi atau hubungi admin.');
         }
     }
 
@@ -1399,7 +1399,7 @@ class DailyReportController extends Controller
 
         // Only users with approval authority can batch reject
         if (!$user->isAdmin() && $user->getRoleLevel() < 2) {
-            return redirect()->back()->with('error', 'Unauthorized action.');
+            return redirect()->back()->with('error', 'Anda tidak punya akses untuk tindakan ini.');
         }
 
         try {
@@ -1415,7 +1415,7 @@ class DailyReportController extends Controller
 
             // Prevent DoS: Additional check for batch size
             if (count($ids) > 100) {
-                return redirect()->back()->with('error', 'Cannot reject more than 100 reports at once. Please select fewer reports.');
+                return redirect()->back()->with('error', 'Maksimal 100 laporan sekali proses. Kurangi pilihan Anda.');
             }
 
             // Determine expected approval status based on user's role level
@@ -1445,7 +1445,7 @@ class DailyReportController extends Controller
             $reports = $query->get();
 
             if ($reports->isEmpty()) {
-                return redirect()->back()->with('error', 'No reports found for rejection. Reports may be from a different department or not at the correct approval stage.');
+                return redirect()->back()->with('error', 'Tidak ada laporan yang bisa ditolak. Laporan mungkin dari departemen lain atau sudah diproses.');
             }
 
             // Filter reports with comprehensive authorization checks
@@ -1488,7 +1488,7 @@ class DailyReportController extends Controller
             });
 
             if ($rejectableReports->isEmpty()) {
-                return redirect()->back()->with('error', 'No valid reports found to reject. You may not have permission to reject the selected reports, or they are not at the correct approval stage.');
+                return redirect()->back()->with('error', 'Tidak ada laporan yang bisa Anda tolak dari pilihan ini.');
             }
 
             $rejectedCount = 0;
@@ -1525,9 +1525,9 @@ class DailyReportController extends Controller
 
                 DB::commit();
 
-                $message = "{$rejectedCount} reports have been rejected successfully.";
+                $message = "{$rejectedCount} laporan ditolak.";
                 if ($skippedCount > 0) {
-                    $message .= " {$skippedCount} reports were skipped due to authorization or workflow constraints.";
+                    $message .= " {$skippedCount} laporan dilewati karena di luar wewenang Anda atau sudah diproses.";
                 }
 
                 return redirect()->back()->with('success', $message);
@@ -1539,7 +1539,7 @@ class DailyReportController extends Controller
                     'trace' => $e->getTraceAsString()
                 ]);
 
-                return redirect()->back()->with('error', 'An error occurred while rejecting the reports. Please try again or contact the administrator.');
+                return redirect()->back()->with('error', 'Terjadi kesalahan saat menolak laporan. Coba lagi atau hubungi admin.');
             }
         } catch (\Exception $e) {
             Log::error('Error in batch rejection', [
@@ -1548,7 +1548,7 @@ class DailyReportController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
 
-            return redirect()->back()->with('error', 'Error processing request. Please try again or contact the administrator.');
+            return redirect()->back()->with('error', 'Terjadi kesalahan. Coba lagi atau hubungi admin.');
         }
     }
 
@@ -1559,7 +1559,7 @@ class DailyReportController extends Controller
 
         // Only Admin and Level 4-8 can batch delete
         if (!$user->isAdmin() && !$user->isLevel4() && !$user->isLevel5() && !$user->isLevel6() && !$user->isLevel7() && !$user->isLevel8()) {
-            return redirect()->back()->with('error', 'Unauthorized action.');
+            return redirect()->back()->with('error', 'Anda tidak punya akses untuk tindakan ini.');
         }
 
         try {
@@ -1573,7 +1573,7 @@ class DailyReportController extends Controller
             
             // Validate the ids
             if (empty($ids) || !is_array($ids)) {
-                return redirect()->back()->with('error', 'No reports selected for deletion.');
+                return redirect()->back()->with('error', 'Belum ada laporan yang dipilih.');
             }
 
             // Get reports with attachments to delete
@@ -1601,7 +1601,7 @@ class DailyReportController extends Controller
             }
                 
             if ($reports->isEmpty()) {
-                return redirect()->back()->with('error', 'No valid reports found to delete.');
+                return redirect()->back()->with('error', 'Tidak ada laporan yang bisa dihapus dari pilihan ini.');
             }
 
             DB::beginTransaction();
@@ -1616,7 +1616,7 @@ class DailyReportController extends Controller
                 
                 DB::commit();
 
-                return redirect()->back()->with('success', count($reports) . ' reports have been deleted successfully.');
+                return redirect()->back()->with('success', count($reports) . ' laporan berhasil dihapus.');
             } catch (\Exception $e) {
                 DB::rollBack();
                 Log::error('Error during batch deletion transaction', [
@@ -1624,7 +1624,7 @@ class DailyReportController extends Controller
                     'trace' => $e->getTraceAsString()
                 ]);
                 
-                return redirect()->back()->with('error', 'An error occurred while deleting the reports. Please try again or contact the administrator.');
+                return redirect()->back()->with('error', 'Terjadi kesalahan saat menghapus laporan. Coba lagi atau hubungi admin.');
             }
         } catch (\Exception $e) {
             Log::error('Error in batch deletion', [
@@ -1632,7 +1632,7 @@ class DailyReportController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
             
-            return redirect()->back()->with('error', 'Error processing request. Please try again or contact the administrator.');
+            return redirect()->back()->with('error', 'Terjadi kesalahan. Coba lagi atau hubungi admin.');
         }
     }
     
@@ -1726,7 +1726,7 @@ class DailyReportController extends Controller
             Excel::import(new DailyReportsImport($eligiblePicIds), $request->file('file'));
             
             return redirect()->route('daily-reports.user-jobs')
-                ->with('success', 'Reports imported successfully.');
+                ->with('success', 'Laporan berhasil diimpor.');
         } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
             $failures = $e->failures();
             $errors = [];
@@ -1740,7 +1740,7 @@ class DailyReportController extends Controller
             Log::error('Error importing reports', ['error' => $e->getMessage()]);
             
             return redirect()->back()
-                ->with('error', 'Error importing reports. Please try again or contact the administrator.');
+                ->with('error', 'Gagal mengimpor laporan. Periksa format file atau hubungi admin.');
         }
     }
 

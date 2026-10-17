@@ -59,7 +59,7 @@ class JobCommentObserver
                     'daily_report_id' => $dailyReport->id,
                     'comment_id' => $comment->id,
                     'type' => 'new_comment',
-                    'message' => "New comment on your job '{$dailyReport->job_name}'.",
+                    'message' => "Komentar baru di laporan Anda '{$dailyReport->job_name}'.",
                     'is_read' => false,
                 ]);
             }
@@ -78,7 +78,7 @@ class JobCommentObserver
                     'daily_report_id' => $dailyReport->id,
                     'comment_id' => $comment->id,
                     'type' => 'new_comment',
-                    'message' => "New comment on job '{$dailyReport->job_name}' where you're listed as PIC.",
+                    'message' => "Komentar baru di laporan '{$dailyReport->job_name}' (Anda PIC).",
                     'is_read' => false,
                 ]);
             }
@@ -104,7 +104,7 @@ class JobCommentObserver
                     'daily_report_id' => $dailyReport->id,
                     'comment_id' => $comment->id,
                     'type' => 'new_comment',
-                    'message' => "New comment on job '{$dailyReport->job_name}' that you previously commented on.",
+                    'message' => "Komentar baru di laporan '{$dailyReport->job_name}' yang pernah Anda komentari.",
                     'is_read' => false,
                 ]);
             }

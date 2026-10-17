@@ -164,7 +164,7 @@ class BatchOperationAuthorizationTest extends TestCase
         ]);
 
         $response->assertSessionHas('error');
-        $this->assertStringContainsString('Cannot approve more than 100', session('error'));
+        $this->assertStringContainsString('Maksimal 100 laporan', session('error'));
     }
 
     /** @test */
@@ -273,7 +273,7 @@ class BatchOperationAuthorizationTest extends TestCase
         ]);
 
         $response->assertSessionHas('error');
-        $this->assertStringContainsString('Unauthorized', session('error'));
+        $this->assertStringContainsString('tidak punya akses', session('error'));
 
         // Report should not be modified
         $report->refresh();

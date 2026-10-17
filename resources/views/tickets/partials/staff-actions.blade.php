@@ -2,7 +2,7 @@
 @if ($canAssign)
     <form action="{{ route('tickets.assign', $ticket) }}" method="POST" class="mb-4">
         @csrf
-        <p class="sg-section-label">{{ $ticket->assigned_to ? 'Alihkan penanganan' : 'Assign & buat Job Plan' }}</p>
+        <p class="sg-section-label">{{ $ticket->assigned_to ? 'Alihkan penanganan' : 'Tugaskan & buat Rencana Kerja' }}</p>
         @if ($errors->hasAny(['assigned_to', 'due_date']))
             <div class="alert alert-danger small py-2">@foreach ($errors->only(['assigned_to', 'due_date']) as $e)<div>{{ $e }}</div>@endforeach</div>
         @endif
@@ -19,7 +19,7 @@
         <input id="due-{{ $sfx }}" type="date" name="due_date" class="form-control mb-2" min="{{ today()->format('Y-m-d') }}" required
                value="{{ optional($ticket->jobPlan?->due_date)->format('Y-m-d') ?? today()->addDays(3)->format('Y-m-d') }}">
         <p class="small text-muted">{{ $ticket->assigned_to ? 'Job Plan aktif dipindahkan ke anggota yang dipilih.' : 'Tiket diteruskan sebagai Job Plan ke anggota yang dipilih.' }}</p>
-        <button type="submit" class="btn btn-primary w-100">{{ $ticket->assigned_to ? 'Alihkan' : 'Assign & buat Job Plan' }}</button>
+        <button type="submit" class="btn btn-primary w-100">{{ $ticket->assigned_to ? 'Alihkan' : 'Tugaskan & buat Rencana Kerja' }}</button>
     </form>
 @endif
 
