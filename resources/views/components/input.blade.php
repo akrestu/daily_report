@@ -23,8 +23,8 @@
             {!! $autocomplete !== 'off' ? "autocomplete=\"$autocomplete\"" : '' !!}
             {{ $attributes->merge(['class' => 'form-control' . ($errors->has($name) ? ' is-invalid' : '')]) }}
         >
-        <button class="btn btn-outline-secondary toggle-password" type="button" data-target="{{ $name }}">
-            <i class="bi bi-eye"></i>
+        <button class="btn btn-outline-secondary toggle-password" type="button" data-target="{{ $name }}" aria-label="Tampilkan kata sandi">
+            <i class="bi bi-eye" aria-hidden="true"></i>
         </button>
     </div>
     @else

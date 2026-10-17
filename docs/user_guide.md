@@ -17,23 +17,27 @@
 9. [Organization Chart](#9-organization-chart)
 10. [Import & Export Excel](#10-import--export-excel)
 11. [Profil & Pengaturan](#11-profil--pengaturan)
+12. [Tampilan Baru (versi 2.0)](#12-tampilan-baru-versi-20)
 
 ---
 
 ## 1. Login & Awal Penggunaan
 
 1. Buka browser dan akses URL aplikasi SiGAP
-2. Masukkan **Email** dan **Password**
-3. Klik tombol **Login**
+2. Masukkan **User ID** dan **Kata sandi**
+3. Ketuk **Masuk**
+
+Lupa kata sandi? Hubungi admin; belum ada reset mandiri.
 
 Setelah login, Anda akan diarahkan ke **Dashboard** yang menampilkan ringkasan aktivitas sesuai role Anda.
 
 ### Pengaturan Awal yang Disarankan
 
 Setelah pertama kali login:
-1. Update profil Anda: klik nama/avatar di pojok kanan atas → **Profile**
-2. Atur foto profil (opsional)
-3. Atur preferensi notifikasi sesuai kebutuhan
+1. Buka **Profil** (avatar di pojok kanan atas)
+2. Atur foto profil (opsional) dan **tema** (Terang / Gelap / Ikuti sistem)
+3. Atur preferensi notifikasi — tersimpan otomatis
+4. Di HP, pasang aplikasi lewat menu **Lainnya → Instal Aplikasi** agar bisa dibuka seperti aplikasi biasa
 
 ---
 
@@ -164,9 +168,8 @@ Dashboard menampilkan informasi berbeda berdasarkan role:
 
 ### Langkah-langkah
 
-1. Klik **Laporan Harian** di menu sidebar
-2. Klik tombol **Buat Laporan Baru**
-3. Isi form laporan:
+1. Ketuk tombol **+** di tengah bar bawah (HP) atau **Buat Laporan** di sidebar (desktop)
+2. Isi form laporan:
 
 | Field | Wajib | Keterangan |
 |-------|-------|------------|
@@ -176,13 +179,21 @@ Dashboard menampilkan informasi berbeda berdasarkan role:
 | Seksi | — | Seksi dalam departemen (opsional) |
 | Tanggal Laporan | ✓ | Tanggal pekerjaan |
 | Tanggal Target | ✓ | Deadline (tidak boleh sebelum tanggal laporan) |
-| PIC | ✓ | Person In Charge (atasan Anda) |
-| Status | ✓ | `Pending`, `In Progress`, atau `Completed` |
+| PIC | ✓ | Atasan yang menyetujui — ketuk lalu cari namanya. Hanya atasan yang berhak yang bisa dipilih |
+| Progres Pekerjaan | ✓ | Belum Mulai, Dalam Proses, atau Selesai |
 | Deskripsi | ✓ | Penjelasan detail pekerjaan |
 | Catatan | — | Catatan tambahan (opsional) |
 | Attachment 1-3 | — | File pendukung (maks 5MB per file) |
 
-4. Klik **Simpan**
+| Lampiran 1-3 | — | **Ambil Foto** (kamera) atau **Galeri / File** |
+
+3. Ketuk **Kirim N Laporan**
+
+### Draf otomatis & sinyal lemah
+
+- Teks yang Anda ketik **disimpan otomatis** di HP. Bila halaman tertutup sebelum dikirim, saat membuka Buat Laporan lagi muncul **"Ada draf yang belum dikirim"** → **Pulihkan** atau **Buang**. Lampiran tidak ikut draf, pilih ulang setelah memulihkan.
+- Bila sinyal hilang saat mengirim, laporan (beserta lampirannya) **disimpan di HP** dan muncul kotak **"N laporan menunggu dikirim"**. Laporan dikirim otomatis begitu HP online lagi, atau ketuk **Kirim sekarang**. Laporan tidak akan terkirim dua kali.
+- Bila laporan antrian ditolak server (mis. data tidak valid), kotak itu menampilkan alasannya; **Buang** lalu buat ulang.
 
 ### Format Attachment yang Didukung
 
@@ -190,11 +201,11 @@ Dashboard menampilkan informasi berbeda berdasarkan role:
 - Dokumen: `.pdf`, `.doc`, `.docx`
 - Spreadsheet: `.xls`, `.xlsx`
 - Maks ukuran: **5 MB per file**
-- Gambar otomatis dikompresi saat upload
+- Foto dari kamera otomatis diperkecil di HP sebelum diunggah (hemat kuota) dan dikompresi lagi di server
 
 ### Membuat Banyak Laporan Sekaligus
 
-Klik **Tambah Laporan Lagi** untuk menambahkan form laporan kedua, ketiga, dst. Semua akan disimpan sekaligus saat klik **Simpan Semua**.
+Ketuk **Tambah laporan lain** untuk menambah entri. Semua entri dikirim sekaligus. Menghapus entri bisa dibatalkan lewat **Urungkan** pada notifikasi di bawah layar.
 
 ---
 
@@ -210,6 +221,8 @@ Tersedia beberapa tampilan daftar:
 | **Laporan Pending** | Laporan yang menunggu approval dari Anda |
 | **Laporan Saya** | Laporan yang Anda buat |
 | **Laporan Ditugaskan** | Laporan di mana Anda adalah PIC |
+
+Di HP, daftar laporan memuat halaman berikutnya otomatis saat Anda menggulir ke bawah.
 
 ### Filter & Pencarian
 
@@ -245,7 +258,7 @@ Laporan hanya bisa diedit jika:
 
 ### Melihat Laporan yang Perlu Diapprove
 
-Klik **Laporan Pending** di sidebar untuk melihat laporan yang menunggu approval dari Anda.
+Buka **Persetujuan** (bar bawah di HP, sidebar di desktop). Angka di menu = jumlah laporan yang menunggu Anda.
 
 > Anda hanya akan melihat laporan dari pengguna yang berada **satu level di bawah Anda**.
 > Level 8 melihat laporan dari Level 6 dan Level 7.
@@ -258,10 +271,17 @@ Klik **Laporan Pending** di sidebar untuk melihat laporan yang menunggu approval
 3. Jika menolak, isi alasan penolakan
 4. Konfirmasi
 
-**Cara 2 — Batch Approve:**
-1. Di halaman daftar laporan, centang laporan yang ingin diapprove
-2. Klik **Setujui Terpilih** atau **Tolak Terpilih**
-3. Untuk penolakan massal, isi alasan yang sama untuk semua
+**Cara 2 — Langsung dari antrian (HP):**
+- **Geser kartu ke kanan** = setujui. Muncul notifikasi dengan tombol **Urungkan** selama 5 detik; setelah itu persetujuan dikirim.
+- **Geser ke kiri** = tolak (isi alasan).
+- Atau ketuk tombol **Setujui** / **Tolak** di kartu.
+
+**Cara 3 — Banyak sekaligus:**
+1. **Tekan lama** sebuah kartu (HP) atau centang kotaknya (desktop) / ketuk **Pilih**
+2. Pilih laporan lain, lalu ketuk **Setujui (N)** atau **Tolak (N)** di bar bawah
+3. Untuk penolakan massal, isi satu alasan untuk semua
+
+**Pintasan keyboard (desktop):** `J`/`K` pindah laporan, `X` pilih, `A` setujui, `R` tolak.
 
 ### Status Setelah Approval
 
@@ -410,3 +430,24 @@ Jika tidak ada foto profil, sistem akan menampilkan avatar default berdasarkan i
 2. Klik **Hapus Akun**
 3. Masukkan password untuk konfirmasi
 4. Data Anda akan dihapus permanen
+
+---
+
+## 12. Tampilan Baru (versi 2.0)
+
+### Navigasi
+| Perangkat | Navigasi |
+|-----------|----------|
+| HP | Bar bawah: Beranda, Laporan, **+** (Buat Laporan / Persetujuan untuk Level 8), Tiket, Lainnya |
+| Tablet | Rel ikon di kiri |
+| Desktop | Sidebar (bisa diciutkan) + bar atas dengan notifikasi dan menu akun |
+
+### Pencarian global
+Ketuk ikon **cari** di bar atas (HP) atau tekan **Ctrl K** (desktop). Cari laporan, tiket, dan — untuk admin — pengguna. Hasil hanya menampilkan data yang boleh Anda lihat. Gunakan panah atas/bawah dan Enter untuk membuka.
+
+### Tema
+**Profil → Tampilan**: Terang, Gelap, atau Ikuti sistem. Pilihan tersimpan di perangkat ini.
+
+### Aplikasi terpasang (PWA)
+Setelah dipasang, tarik layar ke bawah di bagian atas halaman untuk memuat ulang.
+

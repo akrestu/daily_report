@@ -1,47 +1,24 @@
-@extends('layouts.app')
+{{-- Pengaturan sistem (belum aktif: hanya informasi) --}}
+<x-app-layout title="Pengaturan Sistem" :back="route('admin.dashboard')">
+    <x-sg.page-header title="Pengaturan Sistem" subtitle="Pengaturan aplikasi masih dalam pengembangan." />
 
-@section('content')
-<div class="container py-4">
-    <div class="row">
-        <div class="col-lg-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="mb-0">Pengaturan sistem</h2>
-                <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
-                </a>
-            </div>
-            
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white p-3">
-                    <h5 class="mb-0">Application Settings</h5>
-                </div>
-                <div class="card-body p-4">
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle me-2"></i>
-                        Settings page is currently under development. This feature will be available soon.
-                    </div>
-                    
-                    <form>
-                        <div class="mb-3">
-                            <label for="appName" class="form-label">Application Name</label>
-                            <input type="text" class="form-control" id="appName" value="SiGAP - Smart Integrated Gateway for Activity &amp; Performance" disabled>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="emailNotifications" class="form-label">Notifikasi email</label>
-                            <select class="form-select" id="emailNotifications" disabled>
-                                <option value="enabled" selected>Aktif</option>
-                                <option value="disabled">Nonaktif</option>
-                            </select>
-                        </div>
-                        
-                        <button type="button" class="btn btn-primary" disabled>
-                            <i class="bi bi-floppy me-2"></i>Save Settings
-                        </button>
-                    </form>
-                </div>
-            </div>
+    <div class="card p-3 p-lg-4" style="max-width:640px">
+        <div class="sg-internal-note p-3 mb-3 d-flex gap-2">
+            <i class="bi bi-info-circle fs-5" aria-hidden="true"></i>
+            <div class="small">Halaman ini belum bisa mengubah pengaturan. Konfigurasi masih diatur lewat file <code>.env</code> di server.</div>
         </div>
+
+        <div class="mb-3">
+            <label for="appName" class="form-label fw-semibold">Nama aplikasi</label>
+            <input type="text" class="form-control" id="appName" value="SiGAP - Smart Integrated Gateway for Activity &amp; Performance" disabled>
+        </div>
+        <div class="mb-3">
+            <label for="emailNotifications" class="form-label fw-semibold">Notifikasi email</label>
+            <select class="form-select" id="emailNotifications" disabled>
+                <option value="enabled" selected>Aktif</option>
+                <option value="disabled">Nonaktif</option>
+            </select>
+        </div>
+        <button type="button" class="btn btn-primary" disabled><i class="bi bi-floppy" aria-hidden="true"></i> Simpan</button>
     </div>
-</div>
-@endsection 
+</x-app-layout>

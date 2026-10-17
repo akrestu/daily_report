@@ -44,7 +44,7 @@
                             <span class="input-group-text bg-light">
                                 <i class="bi bi-search"></i>
                             </span>
-                            <input type="text" name="search" class="form-control" placeholder="Cari…" value="{{ request('search') }}" style="height: 42px;">
+                            <input type="text" name="search" aria-label="Cari" class="form-control" placeholder="Cari…" value="{{ request('search') }}" style="height: 42px;">
                         </div>
                     </div>
                     <div class="col-md-3 col-12">
@@ -118,16 +118,16 @@
                                             data-section-code="{{ $section->code }}"
                                             data-section-department="{{ $section->department_id }}"
                                             data-section-description="{{ $section->description }}"
-                                            data-section-active="{{ $section->is_active ? '1' : '0' }}">
-                                        <i class="bi bi-pencil-square"></i>
+                                            data-section-active="{{ $section->is_active ? '1' : '0' }}" aria-label="Edit {{ $section->name }}">
+                                        <i class="bi bi-pencil-square" aria-hidden="true"></i>
                                     </button>
                                     <button type="button" class="btn btn-sm btn-outline-danger section-delete-btn"
                                             data-bs-toggle="modal"
                                             data-bs-target="#deleteSectionModal"
                                             data-section-id="{{ $section->id }}"
                                             data-section-name="{{ $section->name }}"
-                                            data-section-reports="{{ $section->daily_reports_count }}">
-                                        <i class="bi bi-trash3"></i>
+                                            data-section-reports="{{ $section->daily_reports_count }}" aria-label="Hapus {{ $section->name }}">
+                                        <i class="bi bi-trash3" aria-hidden="true"></i>
                                     </button>
                                 </div>
                             </div>
@@ -222,16 +222,16 @@
                                                 data-section-code="{{ $section->code }}"
                                                 data-section-department="{{ $section->department_id }}"
                                                 data-section-description="{{ $section->description }}"
-                                                data-section-active="{{ $section->is_active ? '1' : '0' }}">
-                                            <i class="bi bi-pencil-square"></i>
+                                                data-section-active="{{ $section->is_active ? '1' : '0' }}" aria-label="Edit {{ $section->name }}">
+                                            <i class="bi bi-pencil-square" aria-hidden="true"></i>
                                         </button>
                                         <button type="button" class="btn btn-sm btn-outline-danger section-delete-btn"
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#deleteSectionModal"
                                                 data-section-id="{{ $section->id }}"
                                                 data-section-name="{{ $section->name }}"
-                                                data-section-reports="{{ $section->daily_reports_count }}">
-                                            <i class="bi bi-trash3"></i>
+                                                data-section-reports="{{ $section->daily_reports_count }}" aria-label="Hapus {{ $section->name }}">
+                                            <i class="bi bi-trash3" aria-hidden="true"></i>
                                         </button>
                                     </div>
                                 </td>

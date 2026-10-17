@@ -67,7 +67,7 @@ class SearchController extends Controller
                 ->map(fn ($u) => [
                     'title' => $u->name,
                     'meta' => collect([$u->user_id, $u->department?->name])->filter()->implode(' · '),
-                    'url' => route('admin.users.show', $u),
+                    'url' => route('admin.users.edit', $u),
                     'icon' => 'bi-person',
                 ]);
         }

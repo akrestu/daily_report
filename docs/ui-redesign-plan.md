@@ -214,3 +214,13 @@ Dikerjakan setelah paritas visual; masing-masing bisa dirilis terpisah.
   - Daftar laporan (`index`, `user-jobs`, `assigned-jobs`): infinite scroll di mobile memakai link `rel=next` pagination yang ada (tanpa endpoint JSON baru); desktop tetap pagination. Tarik untuk muat ulang hanya di PWA terpasang.
   - `sw.js` v4.0.0: halaman HTML tidak lagi masuk `api-cache` 5 menit (form Buat Laporan bisa dibuka offline dari cache `pages`).
   - Ditemukan, belum diperbaiki (di luar lingkup): `storeMultiple` tidak memeriksa PIC yang berhak (beda dengan `store`), cukup `exists:users,id`.
+- [x] Perbaikan pasca Fase 6: `storeMultiple` kini mewajibkan PIC dari `getEligiblePics` (bukan diri sendiri), error per entri `reports.{k}.job_pic`; pengecualian pembuat Rencana Kerja untuk entri dari rencananya.
+- [~] Fase 7 — QA & rilis (bagian yang bisa diotomasi selesai; uji perangkat nyata oleh tim)
+  - Audit otomatis 39 layar di 390 px (sentuh, dark) + 28 layar × 768/1440 px: **tidak ada scroll horizontal**, tidak ada latar putih nyasar di dark mode, semua tombol ikon & input punya nama aksesibel, input mobile ≥16 px, target sentuh ≥44 px (chip 40 px visual dengan area sentuh diperluas).
+  - Lighthouse (mobile) aksesibilitas: Antrian 100, Tiket 100, Detail Laporan 97→ perbaikan kontras, Buat Laporan 96 → perbaikan kontras & nama tombol PIC. `--sg-muted` #64748B → #5E6B7F (≥4,85:1 juga di latar tint).
+  - Performa: CSS+JS awal ±122 KB gzip (Chart.js 70 KB kini hanya dimuat di 2 dashboard; `custom.css` usang dihapus — ia juga memperbesar `.spinner-border-sm`). Trace Fast 3G + CPU 4×: LCP 0,9 dtk, CLS 0 (Antrian).
+  - Focus ring cadangan `:where(...):focus-visible`; `prefers-reduced-motion` sudah global di tokens.
+  - Bug lama diperbaiki: `/admin/settings` error 500 (`@extends` ke layout komponen) → shell baru; `/admin/reports/cleanup` selalu 404 (tertangkap `/reports/{dailyReport}`) → `whereNumber`; tombol ikon admin tanpa label (24); label form tidak terhubung (17); hasil pencarian pengguna menautkan `admin.users.show` yang view-nya tidak ada → halaman edit.
+  - Menu "Instal Aplikasi" ditambahkan di sheet Lainnya.
+  - Dokumen: `docs/user_guide.md` (bagian 12 + alur baru), `docs/deployment.md` (Rilis 2.0.0), CLAUDE.md versi 2.0.0.
+  - Belum: uji Android Chrome & iPhone Safari (PWA) nyata, screenshot baru di user guide, rilis bertahap ke Plesk. Error `DATEDIFF` di dashboard admin hanya muncul di SQLite (QA), bukan MySQL produksi.

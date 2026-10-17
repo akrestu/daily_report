@@ -44,7 +44,7 @@
                             <span class="input-group-text bg-light">
                                 <i class="bi bi-search"></i>
                             </span>
-                            <input type="text" name="search" class="form-control" placeholder="Cari…" value="{{ request('search') }}" style="height: 42px;">
+                            <input type="text" name="search" aria-label="Cari" class="form-control" placeholder="Cari…" value="{{ request('search') }}" style="height: 42px;">
                         </div>
                     </div>
                     <div class="col-md-2 col-12">
@@ -110,16 +110,16 @@
                                             data-jobsite-code="{{ $jobSite->code }}"
                                             data-jobsite-location="{{ $jobSite->location }}"
                                             data-jobsite-description="{{ $jobSite->description }}"
-                                            data-jobsite-active="{{ $jobSite->is_active ? '1' : '0' }}">
-                                        <i class="bi bi-pencil-square"></i>
+                                            data-jobsite-active="{{ $jobSite->is_active ? '1' : '0' }}" aria-label="Edit {{ $jobSite->name }}">
+                                        <i class="bi bi-pencil-square" aria-hidden="true"></i>
                                     </button>
                                     <button type="button" class="btn btn-sm btn-outline-danger jobsite-delete-btn"
                                             data-bs-toggle="modal"
                                             data-bs-target="#deleteJobSiteModal"
                                             data-jobsite-id="{{ $jobSite->id }}"
                                             data-jobsite-name="{{ $jobSite->name }}"
-                                            data-jobsite-reports="{{ $jobSite->daily_reports_count }}">
-                                        <i class="bi bi-trash3"></i>
+                                            data-jobsite-reports="{{ $jobSite->daily_reports_count }}" aria-label="Hapus {{ $jobSite->name }}">
+                                        <i class="bi bi-trash3" aria-hidden="true"></i>
                                     </button>
                                 </div>
                             </div>
@@ -218,16 +218,16 @@
                                                 data-jobsite-code="{{ $jobSite->code }}"
                                                 data-jobsite-location="{{ $jobSite->location }}"
                                                 data-jobsite-description="{{ $jobSite->description }}"
-                                                data-jobsite-active="{{ $jobSite->is_active ? '1' : '0' }}">
-                                            <i class="bi bi-pencil-square"></i>
+                                                data-jobsite-active="{{ $jobSite->is_active ? '1' : '0' }}" aria-label="Edit {{ $jobSite->name }}">
+                                            <i class="bi bi-pencil-square" aria-hidden="true"></i>
                                         </button>
                                         <button type="button" class="btn btn-sm btn-outline-danger jobsite-delete-btn"
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#deleteJobSiteModal"
                                                 data-jobsite-id="{{ $jobSite->id }}"
                                                 data-jobsite-name="{{ $jobSite->name }}"
-                                                data-jobsite-reports="{{ $jobSite->daily_reports_count }}">
-                                            <i class="bi bi-trash3"></i>
+                                                data-jobsite-reports="{{ $jobSite->daily_reports_count }}" aria-label="Hapus {{ $jobSite->name }}">
+                                            <i class="bi bi-trash3" aria-hidden="true"></i>
                                         </button>
                                     </div>
                                 </td>

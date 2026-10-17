@@ -174,7 +174,7 @@ Route::middleware('auth')->group(function () {
         
         // Reports routes for admin
         Route::get('/reports', [DailyReportController::class, 'index'])->name('reports.index');
-        Route::get('/reports/{dailyReport}', [DailyReportController::class, 'show'])->name('reports.show');
+        Route::get('/reports/{dailyReport}', [DailyReportController::class, 'show'])->whereNumber('dailyReport')->name('reports.show');
         
         // First define the batch delete route before the resource
         Route::delete('/users/batch-delete', [UserController::class, 'batchDelete'])->name('users.batch-delete');

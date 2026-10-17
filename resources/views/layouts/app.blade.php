@@ -30,7 +30,6 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="SiGAP">
 
-    <link rel="stylesheet" href="{{ asset('css/custom.css') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <script>
@@ -102,7 +101,8 @@
                 <i class="bi bi-bell" aria-hidden="true"></i>
                 <span class="sg-count" x-show="$store.notif.unread" x-text="$store.notif.badge" x-cloak></span>
             </a>
-            <a href="{{ route('profile.edit') }}" class="sg-icon-btn" aria-label="Profil">
+            <a href="{{ route('profile.edit') }}" class="sg-icon-btn">
+                <span class="visually-hidden">Profil</span>
                 <x-sg.avatar :user="$user" :size="32" />
             </a>
         </header>
@@ -237,6 +237,7 @@
         <p class="sg-section-label mt-2">Akun</p>
         <div class="sg-more-grid" x-data>
             <a href="{{ route('profile.edit') }}" class="sg-more-item"><i class="bi bi-person" aria-hidden="true"></i>Profil</a>
+            <a href="{{ route('pwa.install') }}" class="sg-more-item"><i class="bi bi-phone" aria-hidden="true"></i>Instal Aplikasi</a>
             <button type="button" class="sg-more-item border-0"
                     @click="$store.theme.set(document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark')">
                 <i class="bi bi-circle-half" aria-hidden="true"></i>Ganti Tema
@@ -262,8 +263,8 @@
     <x-modal-dialogs />
     <x-pwa-install />
 
-    {{-- Library UMD self-host (scripts/copy-vendor.mjs): harus sudah ada sebelum script halaman --}}
-    <script src="{{ asset('vendor/chart.js/chart.umd.min.js') }}"></script>
+    {{-- Library UMD self-host (scripts/copy-vendor.mjs): harus sudah ada sebelum script halaman.
+         Chart.js (70 KB gzip) hanya dimuat halaman yang memakainya: @push('scripts') di dashboard & tickets/dashboard. --}}
     <script src="{{ asset('vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
     <script>
         document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach((el) => new bootstrap.Tooltip(el));

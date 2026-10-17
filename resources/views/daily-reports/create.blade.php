@@ -167,7 +167,7 @@
                             <div class="mb-3">
                                 <span class="form-label fw-semibold d-block" :id="id(entry, 'pic-label')">PIC (Atasan) <span class="text-danger">*</span></span>
                                 <input type="hidden" :name="name(entry, 'job_pic')" :value="entry.job_pic">
-                                <button type="button" class="sg-pic-field" @click="choosePic(entry)" :aria-labelledby="id(entry, 'pic-label')"
+                                <button type="button" class="sg-pic-field" @click="choosePic(entry)" :id="id(entry, 'pic-btn')" :aria-labelledby="id(entry, 'pic-label') + ' ' + id(entry, 'pic-btn')"
                                         :class="{ 'is-invalid': error(entry, 'job_pic') }">
                                     <template x-if="entry.job_pic">
                                         <span class="d-flex align-items-center gap-2 min-w-0">

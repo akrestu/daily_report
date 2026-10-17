@@ -6,13 +6,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 SiGAP (Smart Integrated Gateway for Activity & Performance) is a Laravel 12-based daily work activity reporting system with multi-level approval workflows. The system handles report creation, approval routing, notifications, comments, and file attachments with role-based access control.
 
-### Current Version: 1.1.0 (November 2024)
+### Current Version: 2.0.0 (Oktober 2026)
 
-#### Recent Updates
-- **Custom Logo**: Implemented SiGAP logo (public/Sigap.png) in login and sidebar
-- **Organization Chart**: Removed Administrator from Role Legend to focus on operational hierarchy (Level 1-5)
-- **Report Details UI**: Reordered tabs from "Desc, Comments, Remarks" to "Desc, Remarks, Comments" for better UX
-- **Multiple Attachments**: Support for up to 3 file attachments per report
+#### Recent Updates (2.0.0 — redesign UI, branch `feature/ui-redesign`)
+- Shell baru mobile-first (bottom nav + FAB / rail tablet / sidebar desktop), semua layar memakai design system `design/`, Bahasa Indonesia
+- Tailwind & CDN dicabut; Bootstrap 5.3 + Alpine + Bootstrap Icons + font self-host, `public/build` di-commit
+- Antrian persetujuan: geser setujui (Urungkan 5 dtk) / tolak, tekan lama pilih banyak, pintasan J/K/X/A/R
+- Pencarian global `GET /search` (Ctrl K), hasil disaring policy `view`
+- Buat Laporan: draf otomatis + antrian offline (IndexedDB), `idempotency_key` di `storeMultiple`; PIC wajib atasan yang berhak
+- Detail rencana & progres: `docs/ui-redesign-plan.md`
 
 ## Development Commands
 
@@ -147,10 +149,11 @@ The system uses Laravel Observers for cross-cutting concerns:
 
 Register observers in `AppServiceProvider` or `bootstrap/app.php`.
 
-### Livewire Components
-Two main Livewire components for real-time updates:
-- **DailyReportForm**: Multi-page form for creating daily reports with dynamic field validation
-- **DailyReportList**: Real-time list with filtering, sorting, pagination, and batch operations
+### Alpine Components (bukan Livewire)
+Interaktivitas memakai Alpine (`resources/js/sigap/`, didaftarkan di `index.js`); Livewire tidak dipakai di view (jangan tambah `@livewireScripts` — memuat Alpine kedua).
+- `sgReportForm` (Buat Laporan multi-entri, draf, kirim/antrian offline), `sgUploader` (lampiran + kompres foto), `sgQueue` (antrian persetujuan), `sgComments`, `sgSearch`
+- Store: `notif` (polling notifikasi), `outbox` (antrian offline), `theme`
+- Daftar laporan: komponen Blade `x-report.list` / `x-report.filters`; infinite scroll mobile via `infinite.js`
 
 ### Notification System
 Notifications are created automatically via observers and include:
@@ -173,7 +176,7 @@ Uses Laravel Excel (maatwebsite/excel) for:
 - Export user lists
 - Import users from template
 
-### UI/UX Design System (redesign 2026 — sedang berjalan)
+### UI/UX Design System (redesign 2.0.0)
 Rencana & progres: `docs/ui-redesign-plan.md`. Sumber desain: `design/` (baca `design/CLAUDE.md`, `design/design-system/DESIGN_SYSTEM.md`, mockup di `design/mockups/dc-source/`).
 - **Mobile-first** (mayoritas pengguna di HP). Breakpoint: `<576` mobile, `576–991` tablet, `≥992` desktop. Tidak ada scroll horizontal di mobile.
 - Warna lewat token `resources/css/tokens.css` (`--sg-*`, kelas `.sg-*`), **jangan hardcode hex**. Primary hitam #111111 (dark: kuning #F5D334), kuning hanya aksen. Tidak ada gradien biru-ungu, tidak ada emoji.
@@ -280,8 +283,8 @@ Default seeded credentials:
 - Source: `resources/js/app.js`, `resources/css/app.css`
 - Build: Vite compiles to `public/build/`
 - Additional static assets: `public/js/`, `public/css/`
-- Uses Bootstrap 5 + Tailwind CSS (hybrid approach)
-- Alpine.js for lightweight interactivity
+- Uses Bootstrap 5.3 + token `--sg-*` (Tailwind tidak dipakai)
+- Alpine.js for interactivity; Bootstrap JS & Chart.js self-host di `public/vendor` (Chart.js hanya dimuat di dashboard)
 - Chart.js for dashboard visualizations
 
 ## Documentation

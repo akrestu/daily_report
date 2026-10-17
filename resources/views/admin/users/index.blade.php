@@ -9,15 +9,15 @@
                 <div class="col-md-6 text-md-end">
                     <div class="d-flex flex-wrap justify-content-center justify-content-md-end gap-2">
                         <div class="btn-group me-md-2 mb-2 mb-md-0">
-                            <a href="{{ route('admin.users.export') }}" class="btn btn-outline-primary">
-                                <i class="bi bi-box-arrow-up me-1"></i> <span class="d-none d-sm-inline">Ekspor</span>
+                            <a href="{{ route('admin.users.export') }}" class="btn btn-outline-primary" aria-label="Ekspor">
+                                <i class="bi bi-box-arrow-up me-1" aria-hidden="true"></i> <span class="d-none d-sm-inline">Ekspor</span>
                             </a>
-                            <a href="{{ route('admin.users.show-import') }}" class="btn btn-outline-success">
-                                <i class="bi bi-box-arrow-in-down me-1"></i> <span class="d-none d-sm-inline">Impor</span>
+                            <a href="{{ route('admin.users.show-import') }}" class="btn btn-outline-success" aria-label="Impor">
+                                <i class="bi bi-box-arrow-in-down me-1" aria-hidden="true"></i> <span class="d-none d-sm-inline">Impor</span>
                             </a>
                         </div>
-                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createUserModal">
-                            <i class="bi bi-person-plus me-1"></i> <span class="d-none d-sm-inline">Pengguna baru</span>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createUserModal" aria-label="Pengguna baru">
+                            <i class="bi bi-person-plus me-1" aria-hidden="true"></i> <span class="d-none d-sm-inline">Pengguna baru</span>
                         </button>
                     </div>
                 </div>
@@ -32,7 +32,7 @@
                             <span class="input-group-text bg-light">
                                 <i class="bi bi-search"></i>
                             </span>
-                            <input type="text" name="search" class="form-control" placeholder="Cari…" value="{{ request('search') }}">
+                            <input type="text" name="search" aria-label="Cari" class="form-control" placeholder="Cari…" value="{{ request('search') }}">
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
@@ -53,11 +53,11 @@
                     </div>
                     <div class="col-12 col-md-3">
                         <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary flex-grow-1">
-                                <i class="bi bi-funnel me-1"></i> <span class="d-none d-sm-inline">Filter</span>
+                            <button type="submit" class="btn btn-primary flex-grow-1" aria-label="Filter">
+                                <i class="bi bi-funnel me-1" aria-hidden="true"></i> <span class="d-none d-sm-inline">Filter</span>
                             </button>
-                            <a href="{{ route('admin.users.index') }}" class="btn btn-secondary flex-grow-1">
-                                <i class="bi bi-arrow-clockwise me-1"></i> <span class="d-none d-sm-inline">Reset</span>
+                            <a href="{{ route('admin.users.index') }}" class="btn btn-secondary flex-grow-1" aria-label="Reset">
+                                <i class="bi bi-arrow-clockwise me-1" aria-hidden="true"></i> <span class="d-none d-sm-inline">Reset</span>
                             </a>
                         </div>
                     </div>
@@ -146,16 +146,16 @@
                                                 data-user-role="{{ $user->role_id }}"
                                                 data-user-department="{{ $user->department_id }}"
                                                 data-user-jobsite="{{ $user->job_site_id }}"
-                                                data-user-userid="{{ $user->user_id }}">
-                                            <i class="bi bi-pencil-square"></i>
+                                                data-user-userid="{{ $user->user_id }}" aria-label="Edit {{ $user->name }}">
+                                            <i class="bi bi-pencil-square" aria-hidden="true"></i>
                                         </button>
                                         @if(auth()->id() !== $user->id)
                                         <button type="button" class="btn btn-sm btn-outline-danger user-delete-btn" 
                                                 data-bs-toggle="modal" 
                                                 data-bs-target="#deleteUserModal" 
                                                 data-user-id="{{ $user->id }}" 
-                                                data-user-name="{{ $user->name }}">
-                                            <i class="bi bi-trash3"></i>
+                                                data-user-name="{{ $user->name }}" aria-label="Hapus {{ $user->name }}">
+                                            <i class="bi bi-trash3" aria-hidden="true"></i>
                                         </button>
                                         @endif
                                     </div>
@@ -347,8 +347,8 @@
                                 <label for="password" class="form-label">Kata sandi <span class="text-danger">*</span></label>
                                 <div class="input-group">
                                     <input type="password" class="form-control" id="password" name="password" required>
-                                    <button class="btn btn-outline-secondary toggle-password" type="button" data-target="password">
-                                        <i class="bi bi-eye"></i>
+                                    <button class="btn btn-outline-secondary toggle-password" type="button" data-target="password" aria-label="Tampilkan kata sandi">
+                                        <i class="bi bi-eye" aria-hidden="true"></i>
                                     </button>
                                 </div>
                             </div>
@@ -356,8 +356,8 @@
                                 <label for="password_confirmation" class="form-label">Confirm Password <span class="text-danger">*</span></label>
                                 <div class="input-group">
                                     <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" required>
-                                    <button class="btn btn-outline-secondary toggle-password" type="button" data-target="password_confirmation">
-                                        <i class="bi bi-eye"></i>
+                                    <button class="btn btn-outline-secondary toggle-password" type="button" data-target="password_confirmation" aria-label="Tampilkan kata sandi">
+                                        <i class="bi bi-eye" aria-hidden="true"></i>
                                     </button>
                                 </div>
                             </div>
@@ -441,8 +441,8 @@
                                 <label for="edit_password" class="form-label">Kata sandi <small class="text-muted">(leave blank to keep current)</small></label>
                                 <div class="input-group">
                                     <input type="password" class="form-control" id="edit_password" name="password">
-                                    <button class="btn btn-outline-secondary toggle-password" type="button" data-target="edit_password">
-                                        <i class="bi bi-eye"></i>
+                                    <button class="btn btn-outline-secondary toggle-password" type="button" data-target="edit_password" aria-label="Tampilkan kata sandi">
+                                        <i class="bi bi-eye" aria-hidden="true"></i>
                                     </button>
                                 </div>
                             </div>

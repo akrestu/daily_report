@@ -36,12 +36,12 @@
                                             <td class="fw-semibold">{{ $label }}</td>
                                             <td>
                                                 <input type="number" step="0.25" min="0.25" class="form-control form-control-sm"
-                                                    name="policies[{{ $priority }}][response_hours]" required
+                                                    name="policies[{{ $priority }}][response_hours]" required aria-label="Respons (jam) {{ $label }}"
                                                     value="{{ old("policies.$priority.response_hours", $policy ? round($policy->response_minutes / 60, 2) : '') }}">
                                             </td>
                                             <td>
                                                 <input type="number" step="0.25" min="0.25" class="form-control form-control-sm"
-                                                    name="policies[{{ $priority }}][resolution_hours]" required
+                                                    name="policies[{{ $priority }}][resolution_hours]" required aria-label="Penyelesaian (jam) {{ $label }}"
                                                     value="{{ old("policies.$priority.resolution_hours", $policy ? round($policy->resolution_minutes / 60, 2) : '') }}">
                                             </td>
                                         </tr>
@@ -93,8 +93,8 @@
                 <div class="card-body">
                     <form method="POST" action="{{ route('admin.sla.holidays.store') }}" class="row g-2 mb-3">
                         @csrf
-                        <div class="col-5"><input type="date" name="date" class="form-control form-control-sm" required value="{{ old('date') }}"></div>
-                        <div class="col-7"><input type="text" name="name" class="form-control form-control-sm" placeholder="Keterangan" required maxlength="255" value="{{ old('name') }}"></div>
+                        <div class="col-5"><input type="date" name="date" class="form-control form-control-sm" aria-label="Tanggal libur" required value="{{ old('date') }}"></div>
+                        <div class="col-7"><input type="text" name="name" class="form-control form-control-sm" aria-label="Keterangan hari libur" placeholder="Keterangan" required maxlength="255" value="{{ old('name') }}"></div>
                         <div class="col-12"><button type="submit" class="btn btn-outline-primary btn-sm w-100"><i class="bi bi-plus-lg me-1"></i>Tambah Hari Libur</button></div>
                     </form>
 
@@ -105,7 +105,7 @@
                                 <form method="POST" action="{{ route('admin.sla.holidays.destroy', $holiday) }}" onsubmit="return confirm('Hapus hari libur ini?')">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-link btn-sm text-danger p-0"><i class="bi bi-trash3"></i></button>
+                                    <button type="submit" class="btn btn-link btn-sm text-danger p-0" aria-label="Hapus"><i class="bi bi-trash3" aria-hidden="true"></i></button>
                                 </form>
                             </li>
                         @empty

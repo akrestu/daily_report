@@ -134,6 +134,7 @@
     </div>
 
     @push('scripts')
+        <script src="{{ asset('vendor/chart.js/chart.umd.min.js') }}"></script>
     <script>
         (function () {
             const period = document.getElementById('periodSelect');

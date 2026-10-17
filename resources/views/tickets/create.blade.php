@@ -28,22 +28,22 @@
                         <p class="section-title"><i class="bi bi-person me-1"></i>Pemohon</p>
                         <div class="row g-3 mb-4">
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold small">Nama</label>
-                                <input type="text" class="form-control" value="{{ auth()->user()->name }}" disabled>
+                                <label for="f-nama" class="form-label fw-semibold small">Nama</label>
+                                <input id="f-nama" type="text" class="form-control" value="{{ auth()->user()->name }}" disabled>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold small">Departemen</label>
-                                <input type="text" class="form-control" value="{{ auth()->user()->department->name ?? '-' }}" disabled>
+                                <label for="f-departemen" class="form-label fw-semibold small">Departemen</label>
+                                <input id="f-departemen" type="text" class="form-control" value="{{ auth()->user()->department->name ?? '-' }}" disabled>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold small">No. HP / WhatsApp</label>
-                                <input type="text" name="requester_phone" class="form-control" placeholder="Untuk follow-up (opsional)"
+                                <label for="f-requester_phone" class="form-label fw-semibold small">No. HP / WhatsApp</label>
+                                <input id="f-requester_phone" type="text" name="requester_phone" class="form-control" placeholder="Untuk follow-up (opsional)"
                                     value="{{ old('requester_phone') }}" maxlength="30">
                             </div>
                             @if($jobSites->count() > 0)
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold small">Lokasi / Site</label>
-                                <select name="job_site_id" class="form-select">
+                                <label for="f-job_site_id" class="form-label fw-semibold small">Lokasi / Site</label>
+                                <select id="f-job_site_id" name="job_site_id" class="form-select">
                                     <option value="">— Pilih Lokasi (opsional) —</option>
                                     @foreach($jobSites as $site)
                                         <option value="{{ $site->id }}" {{ old('job_site_id', auth()->user()->job_site_id) == $site->id ? 'selected' : '' }}>

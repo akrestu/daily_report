@@ -20,13 +20,13 @@
     @csrf
     <div class="row g-2">
         <div class="col-sm-7">
-            <label class="form-label small fw-semibold">Nomor Tiket</label>
-            <input type="text" name="ticket_number" class="form-control text-uppercase" placeholder="TKT-20261012-0001"
+            <label for="f-ticket_number" class="form-label small fw-semibold">Nomor Tiket</label>
+            <input id="f-ticket_number" type="text" name="ticket_number" class="form-control text-uppercase" placeholder="TKT-20261012-0001"
                 value="{{ old('ticket_number') }}" required maxlength="30">
         </div>
         <div class="col-sm-5">
-            <label class="form-label small fw-semibold">Kode Akses</label>
-            <input type="text" name="token" class="form-control text-uppercase font-monospace" placeholder="8 karakter"
+            <label for="f-token" class="form-label small fw-semibold">Kode Akses</label>
+            <input id="f-token" type="text" name="token" class="form-control text-uppercase font-monospace" placeholder="8 karakter"
                 autocomplete="off" required maxlength="16">
         </div>
     </div>

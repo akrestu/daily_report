@@ -21,7 +21,7 @@
   --sg-surface-2: #F1F5F9;
   --sg-border: #E2E8F0;
   --sg-text: #0F172A;             /* 17.9:1 di surface */
-  --sg-muted: #64748B;            /* 4.8:1 — jangan di bawah 13px */
+  --sg-muted: #5E6B7F;            /* ≥4,85:1 juga di latar tint (QA Fase 7; semula #64748B) — jangan di bawah 13px */
 
   /* --- Status semantik (bg / fg / dot) --- */
   --sg-pending-bg: #FEF3C7;  --sg-pending-fg: #92400E;  --sg-pending-dot: #D97706;   /* Menunggu */

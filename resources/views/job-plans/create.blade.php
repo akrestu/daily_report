@@ -73,10 +73,10 @@
                 <div class="row mb-4">
                     <!-- Department (read-only) -->
                     <div class="col-lg-6 col-md-12 mb-3 mb-lg-0">
-                        <label class="form-label fw-medium">Departemen</label>
+                        <label for="jp-department" class="form-label fw-medium">Departemen</label>
                         <div class="input-group">
                             <span class="input-group-text bg-white"><i class="bi bi-building text-primary"></i></span>
-                            <input type="text" class="form-control bg-light"
+                            <input type="text" id="jp-department" class="form-control bg-light"
                                 value="{{ $user->department->name ?? '-' }}" readonly>
                             <input type="hidden" name="department_id" value="{{ $user->department_id }}">
                         </div>

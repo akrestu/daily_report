@@ -48,8 +48,8 @@
                     @csrf
                     <div class="row g-2 align-items-end">
                         <div class="col-md-8">
-                            <label class="form-label small fw-semibold">File Excel (.xlsx, .xls, .csv)</label>
-                            <input type="file" name="file" class="form-control form-control-sm" accept=".xlsx,.xls,.csv" required>
+                            <label for="f-file" class="form-label small fw-semibold">File Excel (.xlsx, .xls, .csv)</label>
+                            <input id="f-file" type="file" name="file" class="form-control form-control-sm" accept=".xlsx,.xls,.csv" required>
                             <div class="form-text">
                                 Kolom: nik, nama, departemen, jabatan, job_site, no_hp, status (aktif/nonaktif).
                                 NIK yang sudah ada akan diperbarui. Format kolom NIK sebagai <strong>Teks</strong> agar angka 0 di depan tidak hilang.
@@ -66,7 +66,7 @@
         <div class="card-body">
             <form method="GET" action="{{ route('admin.employees.index') }}" class="row g-2 mb-3">
                 <div class="col-md-4">
-                    <input type="text" name="search" class="form-control form-control-sm" placeholder="Cari NIK, nama, jabatan..."
+                    <input type="text" name="search" aria-label="Cari" class="form-control form-control-sm" placeholder="Cari NIK, nama, jabatan..."
                         value="{{ request('search') }}">
                 </div>
                 <div class="col-md-3">

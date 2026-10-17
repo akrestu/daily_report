@@ -190,6 +190,7 @@
     @endif
 
     @push('scripts')
+        <script src="{{ asset('vendor/chart.js/chart.umd.min.js') }}"></script>
         <script>
             (function () {
                 const canvas = document.getElementById('sg-trend');

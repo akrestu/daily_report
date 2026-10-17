@@ -430,3 +430,25 @@ Indeks kinerja sudah ditambahkan via migration `2025_11_13_145552_add_performanc
 composer run optimize:clear
 # Membersihkan: config, route, view, event cache
 ```
+
+---
+
+## Rilis 2.0.0 — Redesign UI (Plesk tanpa SSH/Node)
+
+Tidak ada migrasi database dan tidak ada variabel `.env` baru.
+
+**Di lokal (sebelum upload):**
+1. `npm ci && npm run build` — menghasilkan `public/build/*` dan menyalin `public/vendor/{bootstrap,chart.js}` (`scripts/copy-vendor.mjs`). Keduanya di-commit; produksi tidak menjalankan Node.
+2. `php artisan test` — semua hijau.
+3. Pastikan `CACHE_VERSION` di `public/sw.js` sudah dinaikkan untuk rilis ini (2.0.0 → `v4.0.0`). Naikkan lagi di setiap rilis yang mengubah CSS/JS/halaman, supaya service worker tidak menyajikan aset lama.
+
+**Upload ke server (File Manager / Git Plesk):**
+- `app/`, `config/`, `resources/views/`, `routes/`, `public/build/`, `public/vendor/`, `public/sw.js`, `public/images/brand/`.
+- Hapus `public/css/custom.css` lama bila masih ada (tidak dipakai lagi).
+- Jangan upload `public/hot` (hanya ada saat `npm run dev`; bila ada di server, halaman memuat aset dari Vite dev server dan tampil tanpa gaya).
+
+**Setelah upload (Plesk → PHP Composer/Artisan, atau Scheduled Task sekali jalan):**
+- `php artisan optimize:clear` lalu `php artisan optimize` (route baru: `GET /search`).
+- `CACHE_STORE` harus `database`, `file`, atau `redis` (bukan `array`): kunci anti-duplikat kiriman laporan offline (`idempotency_key`) memakai `Cache::add`.
+
+**Uji asap setelah rilis (HP & desktop):** login → Buat Laporan → kirim; antrian persetujuan (geser setujui + Urungkan); Ctrl K / ikon cari; tema gelap di Profil; buka ulang PWA terpasang dan pastikan tampilan baru (bila masih lama: tutup semua tab aplikasi lalu buka lagi).
