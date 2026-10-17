@@ -422,6 +422,10 @@ class DailyReportController extends Controller
             $plan = \App\Models\JobPlan::find(request('from_plan'));
             if ($plan && $plan->assignee_id === $user->id && $plan->status === 'assigned') {
                 $fromPlan = $plan;
+                // Pembuat rencana selalu bisa dipilih sebagai PIC laporan dari rencananya
+                if ($plan->creator && ! isset($eligiblePics[$plan->creator_id])) {
+                    $eligiblePics[$plan->creator_id] = $plan->creator->name;
+                }
             }
         }
 
@@ -555,6 +559,24 @@ class DailyReportController extends Controller
             ['reports' => 'required|array|min:1', 'idempotency_key' => 'nullable|string|max:64'],
             $multipleRules
         ));
+
+        // PIC harus atasan yang berhak menerima laporan pengguna ini (aturan sama dengan store)
+        $eligiblePics = $this->getEligiblePics($user);
+        $picErrors = [];
+        foreach ($request->input('reports', []) as $key => $entry) {
+            $pic = $entry['job_pic'] ?? null;
+            // Laporan dari Rencana Kerja boleh dikirim ke pembuat rencana (penugasan dari atasan)
+            $plan = ! empty($entry['job_plan_id']) ? \App\Models\JobPlan::find($entry['job_plan_id']) : null;
+            $planCreator = $plan && $plan->assignee_id === $user->id ? $plan->creator_id : null;
+            if ($pic == $user->id) {
+                $picErrors["reports.$key.job_pic"] = 'Anda tidak bisa memilih diri sendiri sebagai PIC.';
+            } elseif (! in_array($pic, $eligiblePics) && ! ($planCreator && $pic == $planCreator)) {
+                $picErrors["reports.$key.job_pic"] = 'PIC ini tidak sesuai dengan level Anda.';
+            }
+        }
+        if ($picErrors) {
+            throw \Illuminate\Validation\ValidationException::withMessages($picErrors);
+        }
 
         // Draf offline bisa terkirim dua kali (antrian kirim ulang + submit manual): kunci per pengguna mencegah duplikat
         $idempotencyKey = $request->filled('idempotency_key')

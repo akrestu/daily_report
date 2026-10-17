@@ -109,4 +109,68 @@ class CreateReportFormTest extends TestCase
             ->assertSee('restoreDraft()', false)
             ->assertSee('$store.outbox.count', false);
     }
+
+    private function entryFor(Department $department, int $picId, array $extra = []): array
+    {
+        return $extra + [
+            'department_id' => $department->id,
+            'job_name' => 'Cek PIC',
+            'report_date' => now()->toDateString(),
+            'due_date' => now()->addDay()->toDateString(),
+            'job_pic' => $picId,
+            'status' => 'pending',
+            'description' => 'Deskripsi',
+        ];
+    }
+
+    public function test_store_multiple_rejects_ineligible_or_self_pic(): void
+    {
+        $department = Department::create(['name' => 'Maintenance', 'code' => 'MTC']);
+        $reporter = $this->user('level1', $department);
+        $this->user('level2', $department);
+        $tooHigh = $this->user('level5', $department);
+
+        $this->actingAs($reporter)
+            ->post(route('daily-reports.store-multiple'), ['reports' => [
+                0 => $this->entryFor($department, $tooHigh->id),
+                3 => $this->entryFor($department, $reporter->id),
+            ]])
+            ->assertSessionHasErrors(['reports.0.job_pic', 'reports.3.job_pic']);
+
+        $this->actingAs($reporter)
+            ->postJson(route('daily-reports.store-multiple'), ['reports' => [0 => $this->entryFor($department, $tooHigh->id)]])
+            ->assertStatus(422)->assertJsonValidationErrors('reports.0.job_pic');
+
+        $this->assertSame(0, DailyReport::count());
+    }
+
+    public function test_store_multiple_accepts_job_plan_creator_as_pic(): void
+    {
+        $department = Department::create(['name' => 'Maintenance', 'code' => 'MTC']);
+        $reporter = $this->user('level1', $department);
+        $this->user('level2', $department);
+        $creator = $this->user('level4', $department);
+        $plan = \App\Models\JobPlan::create([
+            'creator_id' => $creator->id,
+            'assignee_id' => $reporter->id,
+            'department_id' => $department->id,
+            'job_name' => 'Rencana inspeksi',
+            'description' => 'Inspeksi rutin',
+            'planned_date' => now()->toDateString(),
+            'due_date' => now()->addDay()->toDateString(),
+            'status' => 'assigned',
+        ]);
+
+        $this->actingAs($reporter)->get(route('daily-reports.create', ['from_plan' => $plan->id]))
+            ->assertOk()->assertSee($creator->name);
+
+        $this->actingAs($reporter)
+            ->post(route('daily-reports.store-multiple'), ['reports' => [
+                0 => $this->entryFor($department, $creator->id, ['job_plan_id' => $plan->id]),
+            ]])
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame(1, DailyReport::count());
+        $this->assertSame('converted', $plan->fresh()->status);
+    }
 }
