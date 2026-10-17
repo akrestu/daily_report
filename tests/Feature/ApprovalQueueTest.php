@@ -54,6 +54,19 @@ class ApprovalQueueTest extends TestCase
             ->assertSee('Inspeksi conveyor CV-03');
     }
 
+    public function test_swipe_approval_returns_json(): void
+    {
+        $pic = $this->user('level2');
+        $report = $this->pending($this->user('level1'), $pic, 'Ganti filter oli');
+
+        $this->actingAs($pic)
+            ->postJson(route('daily-reports.approval', $report), ['status' => 'approved'])
+            ->assertOk()
+            ->assertJson(['ok' => true, 'status' => 'approved']);
+
+        $this->assertSame('approved', $report->fresh()->approval_status);
+    }
+
     public function test_empty_queue_shows_empty_state(): void
     {
         $this->actingAs($this->user('level2'))->get(route('daily-reports.pending'))

@@ -24,13 +24,15 @@
         'pics' => $pics,
         'today' => now()->format('Y-m-d'),
         'defaultPic' => $defaultPic,
+        'idempotencyKey' => (string) old('idempotency_key', ''),
     ];
 @endphp
 
 <x-app-layout title="Buat Laporan" :back="route('daily-reports.user-jobs')">
     <form action="{{ route('daily-reports.store-multiple') }}" method="POST" enctype="multipart/form-data"
-          x-data="sgReportForm(@js($config))" @submit="busy = true" novalidate>
+          x-data="sgReportForm(@js($config))" @submit="submit($event)" data-done="{{ route('daily-reports.user-jobs') }}" novalidate>
         @csrf
+        <input type="hidden" name="idempotency_key" :value="idempotencyKey">
 
         <x-sg.page-header title="Buat Laporan" class="d-none d-lg-flex"
                           subtitle="Isi detail pekerjaan hari ini. Semua laporan dikirim sekaligus ke PIC masing-masing.">
@@ -41,6 +43,39 @@
                 </button>
             </x-slot:actions>
         </x-sg.page-header>
+
+        {{-- Antrian offline milik pengguna ini --}}
+        <div class="sg-outbox mb-3" x-show="$store.outbox.count" x-cloak role="status">
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <i class="bi bi-cloud-arrow-up fs-5" aria-hidden="true"></i>
+                <strong class="me-auto" x-text="$store.outbox.count + ' laporan menunggu dikirim'"></strong>
+                <button type="button" class="btn btn-sm btn-outline-secondary" @click="$store.outbox.flush()" :disabled="$store.outbox.sending || !navigator.onLine"
+                        x-text="$store.outbox.sending ? 'Mengirim…' : 'Kirim sekarang'">Kirim sekarang</button>
+            </div>
+            <p class="small text-muted mb-2">Dikirim otomatis saat perangkat kembali online.</p>
+            <template x-for="item in $store.outbox.items" :key="item.id">
+                <div class="sg-outbox__item">
+                    <div class="min-w-0 flex-grow-1">
+                        <div class="small fw-semibold sg-clamp-1" x-text="item.summary"></div>
+                        <div class="small text-danger" x-show="item.error" x-text="'Gagal: ' + item.error"></div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-quiet text-danger" @click="$store.outbox.discard(item.id)" :aria-label="'Buang ' + item.summary">Buang</button>
+                </div>
+            </template>
+        </div>
+
+        {{-- Draf otomatis --}}
+        <div x-show="draft" x-cloak>
+            <div class="sg-outbox mb-3 d-flex flex-wrap align-items-center gap-2">
+                <i class="bi bi-journal-text fs-5" aria-hidden="true"></i>
+                <div class="me-auto min-w-0">
+                    <strong class="d-block">Ada draf yang belum dikirim</strong>
+                    <span class="small text-muted" x-text="draftLabel"></span>
+                </div>
+                <button type="button" class="btn btn-sm btn-quiet" @click="discardDraft()">Buang</button>
+                <button type="button" class="btn btn-sm btn-primary" @click="restoreDraft()">Pulihkan</button>
+            </div>
+        </div>
 
         @if ($fromPlan)
             <div class="sg-internal-note p-3 mb-3 d-flex gap-2">
@@ -206,7 +241,7 @@
                                     <button type="button" class="btn btn-outline-secondary" @click="$refs.gallery.click()"><i class="bi bi-images" aria-hidden="true"></i> Galeri / File</button>
                                 </div>
                                 <div class="sg-uploader__hint" :class="{ 'text-danger': error }" aria-live="polite"
-                                     x-text="error || 'JPG, PNG, PDF, Word, atau Excel.'"></div>
+                                     x-text="busy ? 'Menyiapkan foto…' : error || 'JPG, PNG, PDF, Word, atau Excel.'"></div>
                             </div>
                         </div>
                     </section>

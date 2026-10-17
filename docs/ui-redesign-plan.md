@@ -204,3 +204,13 @@ Dikerjakan setelah paritas visual; masing-masing bisa dirilis terpisah.
     - Infinite scroll menyusul di Fase 6; sementara pagination Bootstrap.
   - [x] Notifikasi (`notifications/all`): grup Hari ini/Kemarin/Lebih lama, ikon per tipe, ketuk = tandai dibaca (`keepalive`) + buka tujuan, tandai semua / hapus semua. Test `NotificationPageTest`.
   - Belum disentuh (masuk Fase 5): `daily-reports/edit`, `daily-reports/import`.
+- [x] Fase 6 — interaksi lanjutan (107 test lolos; diuji di browser 390 px dengan DB SQLite sementara)
+  - Antrian Persetujuan: geser kanan = setujui (request ditunda 5 dtk + toast "Urungkan", dikirim segera saat halaman ditinggal), geser kiri = sheet tolak, tekan lama = mode pilih banyak (batch bar memakai `batch-approve`/`batch-reject` lama). Route approval kini membalas JSON bila diminta. Pintasan J/K/X/A/R sudah ada sejak Fase 4.
+  - Pencarian global: `GET /search` (`SearchController`, throttle 60/menit) — laporan & tiket disaring lewat policy `view`, pengguna hanya untuk admin. Palet `x-sg.search-palette`: Ctrl K / tombol cari di topbar, ikon cari di app bar mobile. Test `GlobalSearchTest`.
+  - Buat Laporan: draf teks otomatis (`localStorage sg-report-draft:{userId}`, banner Pulihkan/Buang); kirim lewat fetch, bila jaringan gagal (offline atau sinyal putus) laporan masuk antrian IndexedDB `sigap-outbox` (termasuk lampiran) dan dikirim otomatis saat online/halaman dibuka. `storeMultiple` menerima `idempotency_key` (kunci `Cache::add` 7 hari, dilepas bila gagal simpan) + balasan JSON. Test di `CreateReportFormTest`.
+    - Menyimpang dari rencana: antrian dikirim dari halaman, bukan Background Sync service worker (token CSRF diambil dari halaman aktif; lebih sederhana dan jalan di iOS).
+    - Lampiran tidak ikut draf otomatis (hanya teks); lampiran ikut bila laporan masuk antrian offline.
+  - Foto JPEG/WebP ≥300 KB dikompres di klien (sisi terpanjang 1920 px, kualitas 0,8) sebelum cek ukuran; HEIC/PNG dikirim apa adanya.
+  - Daftar laporan (`index`, `user-jobs`, `assigned-jobs`): infinite scroll di mobile memakai link `rel=next` pagination yang ada (tanpa endpoint JSON baru); desktop tetap pagination. Tarik untuk muat ulang hanya di PWA terpasang.
+  - `sw.js` v4.0.0: halaman HTML tidak lagi masuk `api-cache` 5 menit (form Buat Laporan bisa dibuka offline dari cache `pages`).
+  - Ditemukan, belum diperbaiki (di luar lingkup): `storeMultiple` tidak memeriksa PIC yang berhak (beda dengan `store`), cukup `exists:users,id`.

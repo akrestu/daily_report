@@ -103,6 +103,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/notifications/preferences', [\App\Http\Controllers\NotificationController::class, 'getPreferences'])->name('notifications.preferences.get');
     Route::post('/notifications/preferences', [\App\Http\Controllers\NotificationController::class, 'updatePreferences'])->name('notifications.preferences.update');
     
+    // Pencarian global (Ctrl K)
+    Route::get('/search', \App\Http\Controllers\SearchController::class)->middleware('throttle:60,1')->name('search');
+
     // Organization Chart Route
     Route::get('/organization-chart', [\App\Http\Controllers\OrganizationChartController::class, 'index'])->name('organization.chart');
 

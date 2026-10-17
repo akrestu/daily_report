@@ -48,7 +48,7 @@
             <a href="{{ route('dashboard') }}" class="btn btn-primary">Kembali ke Beranda</a>
         </x-sg.empty>
     @else
-        <div x-data="sgQueue(@js(['reports' => $items, 'approvalUrl' => route('daily-reports.approval', '__ID__')]))" @keydown.window="key($event)">
+        <div x-data="sgQueue(@js(['reports' => $items, 'approvalUrl' => route('daily-reports.approval', '__ID__')]))" @keydown.window="key($event)" @pagehide.window="flush()">
             {{-- Form satu laporan (action diisi JS) --}}
             <form x-ref="single" method="POST" class="d-none">
                 @csrf
@@ -71,7 +71,7 @@
                         x-text="selecting ? 'Selesai' : 'Pilih'">Pilih</button>
             </div>
 
-            <p class="small text-muted d-lg-none" x-show="!selecting">Ketuk kartu untuk melihat detail, atau langsung Setujui / Tolak.</p>
+            <p class="small text-muted d-lg-none" x-show="!selecting">Geser kanan untuk setujui, kiri untuk tolak. Tekan lama untuk memilih banyak.</p>
             <p class="small text-muted d-none d-lg-block">Pintasan: <kbd>J</kbd>/<kbd>K</kbd> pindah · <kbd>X</kbd> pilih · <kbd>A</kbd> setujui · <kbd>R</kbd> tolak</p>
 
             <div class="row g-3 g-lg-4">
@@ -83,7 +83,12 @@
                     </div>
                     <div class="sg-queue-list">
                         <template x-for="r in visible" :key="r.id">
-                            <article class="sg-queue-card" :class="{ 'is-active': active === r.id, 'is-selected': isSelected(r.id) }">
+                            <div class="sg-swipe" :class="swipeHint(r.id)">
+                            <span class="sg-swipe__bg sg-swipe__bg--approve d-lg-none" aria-hidden="true"><i class="bi bi-check-lg"></i> Setujui</span>
+                            <span class="sg-swipe__bg sg-swipe__bg--reject d-lg-none" aria-hidden="true">Tolak <i class="bi bi-x-lg"></i></span>
+                            <article class="sg-queue-card" :class="{ 'is-active': active === r.id, 'is-selected': isSelected(r.id) }" :style="cardStyle(r.id)"
+                                     @pointerdown="pointerDown($event, r)" @pointermove="pointerMove($event)" @pointerup="pointerUp()" @pointercancel="pointerUp()"
+                                     @contextmenu="selecting && $event.preventDefault()">
                                 <div class="d-flex gap-2 align-items-start">
                                     <input type="checkbox" class="form-check-input mt-2 flex-none" :class="selecting ? '' : 'd-none d-lg-block'"
                                            :checked="isSelected(r.id)" @change="toggle(r.id)" :aria-label="'Pilih ' + r.title">
@@ -104,6 +109,7 @@
                                     <button type="button" class="btn btn-approve flex-fill" @click="approve(r.id)">Setujui</button>
                                 </div>
                             </article>
+                            </div>
                         </template>
                         <p class="text-muted small p-3 mb-0" x-show="!visible.length">Tidak ada laporan untuk saringan ini.</p>
                     </div>

@@ -12,5 +12,5 @@
     <x-report.list :reports="$reports->getCollection()" show-owner caption="Laporan yang ditugaskan ke saya"
                    empty-title="Belum ada laporan" empty-text="Laporan bawahan yang memilih Anda sebagai PIC akan muncul di sini." />
 
-    <div class="mt-3">{{ $reports->withQueryString()->links() }}</div>
+    <div class="mt-3" data-sg-pager>{{ $reports->withQueryString()->links() }}</div>
 </x-app-layout>

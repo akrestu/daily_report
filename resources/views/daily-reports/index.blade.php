@@ -64,7 +64,7 @@
                    :empty-title="$reportType === 'rejected' ? 'Tidak ada laporan ditolak' : 'Belum ada laporan disetujui'"
                    empty-text="Coba ubah filter atau rentang tanggal." />
 
-    <div class="mt-3">{{ $reports->withQueryString()->links() }}</div>
+    <div class="mt-3" data-sg-pager>{{ $reports->withQueryString()->links() }}</div>
 
     {{-- Ringkasan WhatsApp (L3+ / admin): teks dibuat server dari filter yang sedang aktif --}}
     @if ($canShare)

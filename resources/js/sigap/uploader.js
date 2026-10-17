@@ -2,6 +2,30 @@
 // Mode array : satu <input x-ref="field" name="x[]" multiple> berisi semua file.
 // Mode names : satu file per nama field, mis. ['reports[0][attachment]', 'reports[0][attachment_2]', ...]
 //              → <input type="file" data-slot="k"> per nama (lihat daily-reports/create).
+// Foto JPEG/WebP dikompres di klien (sisi terpanjang 1920px, kualitas 0,8) sebelum dicek ukurannya: hemat kuota,
+// dan foto kamera 8 MB tetap bisa diunggah. Server tetap me-resize lewat Intervention.
+const MAX_SIDE = 1920;
+const QUALITY = 0.8;
+const COMPRESS_FROM = 300 * 1024;
+
+export async function compressImage(file) {
+    if (!['image/jpeg', 'image/webp'].includes(file.type) || file.size < COMPRESS_FROM || !window.createImageBitmap) return file;
+    try {
+        const bitmap = await createImageBitmap(file);
+        const scale = Math.min(1, MAX_SIDE / Math.max(bitmap.width, bitmap.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(bitmap.width * scale);
+        canvas.height = Math.round(bitmap.height * scale);
+        canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+        bitmap.close?.();
+        const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', QUALITY));
+        if (!blob || blob.size >= file.size) return file;
+        return new File([blob], file.name.replace(/\.\w+$/, '') + '.jpg', { type: 'image/jpeg', lastModified: file.lastModified });
+    } catch (e) {
+        return file; // format tidak bisa dibaca browser (mis. HEIC): kirim apa adanya
+    }
+}
+
 export default function sgUploader({ max = 3, maxMb = 5, names = null } = {}) {
     return {
         max: names ? names.length : max,
@@ -9,17 +33,20 @@ export default function sgUploader({ max = 3, maxMb = 5, names = null } = {}) {
         names,
         files: [],
         error: '',
+        busy: false,
 
-        add(event) {
+        async add(event) {
             const picked = Array.from(event.target.files || []);
             event.target.value = '';
             this.error = '';
+            this.busy = true;
 
-            for (const file of picked) {
+            for (const original of picked) {
                 if (this.files.length >= this.max) {
                     this.error = `Maksimal ${this.max} lampiran.`;
                     break;
                 }
+                const file = await compressImage(original);
                 if (file.size > this.maxMb * 1024 * 1024) {
                     this.error = `${file.name} lebih dari ${this.maxMb} MB.`;
                     continue;
@@ -31,6 +58,7 @@ export default function sgUploader({ max = 3, maxMb = 5, names = null } = {}) {
                 });
             }
 
+            this.busy = false;
             this.sync();
         },
 

@@ -15,5 +15,5 @@
         <x-slot:empty><a href="{{ route('daily-reports.create') }}" class="btn btn-primary">Buat Laporan</a></x-slot:empty>
     </x-report.list>
 
-    <div class="mt-3">{{ $reports->withQueryString()->links() }}</div>
+    <div class="mt-3" data-sg-pager>{{ $reports->withQueryString()->links() }}</div>
 </x-app-layout>

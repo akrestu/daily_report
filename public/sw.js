@@ -5,7 +5,7 @@
  */
 
 // Cache version for manual updates
-const CACHE_VERSION = 'v3.1.0';
+const CACHE_VERSION = 'v4.0.0';
 
 // Import Workbox from CDN
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.0.0/workbox-sw.js');
@@ -83,12 +83,14 @@ if (workbox) {
   );
 
   // 4. Network-First for API requests with timeout
+  // Halaman HTML tidak masuk sini (lihat 8): form Buat Laporan harus tetap bisa dibuka offline > 5 menit.
   workbox.routing.registerRoute(
-    ({ url }) =>
+    ({ url, request }) =>
+      request.destination !== 'document' && (
       url.pathname.startsWith('/api/') ||
       url.pathname.includes('/daily-reports') ||
       url.pathname.includes('/dashboard') ||
-      url.pathname.includes('/notifications'),
+      url.pathname.includes('/notifications')),
     new workbox.strategies.NetworkFirst({
       cacheName: 'api-cache',
       networkTimeoutSeconds: 5,

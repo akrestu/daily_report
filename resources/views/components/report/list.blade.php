@@ -9,7 +9,7 @@
 @if ($reports->isEmpty())
     <x-sg.empty icon="bi-journal-text" :title="$emptyTitle" :text="$emptyText">{{ $empty ?? '' }}</x-sg.empty>
 @else
-    <div {{ $attributes->class(['sg-list d-lg-none']) }}>
+    <div {{ $attributes->class(['sg-list d-lg-none']) }} data-sg-infinite>
         @foreach ($reports as $report)
             @php
                 $meta = collect([

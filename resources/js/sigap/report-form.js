@@ -1,5 +1,8 @@
 // Alpine data form "Buat Laporan" (multi-entri). Dipakai resources/views/daily-reports/create.blade.php.
 // Tiap entri memakai kunci tetap (reports[key][...]) — menghapus entri tidak menggeser lampiran entri lain.
+// Teks disimpan otomatis sebagai draf (localStorage); saat offline, kirim = simpan ke antrian (lihat outbox.js).
+import { loadDraft, saveDraft, clearDraft, newKey } from './outbox';
+
 const BLANK = {
     job_name: '',
     report_date: '',
@@ -13,7 +16,9 @@ const BLANK = {
     job_plan_id: '',
 };
 
-export default function sgReportForm({ entries = [], errors = {}, pics = [], today = '', defaultPic = '' } = {}) {
+const TEXT_FIELDS = Object.keys(BLANK);
+
+export default function sgReportForm({ entries = [], errors = {}, pics = [], today = '', defaultPic = '', idempotencyKey = '' } = {}) {
     let nextKey = 0;
     const make = (data = {}, key = null) => {
         const k = key ?? nextKey;
@@ -29,14 +34,91 @@ export default function sgReportForm({ entries = [], errors = {}, pics = [], tod
     const firstError = Object.keys(errors)[0];
     const errorKey = firstError ? Number(firstError.split('.')[1]) : null;
 
+    const fromServer = Object.keys(entries).length > 0;
+
     return {
         entries: initial,
+        idempotencyKey: idempotencyKey || newKey(),
+        draft: fromServer ? null : loadDraft(),
+        saveTimer: null,
         errors,
         pics,
         open: errorKey ?? initial[0].key,
         picFor: null,
         picQuery: '',
         busy: false,
+
+        init() {
+            this.$watch('entries', () => {
+                clearTimeout(this.saveTimer);
+                this.saveTimer = setTimeout(() => this.saveDraft(), 800);
+            });
+        },
+
+        // ---------- Draf ----------
+        saveDraft() {
+            const filled = this.entries.filter((e) => e.job_name || e.description || e.remark);
+            if (!filled.length) return;
+            saveDraft(this.entries.map((e) => Object.fromEntries(TEXT_FIELDS.map((f) => [f, e[f]]))));
+            this.draft = null; // draf lama sudah tertimpa isi form ini
+        },
+        get draftLabel() {
+            if (!this.draft) return '';
+            const time = new Date(this.draft.savedAt).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+            return `${this.draft.entries.length} laporan · disimpan ${time}`;
+        },
+        restoreDraft() {
+            this.entries = this.draft.entries.map((e) => make(e, nextKey));
+            this.open = this.entries[0].key;
+            this.draft = null;
+        },
+        discardDraft() {
+            clearDraft();
+            this.draft = null;
+        },
+
+        // ---------- Kirim ----------
+        // Kirim lewat fetch; gagal jaringan (offline atau sinyal putus di tengah) → antrian offline.
+        // Error validasi / sesi → kirim ulang sebagai form biasa supaya server menampilkan error seperti biasa.
+        async submit(event) {
+            event.preventDefault();
+            const form = this.$root;
+            if (!navigator.onLine) return this.queueOffline();
+
+            this.busy = true;
+            const body = new FormData(form);
+            body.append('_flash', '1');
+            let response;
+            try {
+                response = await fetch(form.action, { method: 'POST', body, headers: { Accept: 'application/json', 'X-CSRF-TOKEN': body.get('_token') } });
+            } catch (e) {
+                this.busy = false;
+                return this.queueOffline();
+            }
+            if (response.ok) {
+                clearDraft();
+                const json = await response.json().catch(() => ({}));
+                window.location.href = json.redirect || form.dataset.done;
+                return;
+            }
+            HTMLFormElement.prototype.submit.call(form);
+        },
+
+        async queueOffline() {
+            const summary = this.entries.map((e) => e.job_name || 'Tanpa nama').join(', ');
+            const queued = await this.$store.outbox.queue(this.$root, summary);
+            if (!queued) {
+                window.sgToast?.('Perangkat offline dan browser tidak mendukung antrian. Coba lagi saat online.', { tone: 'danger' });
+                return;
+            }
+            clearDraft();
+            this.entries = [make()];
+            this.open = this.entries[0].key;
+            this.errors = {};
+            this.idempotencyKey = newKey();
+            window.scrollTo({ top: 0 });
+            window.sgToast?.('Anda sedang offline. Laporan disimpan dan akan dikirim otomatis saat online.', { tone: 'info', delay: 7000 });
+        },
 
         get count() {
             return this.entries.length;

@@ -29,5 +29,5 @@
         <button type="button" class="btn btn-outline-secondary" @click="$refs.gallery.click()"><i class="bi bi-images" aria-hidden="true"></i> Galeri / File</button>
     </div>
     <div class="sg-uploader__hint" :class="{ 'text-danger': error }" aria-live="polite"
-         x-text="error || 'Foto, PDF, Word, atau Excel. Maks. {{ $maxMb }} MB per file.'"></div>
+         x-text="busy ? 'Menyiapkan foto…' : error || 'Foto, PDF, Word, atau Excel. Maks. {{ $maxMb }} MB per file.'"></div>
 </div>

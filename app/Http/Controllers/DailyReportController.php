@@ -8,6 +8,7 @@ use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
@@ -551,10 +552,22 @@ class DailyReportController extends Controller
 
         // Validate the overall request structure
         $request->validate(array_merge(
-            ['reports' => 'required|array|min:1'],
+            ['reports' => 'required|array|min:1', 'idempotency_key' => 'nullable|string|max:64'],
             $multipleRules
         ));
-        
+
+        // Draf offline bisa terkirim dua kali (antrian kirim ulang + submit manual): kunci per pengguna mencegah duplikat
+        $idempotencyKey = $request->filled('idempotency_key')
+            ? 'report-submit:'.$user->id.':'.$request->input('idempotency_key')
+            : null;
+        if ($idempotencyKey && ! Cache::add($idempotencyKey, true, now()->addDays(7))) {
+            $message = 'Laporan ini sudah terkirim sebelumnya.';
+
+            return $request->expectsJson()
+                ? response()->json(['ok' => true, 'duplicate' => true, 'message' => $message])
+                : redirect()->route('daily-reports.user-jobs')->with('success', $message);
+        }
+
         // Use a transaction to ensure all reports are saved or none
         DB::beginTransaction();
         
@@ -687,7 +700,16 @@ class DailyReportController extends Controller
             }
             
             DB::commit();
-            
+
+            if ($request->expectsJson()) {
+                // Form Buat Laporan (fetch) lanjut ke halaman berikutnya: pesan sukses tampil di sana. Antrian offline tidak memakai flash.
+                if ($request->boolean('_flash')) {
+                    session()->flash('success', $createdCount . ' daily reports created successfully.');
+                }
+
+                return response()->json(['ok' => true, 'count' => $createdCount, 'redirect' => route('daily-reports.user-jobs')]);
+            }
+
             return redirect()->route('daily-reports.user-jobs')
                 ->with('success', $createdCount . ' daily reports created successfully.');
                 
@@ -702,7 +724,16 @@ class DailyReportController extends Controller
             foreach ($createdAttachments as $path) {
                 Storage::disk('attachments')->delete($path);
             }
-            
+
+            // Gagal tersimpan: kunci dilepas supaya kiriman ulang tetap bisa diproses
+            if ($idempotencyKey) {
+                Cache::forget($idempotencyKey);
+            }
+
+            if ($request->expectsJson()) {
+                return response()->json(['ok' => false, 'message' => 'Failed to create reports. Please try again or contact the administrator.'], 500);
+            }
+
             return redirect()->back()
                 ->with('error', 'Failed to create reports. Please try again or contact the administrator.')
                 ->withInput();
@@ -986,6 +1017,11 @@ class DailyReportController extends Controller
 
             $successMessage = 'Daily report ' . $validated['status'] . ' successfully.';
 
+            // Antrian mobile (swipe) memanggil lewat fetch: balas JSON, tanpa redirect
+            if ($request->expectsJson()) {
+                return response()->json(['ok' => true, 'status' => $validated['status'], 'message' => $successMessage]);
+            }
+
             // Check if we should redirect back to the previous page
             if (isset($validated['redirect_back']) && $validated['redirect_back']) {
                 // Get the previous URL from the session or referer header
@@ -1011,6 +1047,10 @@ class DailyReportController extends Controller
             DB::rollBack();
             Log::error('Failed to update report approval status: ' . $e->getMessage());
             
+            if ($request->expectsJson()) {
+                return response()->json(['ok' => false, 'message' => 'Failed to update approval status. Please try again.'], 500);
+            }
+
             return redirect()->back()
                 ->with('error', 'Failed to update approval status. Please try again.');
         }

@@ -80,3 +80,25 @@ kbd { font-size: 11px; padding: 1px 5px; border-radius: 4px; background: var(--s
 .sg-entry-link { width: 100%; display: flex; align-items: center; gap: 10px; padding: 8px; border: 0; border-radius: 10px; background: none; color: var(--sg-text); }
 .sg-entry-link:hover { background: var(--sg-surface-2); }
 .sg-entry-link.active { background: var(--sg-accent-tint); }
+
+/* ---------- Antrian: geser kartu (mobile) ---------- */
+.sg-swipe { position: relative; border-radius: var(--sg-radius-card); }
+.sg-swipe .sg-queue-card { position: relative; transition: transform .2s ease; touch-action: pan-y; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.sg-swipe__bg { position: absolute; inset: 0; display: none; align-items: center; gap: 6px; padding: 0 20px; border-radius: inherit; font-weight: 600; }
+.sg-swipe__bg--approve { justify-content: flex-start; background: var(--sg-success-bg); color: var(--sg-success-fg); }
+.sg-swipe__bg--reject { justify-content: flex-end; background: var(--sg-danger-bg); color: var(--sg-danger-fg); }
+.sg-swipe.approve .sg-swipe__bg--approve, .sg-swipe.reject .sg-swipe__bg--reject { display: flex; }
+.sg-swipe.is-ready .sg-swipe__bg { font-weight: 700; }
+@media (min-width: 992px) { .sg-swipe { border-radius: 0; } }
+@media (prefers-reduced-motion: reduce) { .sg-swipe .sg-queue-card { transition: none; } }
+
+/* ---------- Buat Laporan: draf & antrian offline ---------- */
+.sg-outbox { padding: 12px 14px; border: 1px solid var(--sg-accent-border); border-radius: var(--sg-radius-card); background: var(--sg-accent-tint); }
+.sg-outbox__item { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px solid var(--sg-accent-border); }
+
+/* ---------- Infinite scroll & tarik untuk muat ulang ---------- */
+.sg-infinite-status { min-height: 24px; padding: 12px 0; text-align: center; font-size: 14px; color: var(--sg-muted); }
+.sg-ptr { position: fixed; z-index: 1050; top: 0; left: 50%; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%;
+  background: var(--sg-surface); color: var(--sg-muted); box-shadow: var(--sg-shadow-1); transform: translate(-50%, -48px); transition: transform .15s; pointer-events: none; }
+.sg-ptr.is-ready { color: var(--sg-text); }
+.sg-ptr.is-loading i { animation: sg-rotate .8s linear infinite; }

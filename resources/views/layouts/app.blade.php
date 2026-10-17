@@ -41,6 +41,7 @@
             notifClear: @js(route('notifications.clear-all')),
             pending: @js(route('daily-reports.pending')),
         };
+        window.__sgUserId = @js(auth()->id());
     </script>
     @stack('styles')
 </head>
@@ -93,6 +94,9 @@
                 <a href="{{ $attributes->get('back') }}" class="sg-icon-btn ms-n2" aria-label="Kembali"><i class="bi bi-arrow-left" aria-hidden="true"></i></a>
             @endif
             <h1 class="sg-appbar__title">{{ $pageTitle }}</h1>
+            <button type="button" class="sg-icon-btn" data-bs-toggle="modal" data-bs-target="#sg-search" aria-label="Cari">
+                <i class="bi bi-search" aria-hidden="true"></i>
+            </button>
             <a href="{{ route('notifications.view-all') }}" class="sg-icon-btn" x-data
                :aria-label="'Notifikasi' + ($store.notif.unread ? ', ' + $store.notif.unread + ' belum dibaca' : '')" aria-label="Notifikasi">
                 <i class="bi bi-bell" aria-hidden="true"></i>
@@ -110,6 +114,12 @@
                 <i class="bi bi-chevron-right small" aria-hidden="true"></i>
                 <strong aria-current="page">{{ $pageTitle }}</strong>
             </nav>
+
+            <button type="button" class="sg-search-trigger" data-bs-toggle="modal" data-bs-target="#sg-search">
+                <i class="bi bi-search" aria-hidden="true"></i>
+                <span class="me-auto">Cari…</span>
+                <kbd>Ctrl K</kbd>
+            </button>
 
             <div class="dropdown" x-data>
                 <button type="button" class="sg-icon-btn" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false"
@@ -237,6 +247,8 @@
             </form>
         </div>
     </x-sg.sheet>
+
+    <x-sg.search-palette />
 
     <x-sg.sheet id="sg-notif-clear" title="Hapus semua notifikasi?">
         <p class="mb-0">Semua notifikasi akan dihapus dan tidak dapat dikembalikan.</p>

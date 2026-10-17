@@ -65,4 +65,48 @@ class CreateReportFormTest extends TestCase
         $this->assertNull(DailyReport::where('job_name', 'Entri pertama')->value('attachment_path'));
         $this->assertSame('catatan.pdf', DailyReport::where('job_name', 'Entri ketiga')->value('attachment_original_name'));
     }
+
+    public function test_offline_resend_with_same_idempotency_key_creates_once(): void
+    {
+        $department = Department::create(['name' => 'Maintenance', 'code' => 'MTC']);
+        $reporter = $this->user('level1', $department);
+        $pic = $this->user('level2', $department);
+
+        $payload = [
+            'idempotency_key' => 'draft-abc-123',
+            'reports' => [0 => [
+                'department_id' => $department->id,
+                'job_name' => 'Ganti bearing',
+                'report_date' => now()->toDateString(),
+                'due_date' => now()->addDay()->toDateString(),
+                'job_pic' => $pic->id,
+                'status' => 'pending',
+                'description' => 'Bearing pompa diganti',
+            ]],
+        ];
+
+        // Kiriman dari antrian offline (fetch, JSON)
+        $this->actingAs($reporter)->postJson(route('daily-reports.store-multiple'), $payload)
+            ->assertOk()->assertJson(['ok' => true, 'count' => 1]);
+
+        // Kiriman kedua dengan kunci sama (mis. submit manual) tidak membuat duplikat
+        $this->actingAs($reporter)->postJson(route('daily-reports.store-multiple'), $payload)
+            ->assertOk()->assertJson(['ok' => true, 'duplicate' => true]);
+        $this->actingAs($reporter)->post(route('daily-reports.store-multiple'), $payload)
+            ->assertRedirect(route('daily-reports.user-jobs'));
+
+        $this->assertSame(1, DailyReport::count());
+    }
+
+    public function test_draft_and_offline_queue_are_wired_in_create_page(): void
+    {
+        $department = Department::create(['name' => 'Maintenance', 'code' => 'MTC']);
+        $this->user('level2', $department);
+
+        $this->actingAs($this->user('level1', $department))->get(route('daily-reports.create'))
+            ->assertOk()
+            ->assertSee('name="idempotency_key"', false)
+            ->assertSee('restoreDraft()', false)
+            ->assertSee('$store.outbox.count', false);
+    }
 }
