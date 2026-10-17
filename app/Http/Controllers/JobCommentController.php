@@ -133,7 +133,8 @@ class JobCommentController extends Controller
                 ]);
             }
 
-            return view('job-comments.index', compact('dailyReport', 'comments'));
+            // Dibuka langsung (bukan AJAX): komentar tampil di tab Komentar halaman detail
+            return redirect()->route('daily-reports.show', $dailyReport);
         } catch (\Exception $e) {
             Log::error('Error fetching comments', [
                 'error' => $e->getMessage(),

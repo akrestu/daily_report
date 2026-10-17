@@ -136,47 +136,48 @@
     @push('scripts')
         <script src="{{ asset('vendor/chart.js/chart.umd.min.js') }}"></script>
     <script>
-        (function () {
+        // app.js (module) berjalan setelah parsing: tunggu DOMContentLoaded agar window.sgChart sudah ada
+        document.addEventListener('DOMContentLoaded', () => {
             const period = document.getElementById('periodSelect');
             const toggleRange = () => document.querySelectorAll('.custom-range').forEach(el => el.style.display = period.value === 'custom' ? '' : 'none');
             period.addEventListener('change', toggleRange);
             toggleRange();
 
-            if (typeof Chart === 'undefined') return;
+            if (typeof window.sgChart !== 'function') return;
 
             const trend = @json($trend);
             const breakdowns = @json($breakdowns);
-            const blue = '#111111', green = '#16A34A', palette = ['#111111', '#F5D334', '#2563EB', '#16A34A', '#DC2626', '#EA580C', '#4F46E5', '#94A3B8'];
-            const common = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } };
+            const legend = { position: 'bottom' };
             const integerAxis = { beginAtZero: true, ticks: { precision: 0 } };
 
-            new Chart(document.getElementById('trendChart'), {
+            window.sgChart(document.getElementById('trendChart'), (c) => ({
                 type: 'line',
                 data: { labels: trend.labels, datasets: [
-                    { label: 'Masuk', data: trend.created, borderColor: blue, backgroundColor: blue + '22', fill: true, tension: .3, pointRadius: 2 },
-                    { label: 'Selesai', data: trend.resolved, borderColor: green, backgroundColor: green + '22', fill: true, tension: .3, pointRadius: 2 },
+                    { label: 'Masuk', data: trend.created, borderColor: c.primary, backgroundColor: c.alpha(c.primary, .12), fill: true, tension: .3, pointRadius: 2 },
+                    { label: 'Selesai', data: trend.resolved, borderColor: c.success, backgroundColor: c.alpha(c.success, .12), fill: true, tension: .3, pointRadius: 2 },
                 ] },
-                options: { ...common, interaction: { mode: 'index', intersect: false }, scales: { y: integerAxis } },
-            });
+                options: { plugins: { legend }, interaction: { mode: 'index', intersect: false }, scales: { y: integerAxis } },
+            }));
 
-            new Chart(document.getElementById('priorityChart'), {
+            // Urutan kunci = Ticket::PRIORITIES (Kritis, Tinggi, Sedang, Rendah) → warna token P1–P4
+            window.sgChart(document.getElementById('priorityChart'), (c) => ({
                 type: 'doughnut',
-                data: { labels: Object.keys(breakdowns.priority), datasets: [{ data: Object.values(breakdowns.priority), backgroundColor: ['#dc3545', '#fd7e14', '#0dcaf0', '#6c757d'] }] },
-                options: common,
-            });
+                data: { labels: Object.keys(breakdowns.priority), datasets: [{ data: Object.values(breakdowns.priority), backgroundColor: c.priority, borderColor: c.border }] },
+                options: { plugins: { legend } },
+            }));
 
-            new Chart(document.getElementById('categoryChart'), {
+            window.sgChart(document.getElementById('categoryChart'), (c) => ({
                 type: 'bar',
-                data: { labels: Object.keys(breakdowns.category), datasets: [{ label: 'Tiket', data: Object.values(breakdowns.category), backgroundColor: palette }] },
-                options: { ...common, plugins: { legend: { display: false } }, scales: { y: integerAxis } },
-            });
+                data: { labels: Object.keys(breakdowns.category), datasets: [{ label: 'Tiket', data: Object.values(breakdowns.category), backgroundColor: c.palette, borderRadius: 6 }] },
+                options: { plugins: { legend: { display: false } }, scales: { y: integerAxis } },
+            }));
 
-            new Chart(document.getElementById('departmentChart'), {
+            window.sgChart(document.getElementById('departmentChart'), (c) => ({
                 type: 'bar',
-                data: { labels: Object.keys(breakdowns.department), datasets: [{ label: 'Tiket', data: Object.values(breakdowns.department), backgroundColor: blue }] },
-                options: { ...common, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: integerAxis } },
-            });
-        })();
+                data: { labels: Object.keys(breakdowns.department), datasets: [{ label: 'Tiket', data: Object.values(breakdowns.department), backgroundColor: c.primary, borderRadius: 6 }] },
+                options: { indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: integerAxis } },
+            }));
+        });
     </script>
     @endpush
 </x-app-layout>

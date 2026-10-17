@@ -37,7 +37,8 @@ class DailyReportController extends Controller
 
         return [
             'job_name' => 'required|string|max:255',
-            'department_id' => 'required|exists:departments,id',
+            // Departemen selalu milik pembuat laporan (lihat store/update/storeMultiple); isian form diabaikan
+            'department_id' => 'nullable',
             'job_site_id' => 'nullable|exists:job_sites,id',
             'section_id' => 'nullable|exists:sections,id',
             'report_date' => 'required|date',
@@ -493,7 +494,7 @@ class DailyReportController extends Controller
             $report = DailyReport::create([
                 'user_id' => $user->id,
                 'job_name' => $validated['job_name'],
-                'department_id' => $validated['department_id'],
+                'department_id' => $user->department_id,
                 'job_site_id' => $validated['job_site_id'] ?? null,
                 'section_id' => $validated['section_id'] ?? null,
                 'job_pic' => $validated['job_pic'],
@@ -908,6 +909,8 @@ class DailyReportController extends Controller
                 $validated['attachment_original_name_3'] = $attachmentData3['originalName'];
             }
 
+            // Departemen tidak boleh dipindah lewat edit: rantai persetujuan berdasarkan departemen
+            unset($validated['department_id']);
             $dailyReport->update($validated);
 
             DB::commit();

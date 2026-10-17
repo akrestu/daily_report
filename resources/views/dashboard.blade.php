@@ -192,34 +192,30 @@
     @push('scripts')
         <script src="{{ asset('vendor/chart.js/chart.umd.min.js') }}"></script>
         <script>
-            (function () {
+            document.addEventListener('DOMContentLoaded', () => {
                 const canvas = document.getElementById('sg-trend');
-                if (!canvas || !window.Chart) return;
+                if (!canvas) return;
                 const series = JSON.parse(canvas.dataset.series);
-                const css = getComputedStyle(document.documentElement);
-                const v = (name) => css.getPropertyValue(name).trim();
-                new Chart(canvas, {
+                window.sgChart(canvas, (c) => ({
                     type: 'bar',
                     data: {
                         labels: series.map((p) => p.label),
                         datasets: [{
                             data: series.map((p) => p.count),
-                            backgroundColor: series.map((p) => (p.today ? v('--sg-accent') : v('--sg-primary'))),
+                            backgroundColor: series.map((p) => (p.today ? c.accent : c.primary)),
                             borderRadius: 6,
                             maxBarThickness: 28,
                         }],
                     },
                     options: {
-                        maintainAspectRatio: false,
-                        animation: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? false : { duration: 200 },
-                        plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.parsed.y} laporan` } } },
+                        plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => `${ctx.parsed.y} laporan` } } },
                         scales: {
-                            x: { grid: { display: false }, ticks: { color: v('--sg-muted'), maxRotation: 0, autoSkip: true, maxTicksLimit: 7 } },
-                            y: { beginAtZero: true, ticks: { precision: 0, color: v('--sg-muted') }, grid: { color: v('--sg-border') } },
+                            x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 7 } },
+                            y: { beginAtZero: true, ticks: { precision: 0 } },
                         },
                     },
-                });
-            })();
+                }));
+            });
         </script>
     @endpush
 </x-app-layout>

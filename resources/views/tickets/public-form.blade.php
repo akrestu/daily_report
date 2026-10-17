@@ -135,9 +135,11 @@
                 </div>
             </div>
 
-            <div class="d-flex align-items-center gap-2 mt-3" x-show="priority" aria-live="polite">
-                <span class="small text-muted">Prioritas otomatis:</span>
-                <span class="sg-priority" :class="priority && priorities[priority].class" x-text="priority && (priorities[priority].code + ' ' + priorities[priority].label)"></span>
+            <div aria-live="polite">
+                <div class="d-flex align-items-center gap-2 mt-3" x-show="priority" x-cloak>
+                    <span class="small text-muted">Prioritas otomatis:</span>
+                    <span class="sg-priority" :class="priority && priorities[priority].class" x-text="priority && (priorities[priority].code + ' ' + priorities[priority].label)"></span>
+                </div>
             </div>
 
             <div class="mt-3" x-show="needsApproval">

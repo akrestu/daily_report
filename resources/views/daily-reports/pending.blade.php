@@ -59,7 +59,7 @@
             {{-- Saringan + mode pilih banyak --}}
             <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
                 <div class="sg-chip-row flex-grow-1" role="group" aria-label="Saring antrian">
-                    <button type="button" class="sg-chip" :class="{ active: filter === 'all' }" @click="filter = 'all'">Semua <span class="sg-chip__count">{{ $items->count() }}</span></button>
+                    <button type="button" class="sg-chip" :class="{ active: filter === 'all' }" @click="filter = 'all'">Semua <span class="sg-chip__count">{{ Format::number($page->total()) }}</span></button>
                     @if ($oldCount)
                         <button type="button" class="sg-chip" :class="{ active: filter === 'old' }" @click="filter = 'old'">&gt; 24 jam <span class="sg-chip__count">{{ $oldCount }}</span></button>
                     @endif

@@ -186,7 +186,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/users/export-template', [UserController::class, 'exportTemplate'])->name('users.export-template');
         
         // Then define the resource route
-        Route::resource('users', UserController::class);
+        Route::resource('users', UserController::class)->except(['show']); // tidak ada halaman detail; edit lewat modal / halaman edit
         
         // Department management
         Route::delete('/departments/batch-delete', [\App\Http\Controllers\Admin\DepartmentController::class, 'batchDelete'])->name('departments.batch-delete');
@@ -194,7 +194,7 @@ Route::middleware('auth')->group(function () {
 
         // Job Site management
         Route::delete('/job-sites/batch-delete', [\App\Http\Controllers\Admin\JobSiteController::class, 'batchDelete'])->name('job-sites.batch-delete');
-        Route::resource('job-sites', \App\Http\Controllers\Admin\JobSiteController::class);
+        Route::resource('job-sites', \App\Http\Controllers\Admin\JobSiteController::class)->except(['create', 'show', 'edit']); // buat/edit lewat modal di index
 
         // Kategori tiket (termasuk penanda wajib persetujuan atasan)
         Route::get('/ticket-categories', [\App\Http\Controllers\Admin\TicketCategoryController::class, 'index'])->name('ticket-categories.index');
@@ -215,7 +215,7 @@ Route::middleware('auth')->group(function () {
         // Section management
         Route::get('/sections/by-department', [\App\Http\Controllers\Admin\SectionController::class, 'getByDepartment'])->name('sections.by-department');
         Route::delete('/sections/batch-delete', [\App\Http\Controllers\Admin\SectionController::class, 'batchDelete'])->name('sections.batch-delete');
-        Route::resource('sections', \App\Http\Controllers\Admin\SectionController::class);
+        Route::resource('sections', \App\Http\Controllers\Admin\SectionController::class)->except(['create', 'show', 'edit']); // buat/edit lewat modal di index
 
         // Admin settings
         Route::get('/settings', function() {

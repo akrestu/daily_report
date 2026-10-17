@@ -9,6 +9,7 @@ import outboxStore from './outbox';
 import { toast, showFlashes } from './toast';
 import { toggleSidebar, setTheme, currentTheme, stackTables } from './shell';
 import { infiniteLists, pullToRefresh } from './infinite';
+import { themedChart } from './charts';
 
 export function registerSigap(Alpine) {
     Alpine.data('sgUploader', sgUploader);
@@ -28,6 +29,7 @@ export function registerSigap(Alpine) {
 
     window.sgToast = toast;
     window.sgToggleSidebar = toggleSidebar;
+    window.sgChart = themedChart;
 
     const boot = () => {
         showFlashes();
