@@ -1,12 +1,11 @@
-<x-app-layout>
-    <x-slot name="header">Buat Job Plan</x-slot>
+<x-app-layout title="Buat Rencana Kerja" :back="route('job-plans.index')">
 
     <div class="card shadow-sm border-0">
         <div class="card-header bg-white py-3">
             <div class="row align-items-center">
                 <div class="col-md-6 col-sm-12 mb-2 mb-md-0">
                     <h5 class="mb-0 fw-bold">
-                        <i class="bi bi-clipboard-check text-primary me-2"></i>Buat Job Plan Baru
+                        <i class="bi bi-clipboard-check text-primary me-2"></i>Buat Rencana Kerja Baru
                     </h5>
                 </div>
                 <div class="col-md-6 col-sm-12 text-md-end mt-2 mt-md-0">
@@ -191,7 +190,7 @@
                         <i class="bi bi-x-lg me-1"></i> Batal
                     </a>
                     <button type="submit" class="btn btn-primary rounded-pill px-4">
-                        <i class="bi bi-send me-1"></i> Kirim Job Plan
+                        <i class="bi bi-send me-1"></i> Kirim Rencana Kerja
                     </button>
                 </div>
             </form>

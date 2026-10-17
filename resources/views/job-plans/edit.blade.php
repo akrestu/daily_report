@@ -1,12 +1,11 @@
-<x-app-layout>
-    <x-slot name="header">Edit Job Plan</x-slot>
+<x-app-layout title="Edit Rencana Kerja" :back="route('job-plans.show', $plan)">
 
     <div class="card shadow-sm border-0">
         <div class="card-header bg-white py-3">
             <div class="row align-items-center">
                 <div class="col-md-6 col-sm-12 mb-2 mb-md-0">
                     <h5 class="mb-0 fw-bold">
-                        <i class="bi bi-clipboard-check text-primary me-2"></i>Edit Job Plan
+                        <i class="bi bi-clipboard-check text-primary me-2"></i>Edit Rencana Kerja
                     </h5>
                 </div>
                 <div class="col-md-6 col-sm-12 text-md-end mt-2 mt-md-0">
