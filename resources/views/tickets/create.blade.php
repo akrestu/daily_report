@@ -1,5 +1,4 @@
-<x-app-layout>
-    <x-slot name="header">Buat Tiket</x-slot>
+<x-app-layout title="Buat Tiket" :back="route('tickets.mine')">
 
     <style>
         .section-title { font-size: .8rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em;

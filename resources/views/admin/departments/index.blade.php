@@ -1,17 +1,14 @@
-<x-app-layout>
-    <x-slot name="header">
-        Department Management
-    </x-slot>
+<x-app-layout title="Departemen">
 
     <div class="card">
         <div class="card-header bg-white py-3">
             <div class="row align-items-center">
                 <div class="col-md-6 mb-2 mb-md-0">
-                    <h5 class="mb-0">All Departments</h5>
+                    <h5 class="mb-0">Semua departemen</h5>
                 </div>
                 <div class="col-md-6 text-md-end">
                     <button type="button" class="btn btn-primary w-100 w-md-auto" data-bs-toggle="modal" data-bs-target="#createDepartmentModal">
-                        <i class="bi bi-plus-lg me-1"></i> New Department
+                        <i class="bi bi-plus-lg me-1"></i> Departemen baru
                     </button>
                 </div>
             </div>
@@ -25,7 +22,7 @@
                             <span class="input-group-text bg-light">
                                 <i class="bi bi-search"></i>
                             </span>
-                            <input type="text" name="search" class="form-control" placeholder="Search..." value="{{ request('search') }}" style="height: 42px;">
+                            <input type="text" name="search" class="form-control" placeholder="Cari…" value="{{ request('search') }}" style="height: 42px;">
                         </div>
                     </div>
                     <div class="col-md-2 col-12">
@@ -119,11 +116,11 @@
                                         <input class="form-check-input select-all-checkbox" type="checkbox" id="selectAll">
                                     </div>
                                 </th>
-                                <th>Name</th>
-                                <th>Code</th>
-                                <th>Description</th>
-                                <th>Users</th>
-                                <th width="120">Actions</th>
+                                <th>Nama</th>
+                                <th>Kode</th>
+                                <th>Deskripsi</th>
+                                <th>Pengguna</th>
+                                <th width="120">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -197,7 +194,7 @@
             </div>
             @else
             <div class="alert alert-info">
-                <i class="bi bi-info-circle me-2"></i> No departments found matching your criteria.
+                <i class="bi bi-info-circle me-2"></i> Tidak ada departemen yang cocok dengan filter.
             </div>
             @endif
         </div>
@@ -215,20 +212,20 @@
                     <div class="modal-body">
                         @csrf
                         <div class="mb-3">
-                            <label for="name" class="form-label">Department Name <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-lg" id="name" name="name" required placeholder="Enter department name">
+                            <label for="name" class="form-label">Nama departemen <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control form-control-lg" id="name" name="name" required placeholder="Nama departemen">
                         </div>
                         <div class="mb-3">
-                            <label for="code" class="form-label">Department Code <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-lg" id="code" name="code" required placeholder="Enter department code (e.g. HR, IT, FIN)">
+                            <label for="code" class="form-label">Kode departemen <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control form-control-lg" id="code" name="code" required placeholder="Kode departemen (mis. HR, IT, FIN)">
                         </div>
                         <div class="mb-3">
-                            <label for="description" class="form-label">Description</label>
-                            <textarea class="form-control form-control-lg" id="description" name="description" rows="3" placeholder="Enter description"></textarea>
+                            <label for="description" class="form-label">Deskripsi</label>
+                            <textarea class="form-control form-control-lg" id="description" name="description" rows="3" placeholder="Masukkan deskripsi"></textarea>
                         </div>
                     </div>
                     <div class="modal-footer justify-content-between flex-wrap">
-                        <button type="button" class="btn btn-secondary mb-2 mb-sm-0 col-12 col-sm-auto" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-secondary mb-2 mb-sm-0 col-12 col-sm-auto" data-bs-dismiss="modal">Batal</button>
                         <button type="submit" class="btn btn-primary col-12 col-sm-auto">Create Department</button>
                     </div>
                 </form>
@@ -241,7 +238,7 @@
         <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="editDepartmentModalLabel">Edit Department</h5>
+                    <h5 class="modal-title" id="editDepartmentModalLabel">Edit departemen</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form id="editDepartmentForm" method="POST">
@@ -249,21 +246,21 @@
                         @csrf
                         @method('PUT')
                         <div class="mb-3">
-                            <label for="edit_name" class="form-label">Department Name <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-lg" id="edit_name" name="name" required placeholder="Enter department name">
+                            <label for="edit_name" class="form-label">Nama departemen <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control form-control-lg" id="edit_name" name="name" required placeholder="Nama departemen">
                         </div>
                         <div class="mb-3">
-                            <label for="edit_code" class="form-label">Department Code <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-lg" id="edit_code" name="code" required placeholder="Enter department code (e.g. HR, IT, FIN)">
+                            <label for="edit_code" class="form-label">Kode departemen <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control form-control-lg" id="edit_code" name="code" required placeholder="Kode departemen (mis. HR, IT, FIN)">
                         </div>
                         <div class="mb-3">
-                            <label for="edit_description" class="form-label">Description</label>
-                            <textarea class="form-control form-control-lg" id="edit_description" name="description" rows="3" placeholder="Enter description"></textarea>
+                            <label for="edit_description" class="form-label">Deskripsi</label>
+                            <textarea class="form-control form-control-lg" id="edit_description" name="description" rows="3" placeholder="Masukkan deskripsi"></textarea>
                         </div>
                     </div>
                     <div class="modal-footer justify-content-between flex-wrap">
-                        <button type="button" class="btn btn-secondary mb-2 mb-sm-0 col-12 col-sm-auto" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary col-12 col-sm-auto">Update Department</button>
+                        <button type="button" class="btn btn-secondary mb-2 mb-sm-0 col-12 col-sm-auto" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary col-12 col-sm-auto">Simpan departemen</button>
                     </div>
                 </form>
             </div>
@@ -275,22 +272,22 @@
         <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="deleteDepartmentModalLabel">Confirm Delete</h5>
+                    <h5 class="modal-title" id="deleteDepartmentModalLabel">Konfirmasi hapus</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Are you sure you want to delete department <strong id="delete-dept-name"></strong>?</p>
+                    <p>Hapus departemen <strong id="delete-dept-name"></strong>?</p>
                     <div id="delete-dept-warning" class="alert alert-danger d-none">
-                        <i class="bi bi-exclamation-triangle me-2"></i> This department has <span id="delete-dept-users-count"></span> users assigned to it. You cannot delete it until all users are reassigned.
+                        <i class="bi bi-exclamation-triangle me-2"></i> Departemen ini memiliki <span id="delete-dept-users-count"></span> users assigned to it. You cannot delete it until all users are reassigned.
                     </div>
-                    <p class="text-danger">This action cannot be undone.</p>
+                    <p class="text-danger">Tindakan ini tidak dapat dibatalkan.</p>
                 </div>
                 <div class="modal-footer justify-content-between flex-wrap">
-                    <button type="button" class="btn btn-secondary mb-2 mb-sm-0 col-12 col-sm-auto" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-secondary mb-2 mb-sm-0 col-12 col-sm-auto" data-bs-dismiss="modal">Batal</button>
                     <form id="deleteDepartmentForm" method="POST" class="col-12 col-sm-auto p-0">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="btn btn-danger w-100" id="confirmDeleteButton">Delete Department</button>
+                        <button type="submit" class="btn btn-danger w-100" id="confirmDeleteButton">Hapus departemen</button>
                     </form>
                 </div>
             </div>
@@ -302,16 +299,16 @@
         <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="bulkDeleteModalLabel">Confirm Bulk Delete</h5>
+                    <h5 class="modal-title" id="bulkDeleteModalLabel">Konfirmasi hapus massal</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Are you sure you want to delete all selected departments?</p>
-                    <p class="text-danger">This action cannot be undone. Departments with assigned users will not be deleted.</p>
+                    <p>Hapus semua departemen terpilih?</p>
+                    <p class="text-danger">Tindakan ini tidak dapat dibatalkan. Departemen yang masih memiliki pengguna tidak akan dihapus.</p>
                 </div>
                 <div class="modal-footer justify-content-between flex-wrap">
-                    <button type="button" class="btn btn-secondary mb-2 mb-sm-0 col-12 col-sm-auto" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-danger col-12 col-sm-auto" id="confirmBulkDelete">Delete Selected Departments</button>
+                    <button type="button" class="btn btn-secondary mb-2 mb-sm-0 col-12 col-sm-auto" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-danger col-12 col-sm-auto" id="confirmBulkDelete">Hapus departemen terpilih</button>
                 </div>
             </div>
         </div>

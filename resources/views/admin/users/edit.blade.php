@@ -1,13 +1,10 @@
-<x-app-layout>
-    <x-slot name="header">
-        Edit User
-    </x-slot>
+<x-app-layout title="Edit Pengguna" :back="route('admin.users.index')">
 
     <div class="card">
         <div class="card-header bg-white py-3">
             <div class="row align-items-center">
                 <div class="col">
-                    <h5 class="mb-0">Edit User Information</h5>
+                    <h5 class="mb-0">Edit data pengguna</h5>
                 </div>
                 <div class="col text-end">
                     <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary">
@@ -27,7 +24,7 @@
                             label="Name" 
                             name="name"
                             required="true"
-                            placeholder="Enter name"
+                            placeholder="Nama lengkap"
                             :value="old('name', $user->name)"
                         />
                     </div>
@@ -36,7 +33,7 @@
                             label="Email"
                             name="email"
                             type="email"
-                            placeholder="Enter email address (optional)"
+                            placeholder="Email (opsional)"
                             :value="old('email', $user->email)"
                         />
                     </div>
@@ -70,15 +67,15 @@
                             name="job_site_id"
                             :options="$jobSites ?? []"
                             :selected="old('job_site_id', $user->job_site_id)"
-                            placeholder="Select job site (optional)"
+                            placeholder="Pilih job site (opsional)"
                         />
-                        <small class="text-muted">Leave empty for admin users who can access all job sites</small>
+                        <small class="text-muted">Kosongkan untuk admin yang bisa mengakses semua job site</small>
                     </div>
                     <div class="col-md-6">
                         <x-input
                             label="User ID (optional)"
                             name="user_id"
-                            placeholder="Enter custom user ID"
+                            placeholder="User ID"
                             :value="old('user_id', $user->user_id)"
                         />
                     </div>
@@ -90,7 +87,7 @@
                             label="New Password (leave empty to keep current)" 
                             name="password"
                             type="password"
-                            placeholder="Enter new password"
+                            placeholder="Kata sandi baru"
                         />
                     </div>
                     <div class="col-md-6">
@@ -98,15 +95,15 @@
                             label="Confirm Password" 
                             name="password_confirmation"
                             type="password"
-                            placeholder="Confirm new password"
+                            placeholder="Ulangi kata sandi baru"
                         />
                     </div>
                 </div>
                 
                 <div class="d-flex justify-content-end gap-2 mt-4">
-                    <a href="{{ route('admin.users.index') }}" class="btn btn-secondary">Cancel</a>
+                    <a href="{{ route('admin.users.index') }}" class="btn btn-secondary">Batal</a>
                     <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-floppy me-1"></i> Update User
+                        <i class="bi bi-floppy me-1"></i> Simpan pengguna
                     </button>
                 </div>
             </form>
@@ -121,14 +118,14 @@
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h6 class="mb-1">Delete This User</h6>
+                    <h6 class="mb-1">Hapus pengguna ini</h6>
                     <p class="text-muted mb-0">Once deleted, all of this user's data will be permanently removed.</p>
                 </div>
                 <form action="{{ route('admin.users.destroy', $user) }}" method="POST">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="btn btn-danger" data-confirm="Are you sure you want to delete this user? This action cannot be undone.">
-                        <i class="bi bi-trash3 me-1"></i> Delete User
+                    <button type="submit" class="btn btn-danger" data-confirm="Hapus pengguna ini? Tindakan ini tidak dapat dibatalkan.">
+                        <i class="bi bi-trash3 me-1"></i> Hapus pengguna
                     </button>
                 </form>
             </div>

@@ -1,7 +1,4 @@
-<x-app-layout>
-    <x-slot name="header">
-        Job Site Management
-    </x-slot>
+<x-app-layout title="Job Site">
 
     <!-- Flash Messages -->
     @if(session('success'))
@@ -33,7 +30,7 @@
                 </div>
                 <div class="col-md-6 text-md-end">
                     <button type="button" class="btn btn-primary w-100 w-md-auto" data-bs-toggle="modal" data-bs-target="#createJobSiteModal">
-                        <i class="bi bi-plus-lg me-1"></i> New Job Site
+                        <i class="bi bi-plus-lg me-1"></i> Job site baru
                     </button>
                 </div>
             </div>
@@ -47,7 +44,7 @@
                             <span class="input-group-text bg-light">
                                 <i class="bi bi-search"></i>
                             </span>
-                            <input type="text" name="search" class="form-control" placeholder="Search..." value="{{ request('search') }}" style="height: 42px;">
+                            <input type="text" name="search" class="form-control" placeholder="Cari…" value="{{ request('search') }}" style="height: 42px;">
                         </div>
                     </div>
                     <div class="col-md-2 col-12">
@@ -156,12 +153,12 @@
                                         <input class="form-check-input select-all-checkbox" type="checkbox" id="selectAll">
                                     </div>
                                 </th>
-                                <th>Name</th>
-                                <th>Code</th>
-                                <th>Location</th>
+                                <th>Nama</th>
+                                <th>Kode</th>
+                                <th>Lokasi</th>
                                 <th>Status</th>
-                                <th>Reports</th>
-                                <th width="120">Actions</th>
+                                <th>Laporan</th>
+                                <th width="120">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -253,7 +250,7 @@
             </div>
             @else
             <div class="alert alert-info">
-                <i class="bi bi-info-circle me-2"></i> No job sites found matching your criteria.
+                <i class="bi bi-info-circle me-2"></i> Tidak ada job site yang cocok dengan filter.
             </div>
             @endif
         </div>
@@ -282,29 +279,29 @@
                         @endif
 
                         <div class="mb-3">
-                            <label for="name" class="form-label">Job Site Name <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-lg @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required placeholder="Enter job site name">
+                            <label for="name" class="form-label">Nama job site <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control form-control-lg @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required placeholder="Nama job site">
                             @error('name')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
                         <div class="mb-3">
-                            <label for="code" class="form-label">Job Site Code <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-lg @error('code') is-invalid @enderror" id="code" name="code" value="{{ old('code') }}" required placeholder="Enter job site code (e.g. HO, SBY, BDG)">
+                            <label for="code" class="form-label">Kode job site <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control form-control-lg @error('code') is-invalid @enderror" id="code" name="code" value="{{ old('code') }}" required placeholder="Kode job site (mis. HO, SBY, BDG)">
                             @error('code')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
                         <div class="mb-3">
-                            <label for="location" class="form-label">Location</label>
-                            <input type="text" class="form-control form-control-lg @error('location') is-invalid @enderror" id="location" name="location" value="{{ old('location') }}" placeholder="Enter location">
+                            <label for="location" class="form-label">Lokasi</label>
+                            <input type="text" class="form-control form-control-lg @error('location') is-invalid @enderror" id="location" name="location" value="{{ old('location') }}" placeholder="Lokasi">
                             @error('location')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
                         <div class="mb-3">
-                            <label for="description" class="form-label">Description</label>
-                            <textarea class="form-control form-control-lg @error('description') is-invalid @enderror" id="description" name="description" rows="3" placeholder="Enter description">{{ old('description') }}</textarea>
+                            <label for="description" class="form-label">Deskripsi</label>
+                            <textarea class="form-control form-control-lg @error('description') is-invalid @enderror" id="description" name="description" rows="3" placeholder="Masukkan deskripsi">{{ old('description') }}</textarea>
                             @error('description')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -319,7 +316,7 @@
                         </div>
                     </div>
                     <div class="modal-footer justify-content-between flex-wrap">
-                        <button type="button" class="btn btn-secondary mb-2 mb-sm-0 col-12 col-sm-auto" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-secondary mb-2 mb-sm-0 col-12 col-sm-auto" data-bs-dismiss="modal">Batal</button>
                         <button type="submit" class="btn btn-primary col-12 col-sm-auto">Create Job Site</button>
                     </div>
                 </form>
@@ -332,7 +329,7 @@
         <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="editJobSiteModalLabel">Edit Job Site</h5>
+                    <h5 class="modal-title" id="editJobSiteModalLabel">Edit job site</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form id="editJobSiteForm" method="POST">
@@ -340,20 +337,20 @@
                         @csrf
                         @method('PUT')
                         <div class="mb-3">
-                            <label for="edit_name" class="form-label">Job Site Name <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-lg" id="edit_name" name="name" required placeholder="Enter job site name">
+                            <label for="edit_name" class="form-label">Nama job site <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control form-control-lg" id="edit_name" name="name" required placeholder="Nama job site">
                         </div>
                         <div class="mb-3">
-                            <label for="edit_code" class="form-label">Job Site Code <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-lg" id="edit_code" name="code" required placeholder="Enter job site code">
+                            <label for="edit_code" class="form-label">Kode job site <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control form-control-lg" id="edit_code" name="code" required placeholder="Kode job site">
                         </div>
                         <div class="mb-3">
-                            <label for="edit_location" class="form-label">Location</label>
-                            <input type="text" class="form-control form-control-lg" id="edit_location" name="location" placeholder="Enter location">
+                            <label for="edit_location" class="form-label">Lokasi</label>
+                            <input type="text" class="form-control form-control-lg" id="edit_location" name="location" placeholder="Lokasi">
                         </div>
                         <div class="mb-3">
-                            <label for="edit_description" class="form-label">Description</label>
-                            <textarea class="form-control form-control-lg" id="edit_description" name="description" rows="3" placeholder="Enter description"></textarea>
+                            <label for="edit_description" class="form-label">Deskripsi</label>
+                            <textarea class="form-control form-control-lg" id="edit_description" name="description" rows="3" placeholder="Masukkan deskripsi"></textarea>
                         </div>
                         <div class="mb-3">
                             <div class="form-check form-switch">
@@ -365,8 +362,8 @@
                         </div>
                     </div>
                     <div class="modal-footer justify-content-between flex-wrap">
-                        <button type="button" class="btn btn-secondary mb-2 mb-sm-0 col-12 col-sm-auto" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary col-12 col-sm-auto">Update Job Site</button>
+                        <button type="button" class="btn btn-secondary mb-2 mb-sm-0 col-12 col-sm-auto" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary col-12 col-sm-auto">Simpan job site</button>
                     </div>
                 </form>
             </div>
@@ -378,18 +375,18 @@
         <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="deleteJobSiteModalLabel">Confirm Delete</h5>
+                    <h5 class="modal-title" id="deleteJobSiteModalLabel">Konfirmasi hapus</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Are you sure you want to delete job site <strong id="delete-jobsite-name"></strong>?</p>
+                    <p>Hapus job site <strong id="delete-jobsite-name"></strong>?</p>
                     <div id="delete-jobsite-warning" class="alert alert-danger d-none">
-                        <i class="bi bi-exclamation-triangle me-2"></i> This job site has <span id="delete-jobsite-reports-count"></span> reports associated with it. You cannot delete it until all reports are reassigned.
+                        <i class="bi bi-exclamation-triangle me-2"></i> Job site ini memiliki <span id="delete-jobsite-reports-count"></span> reports associated with it. You cannot delete it until all reports are reassigned.
                     </div>
-                    <p class="text-danger">This action cannot be undone.</p>
+                    <p class="text-danger">Tindakan ini tidak dapat dibatalkan.</p>
                 </div>
                 <div class="modal-footer justify-content-between flex-wrap">
-                    <button type="button" class="btn btn-secondary mb-2 mb-sm-0 col-12 col-sm-auto" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-secondary mb-2 mb-sm-0 col-12 col-sm-auto" data-bs-dismiss="modal">Batal</button>
                     <form id="deleteJobSiteForm" method="POST" class="col-12 col-sm-auto p-0">
                         @csrf
                         @method('DELETE')
@@ -405,16 +402,16 @@
         <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="bulkDeleteModalLabel">Confirm Bulk Delete</h5>
+                    <h5 class="modal-title" id="bulkDeleteModalLabel">Konfirmasi hapus massal</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Are you sure you want to delete all selected job sites?</p>
-                    <p class="text-danger">This action cannot be undone. Job sites with associated reports will not be deleted.</p>
+                    <p>Hapus semua job site terpilih?</p>
+                    <p class="text-danger">Tindakan ini tidak dapat dibatalkan. Job site yang masih memiliki laporan tidak akan dihapus.</p>
                 </div>
                 <div class="modal-footer justify-content-between flex-wrap">
-                    <button type="button" class="btn btn-secondary mb-2 mb-sm-0 col-12 col-sm-auto" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-danger col-12 col-sm-auto" id="confirmBulkDelete">Delete Selected Job Sites</button>
+                    <button type="button" class="btn btn-secondary mb-2 mb-sm-0 col-12 col-sm-auto" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-danger col-12 col-sm-auto" id="confirmBulkDelete">Hapus job site terpilih</button>
                 </div>
             </div>
         </div>

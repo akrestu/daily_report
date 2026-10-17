@@ -1,14 +1,11 @@
-<x-app-layout>
-    <x-slot name="header">
-        Import Daily Reports
-    </x-slot>
+<x-app-layout title="Impor Laporan" :back="route('daily-reports.user-jobs')">
 
     <div class="row">
         <div class="col-md-8 mx-auto">
             <div class="card">
                 <div class="card-header bg-white py-3">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Import Daily Reports from Excel</h5>
+                        <h5 class="mb-0">Impor laporan dari Excel</h5>
                         <a href="{{ route('daily-reports.user-jobs') }}" class="btn btn-sm btn-secondary">
                             <i class="bi bi-arrow-left me-1"></i> Back to My Reports
                         </a>
@@ -35,7 +32,7 @@
                     <form action="{{ route('daily-reports.import') }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         <div class="mb-4">
-                            <label for="file" class="form-label">Excel File</label>
+                            <label for="file" class="form-label">File Excel</label>
                             <input type="file" class="form-control @error('file') is-invalid @enderror" id="file" name="file" required>
                             @error('file')
                                 <div class="invalid-feedback">
@@ -46,7 +43,7 @@
                         </div>
 
                         <div class="alert alert-info">
-                            <h6 class="alert-heading"><i class="bi bi-info-circle me-2"></i>Import Guidelines</h6>
+                            <h6 class="alert-heading"><i class="bi bi-info-circle me-2"></i>Panduan impor</h6>
                             <p>The Excel file should have the following columns with a header row:</p>
                             <ul class="mb-1">
                                 <li><strong>job_name</strong> (required): Name of the job or task</li>

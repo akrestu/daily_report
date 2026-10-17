@@ -1,11 +1,4 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="d-flex justify-content-between align-items-center">
-            <h2 class="fs-4 text-dark mb-0">
-                <i class="bi bi-eraser me-2"></i>Report Cleanup Management
-            </h2>
-        </div>
-    </x-slot>
+<x-app-layout title="Pembersihan Laporan">
 
     <div class="container-fluid">
         <!-- Statistics Cards -->
@@ -16,7 +9,7 @@
                         <div class="d-flex justify-content-between">
                             <div>
                                 <h4 class="card-title">{{ number_format($stats['total_reports']) }}</h4>
-                                <p class="card-text">Total Reports</p>
+                                <p class="card-text">Total laporan</p>
                             </div>
                             <div class="align-self-center">
                                 <i class="bi bi-file-earmark-text fs-3 opacity-75"></i>
@@ -48,7 +41,7 @@
                         <div class="d-flex justify-content-between">
                             <div>
                                 <h4 class="card-title">{{ number_format($stats['with_attachments']) }}</h4>
-                                <p class="card-text">With Attachments</p>
+                                <p class="card-text">Dengan lampiran</p>
                             </div>
                             <div class="align-self-center">
                                 <i class="bi bi-paperclip fs-3 opacity-75"></i>
@@ -64,7 +57,7 @@
                         <div class="d-flex justify-content-between">
                             <div>
                                 <h4 class="card-title">{{ $stats['storage_size'] }}</h4>
-                                <p class="card-text">Storage Used</p>
+                                <p class="card-text">Penyimpanan terpakai</p>
                             </div>
                             <div class="align-self-center">
                                 <i class="bi bi-hdd fs-3 opacity-75"></i>
@@ -96,7 +89,7 @@
                                                    value="365" min="1" max="3650" required>
                                             <span class="input-group-text">days</span>
                                         </div>
-                                        <div class="form-text">Reports older than this will be deleted</div>
+                                        <div class="form-text">Laporan yang lebih lama dari ini akan dihapus</div>
                                     </div>
                                 </div>
                                 
@@ -275,7 +268,7 @@
             let html = `
                 <div class="alert alert-info">
                     <i class="bi bi-info-circle me-2"></i>
-                    <strong>Preview Results</strong> - Reports created before ${cutoffDate}
+                    <strong>Hasil pratinjau</strong> - Reports created before ${cutoffDate}
                 </div>
                 
                 <div class="row">
@@ -318,7 +311,7 @@
                 html += `
                     <div class="alert alert-warning mt-3">
                         <i class="bi bi-exclamation-triangle me-2"></i>
-                        <strong>Warning:</strong> This action cannot be undone. Please review the results carefully before executing.
+                        <strong>Warning:</strong> Tindakan ini tidak dapat dibatalkan. Periksa hasil pratinjau dengan teliti sebelum menjalankan.
                     </div>`;
             }
             
@@ -327,7 +320,7 @@
         }
         
         function executeCleanup() {
-            if (!confirm('Are you sure you want to execute this cleanup? This action cannot be undone!')) {
+            if (!confirm('Jalankan pembersihan sekarang? Tindakan ini tidak dapat dibatalkan!')) {
                 return;
             }
             

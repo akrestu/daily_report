@@ -5,7 +5,7 @@ import sgComments from './comments';
 import sgQueue from './queue';
 import notificationStore from './notifications';
 import { toast, showFlashes } from './toast';
-import { toggleSidebar, setTheme, currentTheme } from './shell';
+import { toggleSidebar, setTheme, currentTheme, stackTables } from './shell';
 
 export function registerSigap(Alpine) {
     Alpine.data('sgUploader', sgUploader);
@@ -26,6 +26,7 @@ export function registerSigap(Alpine) {
 
     const boot = () => {
         showFlashes();
+        stackTables();
         if (window.__sgRoutes?.notifList) Alpine.store('notif').start();
     };
     if (document.readyState === 'loading') {

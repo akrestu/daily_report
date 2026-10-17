@@ -5,7 +5,7 @@
     <div class="row">
         <div class="col-lg-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="mb-0">System Settings</h2>
+                <h2 class="mb-0">Pengaturan sistem</h2>
                 <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-secondary">
                     <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
                 </a>
@@ -28,10 +28,10 @@
                         </div>
                         
                         <div class="mb-3">
-                            <label for="emailNotifications" class="form-label">Email Notifications</label>
+                            <label for="emailNotifications" class="form-label">Notifikasi email</label>
                             <select class="form-select" id="emailNotifications" disabled>
-                                <option value="enabled" selected>Enabled</option>
-                                <option value="disabled">Disabled</option>
+                                <option value="enabled" selected>Aktif</option>
+                                <option value="disabled">Nonaktif</option>
                             </select>
                         </div>
                         

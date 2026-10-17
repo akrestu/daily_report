@@ -1,7 +1,4 @@
-<x-app-layout>
-    <x-slot name="header">
-        Section Management
-    </x-slot>
+<x-app-layout title="Section">
 
     <!-- Flash Messages -->
     @if(session('success'))
@@ -33,7 +30,7 @@
                 </div>
                 <div class="col-md-6 text-md-end">
                     <button type="button" class="btn btn-primary w-100 w-md-auto" data-bs-toggle="modal" data-bs-target="#createSectionModal">
-                        <i class="bi bi-plus-lg me-1"></i> New Section
+                        <i class="bi bi-plus-lg me-1"></i> Section baru
                     </button>
                 </div>
             </div>
@@ -47,12 +44,12 @@
                             <span class="input-group-text bg-light">
                                 <i class="bi bi-search"></i>
                             </span>
-                            <input type="text" name="search" class="form-control" placeholder="Search..." value="{{ request('search') }}" style="height: 42px;">
+                            <input type="text" name="search" class="form-control" placeholder="Cari…" value="{{ request('search') }}" style="height: 42px;">
                         </div>
                     </div>
                     <div class="col-md-3 col-12">
                         <select name="department_id" class="form-select" style="height: 42px;">
-                            <option value="">All Departments</option>
+                            <option value="">Semua departemen</option>
                             @foreach($departments as $dept)
                                 <option value="{{ $dept->id }}" {{ request('department_id') == $dept->id ? 'selected' : '' }}>
                                     {{ $dept->name }}
@@ -164,12 +161,12 @@
                                         <input class="form-check-input select-all-checkbox" type="checkbox" id="selectAll">
                                     </div>
                                 </th>
-                                <th>Name</th>
-                                <th>Code</th>
-                                <th>Department</th>
+                                <th>Nama</th>
+                                <th>Kode</th>
+                                <th>Departemen</th>
                                 <th>Status</th>
-                                <th>Reports</th>
-                                <th width="120">Actions</th>
+                                <th>Laporan</th>
+                                <th width="120">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -257,7 +254,7 @@
             </div>
             @else
             <div class="alert alert-info">
-                <i class="bi bi-info-circle me-2"></i> No sections found matching your criteria.
+                <i class="bi bi-info-circle me-2"></i> Tidak ada section yang cocok dengan filter.
             </div>
             @endif
         </div>
@@ -286,9 +283,9 @@
                         @endif
 
                         <div class="mb-3">
-                            <label for="department_id" class="form-label">Department <span class="text-danger">*</span></label>
+                            <label for="department_id" class="form-label">Departemen <span class="text-danger">*</span></label>
                             <select class="form-select form-select-lg @error('department_id') is-invalid @enderror" id="department_id" name="department_id" required>
-                                <option value="">Select department</option>
+                                <option value="">Pilih departemen</option>
                                 @foreach($departments as $dept)
                                     <option value="{{ $dept->id }}" {{ old('department_id') == $dept->id ? 'selected' : '' }}>{{ $dept->name }}</option>
                                 @endforeach
@@ -298,22 +295,22 @@
                             @enderror
                         </div>
                         <div class="mb-3">
-                            <label for="name" class="form-label">Section Name <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-lg @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required placeholder="Enter section name">
+                            <label for="name" class="form-label">Nama section <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control form-control-lg @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required placeholder="Nama section">
                             @error('name')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
                         <div class="mb-3">
-                            <label for="code" class="form-label">Section Code <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-lg @error('code') is-invalid @enderror" id="code" name="code" value="{{ old('code') }}" required placeholder="Enter section code (e.g. IT-NET, HR-REC)">
+                            <label for="code" class="form-label">Kode section <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control form-control-lg @error('code') is-invalid @enderror" id="code" name="code" value="{{ old('code') }}" required placeholder="Kode section (mis. IT-NET, HR-REC)">
                             @error('code')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
                         <div class="mb-3">
-                            <label for="description" class="form-label">Description</label>
-                            <textarea class="form-control form-control-lg @error('description') is-invalid @enderror" id="description" name="description" rows="3" placeholder="Enter description">{{ old('description') }}</textarea>
+                            <label for="description" class="form-label">Deskripsi</label>
+                            <textarea class="form-control form-control-lg @error('description') is-invalid @enderror" id="description" name="description" rows="3" placeholder="Masukkan deskripsi">{{ old('description') }}</textarea>
                             @error('description')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -328,7 +325,7 @@
                         </div>
                     </div>
                     <div class="modal-footer justify-content-between flex-wrap">
-                        <button type="button" class="btn btn-secondary mb-2 mb-sm-0 col-12 col-sm-auto" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-secondary mb-2 mb-sm-0 col-12 col-sm-auto" data-bs-dismiss="modal">Batal</button>
                         <button type="submit" class="btn btn-primary col-12 col-sm-auto">Create Section</button>
                     </div>
                 </form>
@@ -341,7 +338,7 @@
         <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="editSectionModalLabel">Edit Section</h5>
+                    <h5 class="modal-title" id="editSectionModalLabel">Edit section</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form id="editSectionForm" method="POST">
@@ -349,25 +346,25 @@
                         @csrf
                         @method('PUT')
                         <div class="mb-3">
-                            <label for="edit_department_id" class="form-label">Department <span class="text-danger">*</span></label>
+                            <label for="edit_department_id" class="form-label">Departemen <span class="text-danger">*</span></label>
                             <select class="form-select form-select-lg" id="edit_department_id" name="department_id" required>
-                                <option value="">Select department</option>
+                                <option value="">Pilih departemen</option>
                                 @foreach($departments as $dept)
                                     <option value="{{ $dept->id }}">{{ $dept->name }}</option>
                                 @endforeach
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label for="edit_name" class="form-label">Section Name <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-lg" id="edit_name" name="name" required placeholder="Enter section name">
+                            <label for="edit_name" class="form-label">Nama section <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control form-control-lg" id="edit_name" name="name" required placeholder="Nama section">
                         </div>
                         <div class="mb-3">
-                            <label for="edit_code" class="form-label">Section Code <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-lg" id="edit_code" name="code" required placeholder="Enter section code">
+                            <label for="edit_code" class="form-label">Kode section <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control form-control-lg" id="edit_code" name="code" required placeholder="Kode section">
                         </div>
                         <div class="mb-3">
-                            <label for="edit_description" class="form-label">Description</label>
-                            <textarea class="form-control form-control-lg" id="edit_description" name="description" rows="3" placeholder="Enter description"></textarea>
+                            <label for="edit_description" class="form-label">Deskripsi</label>
+                            <textarea class="form-control form-control-lg" id="edit_description" name="description" rows="3" placeholder="Masukkan deskripsi"></textarea>
                         </div>
                         <div class="mb-3">
                             <div class="form-check form-switch">
@@ -379,8 +376,8 @@
                         </div>
                     </div>
                     <div class="modal-footer justify-content-between flex-wrap">
-                        <button type="button" class="btn btn-secondary mb-2 mb-sm-0 col-12 col-sm-auto" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary col-12 col-sm-auto">Update Section</button>
+                        <button type="button" class="btn btn-secondary mb-2 mb-sm-0 col-12 col-sm-auto" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary col-12 col-sm-auto">Simpan section</button>
                     </div>
                 </form>
             </div>
@@ -392,18 +389,18 @@
         <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="deleteSectionModalLabel">Confirm Delete</h5>
+                    <h5 class="modal-title" id="deleteSectionModalLabel">Konfirmasi hapus</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Are you sure you want to delete section <strong id="delete-section-name"></strong>?</p>
+                    <p>Hapus section <strong id="delete-section-name"></strong>?</p>
                     <div id="delete-section-warning" class="alert alert-danger d-none">
-                        <i class="bi bi-exclamation-triangle me-2"></i> This section has <span id="delete-section-reports-count"></span> reports associated with it. You cannot delete it until all reports are reassigned.
+                        <i class="bi bi-exclamation-triangle me-2"></i> Section ini memiliki <span id="delete-section-reports-count"></span> reports associated with it. You cannot delete it until all reports are reassigned.
                     </div>
-                    <p class="text-danger">This action cannot be undone.</p>
+                    <p class="text-danger">Tindakan ini tidak dapat dibatalkan.</p>
                 </div>
                 <div class="modal-footer justify-content-between flex-wrap">
-                    <button type="button" class="btn btn-secondary mb-2 mb-sm-0 col-12 col-sm-auto" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-secondary mb-2 mb-sm-0 col-12 col-sm-auto" data-bs-dismiss="modal">Batal</button>
                     <form id="deleteSectionForm" method="POST" class="col-12 col-sm-auto p-0">
                         @csrf
                         @method('DELETE')
@@ -419,16 +416,16 @@
         <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="bulkDeleteModalLabel">Confirm Bulk Delete</h5>
+                    <h5 class="modal-title" id="bulkDeleteModalLabel">Konfirmasi hapus massal</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Are you sure you want to delete all selected sections?</p>
-                    <p class="text-danger">This action cannot be undone. Sections with associated reports will not be deleted.</p>
+                    <p>Hapus semua section terpilih?</p>
+                    <p class="text-danger">Tindakan ini tidak dapat dibatalkan. Section yang masih memiliki laporan tidak akan dihapus.</p>
                 </div>
                 <div class="modal-footer justify-content-between flex-wrap">
-                    <button type="button" class="btn btn-secondary mb-2 mb-sm-0 col-12 col-sm-auto" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-danger col-12 col-sm-auto" id="confirmBulkDelete">Delete Selected Sections</button>
+                    <button type="button" class="btn btn-secondary mb-2 mb-sm-0 col-12 col-sm-auto" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-danger col-12 col-sm-auto" id="confirmBulkDelete">Hapus section terpilih</button>
                 </div>
             </div>
         </div>

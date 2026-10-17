@@ -1,5 +1,4 @@
-<x-app-layout>
-    <x-slot name="header">Pengaturan SLA</x-slot>
+<x-app-layout title="SLA &amp; Hari Libur">
 
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show"><i class="bi bi-check-circle me-2"></i>{{ session('success') }}

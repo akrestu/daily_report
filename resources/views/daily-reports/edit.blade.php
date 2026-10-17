@@ -1,17 +1,14 @@
-<x-app-layout>
-    <x-slot name="header">
-        Edit Daily Report
-    </x-slot>
+<x-app-layout title="Edit Laporan" :back="route('daily-reports.show', $report)">
 
     <div class="card">
         <div class="card-header bg-white py-3">
             <div class="row align-items-center">
                 <div class="col">
-                    <h5 class="mb-0">Edit Daily Report</h5>
+                    <h5 class="mb-0">Edit laporan</h5>
                 </div>
                 <div class="col text-end">
                     <a href="javascript:history.back()" class="btn btn-outline-secondary">
-                        <i class="bi bi-arrow-left me-1"></i> Back
+                        <i class="bi bi-arrow-left me-1"></i> Kembali
                     </a>
                 </div>
             </div>
@@ -27,7 +24,7 @@
                             label="Job Name"
                             name="job_name"
                             required="true"
-                            placeholder="Enter job name"
+                            placeholder="Nama pekerjaan"
                             :value="old('job_name', $report->job_name)"
                         />
                     </div>
@@ -46,7 +43,7 @@
                     <div class="col-md-6">
                         <label for="job_site_id" class="form-label">Job Site</label>
                         <select class="form-select @error('job_site_id') is-invalid @enderror" id="job_site_id" name="job_site_id">
-                            <option value="">Select job site (optional)</option>
+                            <option value="">Pilih job site (opsional)</option>
                             @foreach ($jobSites ?? [] as $jobSite)
                                 <option value="{{ $jobSite->id }}" {{ old('job_site_id', $report->job_site_id) == $jobSite->id ? 'selected' : '' }}>
                                     {{ $jobSite->name }}
@@ -60,7 +57,7 @@
                     <div class="col-md-6">
                         <label for="section_id" class="form-label">Section</label>
                         <select class="form-select @error('section_id') is-invalid @enderror" id="section_id" name="section_id">
-                            <option value="">Select section (optional)</option>
+                            <option value="">Pilih section (opsional)</option>
                             @foreach ($sections ?? [] as $section)
                                 <option value="{{ $section->id }}" {{ old('section_id', $report->section_id) == $section->id ? 'selected' : '' }}>
                                     {{ $section->name }}
@@ -120,7 +117,7 @@
                 </div>
                 
                 <div class="mb-3">
-                    <label for="description" class="form-label">Description <span class="text-danger">*</span></label>
+                    <label for="description" class="form-label">Deskripsi <span class="text-danger">*</span></label>
                     <textarea 
                         class="form-control @error('description') is-invalid @enderror" 
                         id="description" 
@@ -134,7 +131,7 @@
                 </div>
                 
                 <div class="mb-3">
-                    <label for="remark" class="form-label">Remarks</label>
+                    <label for="remark" class="form-label">Remark</label>
                     <textarea 
                         class="form-control @error('remark') is-invalid @enderror" 
                         id="remark" 
@@ -190,9 +187,9 @@
                 </div>
                 
                 <div class="d-flex justify-content-end gap-2">
-                    <a href="javascript:history.back()" class="btn btn-secondary">Cancel</a>
+                    <a href="javascript:history.back()" class="btn btn-secondary">Batal</a>
                     <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-floppy me-1"></i> Update Report
+                        <i class="bi bi-floppy me-1"></i> Simpan laporan
                     </button>
                 </div>
             </form>

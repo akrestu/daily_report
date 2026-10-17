@@ -1,5 +1,4 @@
-<x-app-layout>
-    <x-slot name="header">{{ $employee->exists ? 'Edit Karyawan' : 'Tambah Karyawan' }}</x-slot>
+<x-app-layout :title="$employee->exists ? 'Edit Karyawan' : 'Tambah Karyawan'" :back="route('admin.employees.index')">
 
     <div class="row justify-content-center">
         <div class="col-lg-7">

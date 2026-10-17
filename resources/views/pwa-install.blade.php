@@ -1,7 +1,4 @@
-<x-app-layout>
-    <x-slot name="header">
-        Install Aplikasi SiGAP
-    </x-slot>
+<x-app-layout title="Pasang Aplikasi">
 
     <div class="container-fluid px-4">
         <div class="row justify-content-center">

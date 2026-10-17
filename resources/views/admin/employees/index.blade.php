@@ -1,5 +1,4 @@
-<x-app-layout>
-    <x-slot name="header">Master Karyawan</x-slot>
+<x-app-layout title="Master Karyawan">
 
     @foreach(['success' => 'check-circle', 'error' => 'exclamation-circle', 'warning' => 'exclamation-triangle'] as $type => $icon)
         @if(session($type))
@@ -35,7 +34,7 @@
                         <i class="bi bi-download me-1"></i>Template Excel
                     </a>
                     <button type="button" class="btn btn-outline-success btn-sm" data-bs-toggle="collapse" data-bs-target="#importPanel">
-                        <i class="bi bi-box-arrow-in-down me-1"></i>Import
+                        <i class="bi bi-box-arrow-in-down me-1"></i>Impor
                     </button>
                     <a href="{{ route('admin.employees.create') }}" class="btn btn-primary btn-sm">
                         <i class="bi bi-plus-lg me-1"></i>Tambah Karyawan
@@ -53,7 +52,7 @@
                             <input type="file" name="file" class="form-control form-control-sm" accept=".xlsx,.xls,.csv" required>
                             <div class="form-text">
                                 Kolom: nik, nama, departemen, jabatan, job_site, no_hp, status (aktif/nonaktif).
-                                NIK yang sudah ada akan diperbarui. Format kolom NIK sebagai <strong>Text</strong> agar angka 0 di depan tidak hilang.
+                                NIK yang sudah ada akan diperbarui. Format kolom NIK sebagai <strong>Teks</strong> agar angka 0 di depan tidak hilang.
                             </div>
                         </div>
                         <div class="col-md-4">

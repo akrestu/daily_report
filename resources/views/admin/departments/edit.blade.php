@@ -1,7 +1,4 @@
-<x-app-layout>
-    <x-slot name="header">
-        Edit Department
-    </x-slot>
+<x-app-layout title="Edit Departemen" :back="route('admin.departments.index')">
 
     <div class="card">
         <div class="card-header bg-white py-3">
@@ -24,8 +21,8 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label for="name" class="form-label">Department Name <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name', $department->name) }}" required placeholder="Enter department name">
+                            <label for="name" class="form-label">Nama departemen <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name', $department->name) }}" required placeholder="Nama departemen">
                             @error('name')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -33,8 +30,8 @@
                     </div>
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label for="code" class="form-label">Department Code <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('code') is-invalid @enderror" id="code" name="code" value="{{ old('code', $department->code) }}" required placeholder="Enter department code (e.g. HR, IT, FIN)">
+                            <label for="code" class="form-label">Kode departemen <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control @error('code') is-invalid @enderror" id="code" name="code" value="{{ old('code', $department->code) }}" required placeholder="Kode departemen (mis. HR, IT, FIN)">
                             @error('code')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -43,8 +40,8 @@
                 </div>
                 
                 <div class="mb-3">
-                    <label for="description" class="form-label">Description</label>
-                    <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="3" placeholder="Enter description">{{ old('description', $department->description) }}</textarea>
+                    <label for="description" class="form-label">Deskripsi</label>
+                    <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="3" placeholder="Masukkan deskripsi">{{ old('description', $department->description) }}</textarea>
                     @error('description')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -52,7 +49,7 @@
 
                 <div class="card mb-4">
                     <div class="card-header bg-light">
-                        <h6 class="mb-0">Department Statistics</h6>
+                        <h6 class="mb-0">Statistik departemen</h6>
                     </div>
                     <div class="card-body">
                         <div class="row">
@@ -68,12 +65,12 @@
                 
                 <div class="d-flex justify-content-between mt-4">
                     <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
-                        <i class="bi bi-trash3 me-1"></i> Delete Department
+                        <i class="bi bi-trash3 me-1"></i> Hapus departemen
                     </button>
                     <div>
                         <button type="reset" class="btn btn-secondary me-2">Reset</button>
                         <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-floppy me-1"></i> Update Department
+                            <i class="bi bi-floppy me-1"></i> Simpan departemen
                         </button>
                     </div>
                 </div>
@@ -86,11 +83,11 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                    <h5 class="modal-title" id="deleteModalLabel">Konfirmasi hapus</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Are you sure you want to delete the department <strong>{{ $department->name }}</strong>?</p>
+                    <p>Hapus departemen <strong>{{ $department->name }}</strong>?</p>
                     @if($department->users->count() > 0)
                     <div class="alert alert-danger">
                         <i class="bi bi-exclamation-triangle me-2"></i> This department has {{ $department->users->count() }} users assigned to it. You cannot delete it until all users are reassigned.
@@ -98,12 +95,12 @@
                     @endif
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
                     @if($department->users->count() == 0)
                     <form action="{{ route('admin.departments.destroy', $department) }}" method="POST">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="btn btn-danger">Delete Department</button>
+                        <button type="submit" class="btn btn-danger">Hapus departemen</button>
                     </form>
                     @endif
                 </div>

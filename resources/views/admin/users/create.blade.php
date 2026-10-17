@@ -1,13 +1,10 @@
-<x-app-layout>
-    <x-slot name="header">
-        Create User
-    </x-slot>
+<x-app-layout title="Tambah Pengguna" :back="route('admin.users.index')">
 
     <div class="card">
         <div class="card-header bg-white py-3">
             <div class="row align-items-center">
                 <div class="col">
-                    <h5 class="mb-0">New User</h5>
+                    <h5 class="mb-0">Pengguna baru</h5>
                 </div>
                 <div class="col text-end">
                     <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary">
@@ -26,7 +23,7 @@
                             label="Name" 
                             name="name"
                             required="true"
-                            placeholder="Enter name"
+                            placeholder="Nama lengkap"
                             :value="old('name')"
                         />
                     </div>
@@ -35,7 +32,7 @@
                             label="Email"
                             name="email"
                             type="email"
-                            placeholder="Enter email address (optional)"
+                            placeholder="Email (opsional)"
                             :value="old('email')"
                         />
                     </div>
@@ -69,15 +66,15 @@
                             name="job_site_id"
                             :options="$jobSites ?? []"
                             :selected="old('job_site_id')"
-                            placeholder="Select job site (optional)"
+                            placeholder="Pilih job site (opsional)"
                         />
-                        <small class="text-muted">Leave empty for admin users who can access all job sites</small>
+                        <small class="text-muted">Kosongkan untuk admin yang bisa mengakses semua job site</small>
                     </div>
                     <div class="col-md-6">
                         <x-input
                             label="User ID (optional)"
                             name="user_id"
-                            placeholder="Enter custom user ID"
+                            placeholder="User ID"
                             :value="old('user_id')"
                         />
                     </div>
@@ -90,7 +87,7 @@
                             name="password"
                             type="password"
                             required="true"
-                            placeholder="Enter password"
+                            placeholder="Kata sandi"
                         />
                     </div>
                     <div class="col-md-6">
@@ -99,7 +96,7 @@
                             name="password_confirmation"
                             type="password"
                             required="true"
-                            placeholder="Confirm password"
+                            placeholder="Ulangi kata sandi"
                         />
                     </div>
                 </div>
@@ -108,7 +105,7 @@
                 <div class="mb-3">
                     <div class="form-check form-switch">
                         <input class="form-check-input" type="checkbox" id="markAsVerified" name="email_verified" value="1" checked>
-                        <label class="form-check-label" for="markAsVerified">Mark email as verified</label>
+                        <label class="form-check-label" for="markAsVerified">Tandai email terverifikasi</label>
                     </div>
                 </div>
                 -->

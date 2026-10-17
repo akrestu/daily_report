@@ -1,26 +1,23 @@
-<x-app-layout>
-    <x-slot name="header">
-        User Management
-    </x-slot>
+<x-app-layout title="Pengguna">
 
     <div class="card">
         <div class="card-header bg-white py-3">
             <div class="row align-items-center">
                 <div class="col-md-6 mb-2 mb-md-0">
-                    <h5 class="mb-0">All Users</h5>
+                    <h5 class="mb-0">Semua pengguna</h5>
                 </div>
                 <div class="col-md-6 text-md-end">
                     <div class="d-flex flex-wrap justify-content-center justify-content-md-end gap-2">
                         <div class="btn-group me-md-2 mb-2 mb-md-0">
                             <a href="{{ route('admin.users.export') }}" class="btn btn-outline-primary">
-                                <i class="bi bi-box-arrow-up me-1"></i> <span class="d-none d-sm-inline">Export</span>
+                                <i class="bi bi-box-arrow-up me-1"></i> <span class="d-none d-sm-inline">Ekspor</span>
                             </a>
                             <a href="{{ route('admin.users.show-import') }}" class="btn btn-outline-success">
-                                <i class="bi bi-box-arrow-in-down me-1"></i> <span class="d-none d-sm-inline">Import</span>
+                                <i class="bi bi-box-arrow-in-down me-1"></i> <span class="d-none d-sm-inline">Impor</span>
                             </a>
                         </div>
                         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createUserModal">
-                            <i class="bi bi-person-plus me-1"></i> <span class="d-none d-sm-inline">New User</span>
+                            <i class="bi bi-person-plus me-1"></i> <span class="d-none d-sm-inline">Pengguna baru</span>
                         </button>
                     </div>
                 </div>
@@ -35,12 +32,12 @@
                             <span class="input-group-text bg-light">
                                 <i class="bi bi-search"></i>
                             </span>
-                            <input type="text" name="search" class="form-control" placeholder="Search..." value="{{ request('search') }}">
+                            <input type="text" name="search" class="form-control" placeholder="Cari…" value="{{ request('search') }}">
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
                         <select name="role" class="form-select">
-                            <option value="">All Roles</option>
+                            <option value="">Semua role</option>
                             @foreach($roles ?? [] as $id => $name)
                                 <option value="{{ $id }}" {{ request('role') == $id ? 'selected' : '' }}>{{ $name }}</option>
                             @endforeach
@@ -48,7 +45,7 @@
                     </div>
                     <div class="col-6 col-md-3">
                         <select name="department" class="form-select">
-                            <option value="">All Departments</option>
+                            <option value="">Semua departemen</option>
                             @foreach($departments ?? [] as $id => $name)
                                 <option value="{{ $id }}" {{ request('department') == $id ? 'selected' : '' }}>{{ $name }}</option>
                             @endforeach
@@ -81,13 +78,13 @@
                                         <input class="form-check-input select-all-checkbox" type="checkbox" id="selectAll">
                                     </div>
                                 </th>
-                                <th>Name</th>
+                                <th>Nama</th>
                                 <th>Email</th>
                                 <th>Role</th>
-                                <th>Department</th>
+                                <th>Departemen</th>
                                 <th>Job Site</th>
                                 <!-- <th>Status</th> -->
-                                <th width="120">Actions</th>
+                                <th width="120">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -132,9 +129,9 @@
                                 <!-- Hide verification status
                                 <td>
                                     @if($user->email_verified_at)
-                                        <span class="badge bg-success">Verified</span>
+                                        <span class="badge bg-success">Terverifikasi</span>
                                     @else
-                                        <span class="badge bg-warning">Unverified</span>
+                                        <span class="badge bg-warning">Belum terverifikasi</span>
                                     @endif
                                 </td>
                                 -->
@@ -190,10 +187,10 @@
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <div class="form-check">
                             <input class="form-check-input mobile-select-all" type="checkbox" id="mobileSelectAll">
-                            <label class="form-check-label" for="mobileSelectAll">Select All</label>
+                            <label class="form-check-label" for="mobileSelectAll">Pilih semua</label>
                         </div>
                         <button type="button" class="btn btn-danger btn-sm mobile-bulk-delete-btn" disabled data-bs-toggle="modal" data-bs-target="#bulkDeleteModal">
-                            <i class="bi bi-trash3 me-1"></i> Delete
+                            <i class="bi bi-trash3 me-1"></i> Hapus
                         </button>
                     </div>
                     
@@ -236,9 +233,9 @@
                                         <!-- Hide verification status
                                         <div>
                                             @if($user->email_verified_at)
-                                                <span class="badge bg-success">Verified</span>
+                                                <span class="badge bg-success">Terverifikasi</span>
                                             @else
-                                                <span class="badge bg-warning">Unverified</span>
+                                                <span class="badge bg-warning">Belum terverifikasi</span>
                                             @endif
                                         </div>
                                         -->
@@ -261,7 +258,7 @@
                                                 data-bs-target="#deleteUserModal" 
                                                 data-user-id="{{ $user->id }}" 
                                                 data-user-name="{{ $user->name }}">
-                                                <i class="bi bi-trash3 me-1"></i> Delete
+                                                <i class="bi bi-trash3 me-1"></i> Hapus
                                             </button>
                                             @endif
                                         </div>
@@ -279,7 +276,7 @@
             </div>
             @else
             <div class="alert alert-info">
-                <i class="bi bi-info-circle me-2"></i> No users found matching your criteria.
+                <i class="bi bi-info-circle me-2"></i> Tidak ada pengguna yang cocok dengan filter.
             </div>
             @endif
         </div>
@@ -298,28 +295,28 @@
                         @csrf
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
+                                <label for="name" class="form-label">Nama <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="name" name="name" required>
                             </div>
                             <div class="col-md-6">
                                 <label for="email" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="email" name="email" placeholder="Enter email address (optional)">
+                                <input type="email" class="form-control" id="email" name="email" placeholder="Email (opsional)">
                             </div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="role_id" class="form-label">Role <span class="text-danger">*</span></label>
                                 <select class="form-select" id="role_id" name="role_id" required>
-                                    <option value="">Select Role</option>
+                                    <option value="">Pilih role</option>
                                     @foreach($roles ?? [] as $id => $name)
                                         <option value="{{ $id }}">{{ $name }}</option>
                                     @endforeach
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label for="department_id" class="form-label">Department</label>
+                                <label for="department_id" class="form-label">Departemen</label>
                                 <select class="form-select" id="department_id" name="department_id">
-                                    <option value="">Select Department</option>
+                                    <option value="">Pilih departemen</option>
                                     @foreach($departments ?? [] as $id => $name)
                                         <option value="{{ $id }}">{{ $name }}</option>
                                     @endforeach
@@ -330,7 +327,7 @@
                             <div class="col-md-6">
                                 <label for="job_site_id" class="form-label">Job Site</label>
                                 <select class="form-select" id="job_site_id" name="job_site_id">
-                                    <option value="">All Sites (Admin only)</option>
+                                    <option value="">Semua site (khusus admin)</option>
                                     @php
                                         $jobSites = \App\Models\JobSite::where('is_active', true)->orderBy('name')->get();
                                     @endphp
@@ -338,7 +335,7 @@
                                         <option value="{{ $site->id }}">{{ $site->name }}</option>
                                     @endforeach
                                 </select>
-                                <small class="text-muted">Leave empty for admin users</small>
+                                <small class="text-muted">Kosongkan untuk admin</small>
                             </div>
                             <div class="col-md-6">
                                 <label for="user_id" class="form-label">User ID</label>
@@ -347,7 +344,7 @@
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
+                                <label for="password" class="form-label">Kata sandi <span class="text-danger">*</span></label>
                                 <div class="input-group">
                                     <input type="password" class="form-control" id="password" name="password" required>
                                     <button class="btn btn-outline-secondary toggle-password" type="button" data-target="password">
@@ -372,7 +369,7 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
                         <button type="submit" class="btn btn-primary">Create User</button>
                     </div>
                 </form>
@@ -385,7 +382,7 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
+                    <h5 class="modal-title" id="editUserModalLabel">Edit pengguna</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form id="editUserForm" method="POST">
@@ -394,28 +391,28 @@
                         @method('PUT')
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="edit_name" class="form-label">Name <span class="text-danger">*</span></label>
+                                <label for="edit_name" class="form-label">Nama <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="edit_name" name="name" required>
                             </div>
                             <div class="col-md-6">
                                 <label for="edit_email" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="edit_email" name="email" placeholder="Enter email address (optional)">
+                                <input type="email" class="form-control" id="edit_email" name="email" placeholder="Email (opsional)">
                             </div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="edit_role_id" class="form-label">Role <span class="text-danger">*</span></label>
                                 <select class="form-select" id="edit_role_id" name="role_id" required>
-                                    <option value="">Select Role</option>
+                                    <option value="">Pilih role</option>
                                     @foreach($roles ?? [] as $id => $name)
                                         <option value="{{ $id }}">{{ $name }}</option>
                                     @endforeach
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label for="edit_department_id" class="form-label">Department</label>
+                                <label for="edit_department_id" class="form-label">Departemen</label>
                                 <select class="form-select" id="edit_department_id" name="department_id">
-                                    <option value="">Select Department</option>
+                                    <option value="">Pilih departemen</option>
                                     @foreach($departments ?? [] as $id => $name)
                                         <option value="{{ $id }}">{{ $name }}</option>
                                     @endforeach
@@ -426,7 +423,7 @@
                             <div class="col-md-6">
                                 <label for="edit_job_site_id" class="form-label">Job Site</label>
                                 <select class="form-select" id="edit_job_site_id" name="job_site_id">
-                                    <option value="">All Sites (Admin only)</option>
+                                    <option value="">Semua site (khusus admin)</option>
                                     @php
                                         $jobSites = \App\Models\JobSite::where('is_active', true)->orderBy('name')->get();
                                     @endphp
@@ -434,14 +431,14 @@
                                         <option value="{{ $site->id }}">{{ $site->name }}</option>
                                     @endforeach
                                 </select>
-                                <small class="text-muted">Leave empty for admin users</small>
+                                <small class="text-muted">Kosongkan untuk admin</small>
                             </div>
                             <div class="col-md-6">
                                 <label for="edit_user_id" class="form-label">User ID</label>
                                 <input type="text" class="form-control" id="edit_user_id" name="user_id">
                             </div>
                             <div class="col-md-6">
-                                <label for="edit_password" class="form-label">Password <small class="text-muted">(leave blank to keep current)</small></label>
+                                <label for="edit_password" class="form-label">Kata sandi <small class="text-muted">(leave blank to keep current)</small></label>
                                 <div class="input-group">
                                     <input type="password" class="form-control" id="edit_password" name="password">
                                     <button class="btn btn-outline-secondary toggle-password" type="button" data-target="edit_password">
@@ -452,8 +449,8 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Update User</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary">Simpan pengguna</button>
                     </div>
                 </form>
             </div>
@@ -465,19 +462,19 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="deleteUserModalLabel">Confirm Delete</h5>
+                    <h5 class="modal-title" id="deleteUserModalLabel">Konfirmasi hapus</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Are you sure you want to delete user <strong id="delete-user-name"></strong>?</p>
-                    <p class="text-danger">This action cannot be undone.</p>
+                    <p>Hapus pengguna <strong id="delete-user-name"></strong>?</p>
+                    <p class="text-danger">Tindakan ini tidak dapat dibatalkan.</p>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
                     <form id="deleteUserForm" method="POST">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="btn btn-danger">Delete User</button>
+                        <button type="submit" class="btn btn-danger">Hapus pengguna</button>
                     </form>
                 </div>
             </div>
@@ -489,16 +486,16 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="bulkDeleteModalLabel">Confirm Bulk Delete</h5>
+                    <h5 class="modal-title" id="bulkDeleteModalLabel">Konfirmasi hapus massal</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Are you sure you want to delete all selected users?</p>
-                    <p class="text-danger">This action cannot be undone.</p>
+                    <p>Hapus semua pengguna terpilih?</p>
+                    <p class="text-danger">Tindakan ini tidak dapat dibatalkan.</p>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-danger" id="confirmBulkDelete">Delete Selected Users</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-danger" id="confirmBulkDelete">Hapus pengguna terpilih</button>
                 </div>
             </div>
         </div>

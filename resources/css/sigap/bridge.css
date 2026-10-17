@@ -74,6 +74,18 @@
   .sg-org__person { width: 240px; background: var(--sg-surface); border: 1px solid var(--sg-border); box-shadow: var(--sg-shadow-1); }
 }
 
+/* Tabel lama → kartu bertumpuk di mobile (label dari data-label, diisi stackTables() di shell.js) */
+@media (max-width: 575.98px) {
+  .sg-stack thead { display: none; }
+  .sg-stack, .sg-stack tbody, .sg-stack tr, .sg-stack td { display: block; width: 100%; }
+  .sg-stack tr { margin-bottom: 10px; padding: 8px 4px; border: 1px solid var(--sg-border); border-radius: var(--sg-radius-card); background: var(--sg-surface); box-shadow: var(--sg-shadow-1); }
+  .sg-stack td { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 6px 12px !important; border: 0 !important; text-align: right; min-width: 0; overflow-wrap: anywhere; }
+  .sg-stack td::before { content: attr(data-label); flex: none; max-width: 45%; text-align: left; font-size: 13px; font-weight: 600; color: var(--sg-muted); }
+  .sg-stack td[data-label=""]::before { content: none; }
+  .sg-stack td[data-label=""] { justify-content: flex-end; }
+  .sg-app .table-responsive:has(> .sg-stack) { overflow: visible; }
+}
+
 /* Ikon berputar (pengganti fa-spin) */
 .sg-spin { display: inline-block; animation: sg-rotate 1s linear infinite; }
 @keyframes sg-rotate { to { transform: rotate(360deg); } }
