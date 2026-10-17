@@ -180,6 +180,12 @@ Dikerjakan setelah paritas visual; masing-masing bisa dirilis terpisah.
   - Bug lama diperbaiki: Bootstrap termuat dua kali (`resources/js/bootstrap.js` + CDN) sehingga dropdown bisa terbuka-tertutup sendiri; Livewire (tanpa komponen) memuat Alpine kedua — `@livewireScripts` dihapus dari layout.
   - Layar tugas (punya `x-sg.sticky-actions`) otomatis menyembunyikan bottom nav di mobile; prop `back` di `<x-app-layout>` menampilkan tombol kembali.
   - `layouts/navigation.blade.php` dihapus. View lama masih memakai slot `header` (ditampilkan di `.sg-legacy-header`; judulnya dipakai app bar & breadcrumb).
+- [ ] Fase 5 — layar sekunder
+  - [x] Lapis 1 (semua layar): Font Awesome → Bootstrap Icons (43 view) dan CDN dicabut; `bridge.css` menyelaraskan view lama; layout publik baru.
+  - [x] Tiket: daftar (`x-ticket.list`), detail (aksi tim IT di sheet mobile), komentar internal, riwayat, badge SLA; form publik stepper 3 langkah; halaman sukses; dashboard KPI.
+  - [x] Rencana Kerja: daftar, Rencana untuk Saya, detail; komponen `x-plan.list`, `x-sg.wa-share`.
+  - [x] Profil (tema, notifikasi auto-save; perbaikan error bag `updatePassword`/`userDeletion`) & Struktur Organisasi.
+  - [ ] Admin (users, departemen, section, job site, karyawan, kategori tiket, SLA, cleanup, settings) dan edit/impor laporan — saat ini memakai `bridge.css`.
 - [x] Fase 4 — layar inti (101 test lolos; QA visual 390/1440 tiap layar)
   - [x] Login (`auth/login`, `layouts/guest` ditulis ulang; field tetap `user_id`). "Lupa kata sandi" → teks "Hubungi admin" (belum ada route reset). "Ingat saya" tetap default mati.
   - [x] Beranda (`dashboard.blade.php` satu view untuk semua peran; partial `dashboard/*` lama dihapus). Data tambahan lewat `App\Support\DashboardSummary` (status laporan hari ini, tugas dari atasan, tiket aktif). Controller tidak diubah.
