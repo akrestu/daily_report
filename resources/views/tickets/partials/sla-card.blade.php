@@ -1,8 +1,8 @@
 @php($summary = \App\Services\TicketSla::summary($ticket))
 @php($labels = ['running' => ['Berjalan', 'text-primary'], 'breached' => ['Terlewat', 'text-danger'], 'paused' => ['Dijeda', 'text-secondary'], 'met' => ['Tercapai', 'text-success'], 'none' => ['-', 'text-muted']])
-<div class="card shadow-sm border-0 mb-3">
-    <div class="card-header bg-white py-3">
-        <h6 class="mb-0 fw-bold"><i class="bi bi-stopwatch text-danger me-2"></i>SLA</h6>
+<div class="card mb-3">
+    <div class="px-3 pt-3">
+        <h2 class="h6 mb-0 fw-bold"><i class="bi bi-stopwatch me-2" aria-hidden="true"></i>SLA</h2>
         <div class="small text-muted">Dihitung dalam jam kerja (Senin–Sabtu {{ config('tickets.working_hours.start') }}–{{ config('tickets.working_hours.end') }})</div>
     </div>
     <div class="card-body small">

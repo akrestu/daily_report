@@ -163,5 +163,31 @@
 .sg-install-list li > .bi { flex: none; width: 36px; height: 36px; display: grid; place-items: center; border-radius: 10px; background: var(--sg-accent-tint); color: var(--sg-text); font-size: 18px; }
 .sg-install-steps { margin: 0; padding-left: 20px; display: grid; gap: 8px; }
 .sg-faq { border-top: 1px solid var(--sg-border); padding: 12px 0; }
-.sg-faq summary { min-height: 32px; font-weight: 600; cursor: pointer; }
+.sg-faq summary { min-height: 44px; display: flex; align-items: center; font-weight: 600; cursor: pointer; }
 .sg-faq p { margin-top: 8px; }
+
+/* ---------- Admin · SLA: baris target per prioritas ---------- */
+.sg-sla-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; padding: 12px 0; border-top: 1px solid var(--sg-border); }
+.sg-sla-row__label { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; }
+@media (min-width: 576px) { .sg-sla-row { grid-template-columns: 1.2fr 1fr 1fr; align-items: end; } .sg-sla-row__label { grid-column: auto; padding-bottom: 10px; } }
+
+/* ---------- Impor Excel: area pilih file ---------- */
+.sg-dropzone { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 140px; padding: 20px;
+  border: 2px dashed var(--sg-border); border-radius: var(--sg-radius-card); background: var(--sg-surface-2); text-align: center; cursor: pointer; }
+.sg-dropzone > .bi { font-size: 32px; color: var(--sg-muted); }
+.sg-dropzone:hover, #imp-input:focus-visible + * { border-color: var(--sg-primary); }
+.sg-dropzone.is-invalid { border-color: var(--sg-danger-dot); }
+
+/* ---------- Tiket: grafik dashboard & bintang penilaian (CSAT) ---------- */
+.chart-box { position: relative; height: 260px; }
+.csat-stars { display: inline-flex; flex-direction: row-reverse; gap: 2px; }
+.csat-stars input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.csat-stars label { min-width: 44px; min-height: 44px; display: inline-grid; place-items: center; font-size: 1.9rem; line-height: 1; color: var(--sg-border); cursor: pointer; }
+.csat-stars input:checked ~ label, .csat-stars label:hover, .csat-stars label:hover ~ label { color: var(--sg-accent); }
+.csat-stars input:focus-visible + label { outline: 3px solid var(--sg-primary); border-radius: 4px; }
+/* Kartu daftar dengan stretched-link: kontrol (checkbox, tombol) tetap bisa diketuk di atas lapisan tautan */
+.sg-list-card > input, .sg-list-card > .d-flex { position: relative; z-index: 2; }
+
+/* x-show (Alpine) menyembunyikan lewat style="display: none", tapi .d-flex/.d-block Bootstrap memakai !important dan menang.
+   Aturan ini (spesifisitas lebih tinggi) membuat x-show selalu berlaku walau elemennya punya kelas d-*. */
+[x-show][style*="display: none"] { display: none !important; }

@@ -435,16 +435,16 @@ composer run optimize:clear
 
 ## Rilis 2.0.0 — Redesign UI (Plesk tanpa SSH/Node)
 
-Tidak ada migrasi database dan tidak ada variabel `.env` baru.
+Tidak ada migrasi database. Ubah satu variabel `.env` di server: **`APP_LOCALE=id`** (pesan validasi & teks bawaan Laravel berbahasa Indonesia; folder `lang/id` ikut diunggah).
 
 **Di lokal (sebelum upload):**
 1. `npm ci && npm run build` — menghasilkan `public/build/*` dan menyalin `public/vendor/{bootstrap,chart.js}` (`scripts/copy-vendor.mjs`). Keduanya di-commit; produksi tidak menjalankan Node.
 2. `php artisan test` — semua hijau.
-3. Pastikan `CACHE_VERSION` di `public/sw.js` sudah dinaikkan untuk rilis ini (2.0.0 → `v4.0.0`). Naikkan lagi di setiap rilis yang mengubah CSS/JS/halaman, supaya service worker tidak menyajikan aset lama.
+3. Pastikan `CACHE_VERSION` di `public/sw.js` sudah dinaikkan untuk rilis ini (2.0.0 → `v4.1.0`; nama cache memuat versi, cache lama dibersihkan otomatis saat SW aktif). Naikkan lagi di setiap rilis yang mengubah CSS/JS/halaman, supaya service worker tidak menyajikan aset lama.
 
 **Upload ke server (File Manager / Git Plesk):**
-- `app/`, `config/`, `resources/views/`, `routes/`, `public/build/`, `public/vendor/`, `public/sw.js`, `public/images/brand/`.
-- Hapus `public/css/custom.css` lama bila masih ada (tidak dipakai lagi).
+- `app/`, `config/`, `lang/`, `resources/views/`, `routes/`, `public/build/`, `public/vendor/`, `public/sw.js`, `public/offline.html`, `public/site.webmanifest`, `public/icons/`, `public/favicon*`, `public/images/brand/`.
+- Hapus file lama bila masih ada (tidak dipakai lagi): `public/css/custom.css`, `public/css/dashboard.css`, `public/js/`, `public/screenshots/`, `public/manifest.json`, `public/mix-manifest.json`, `public/favicon.svg`, `public/Sigap.png`.
 - Jangan upload `public/hot` (hanya ada saat `npm run dev`; bila ada di server, halaman memuat aset dari Vite dev server dan tampil tanpa gaya).
 
 **Setelah upload (Plesk → PHP Composer/Artisan, atau Scheduled Task sekali jalan):**

@@ -224,3 +224,13 @@ Dikerjakan setelah paritas visual; masing-masing bisa dirilis terpisah.
   - Menu "Instal Aplikasi" ditambahkan di sheet Lainnya.
   - Dokumen: `docs/user_guide.md` (bagian 12 + alur baru), `docs/deployment.md` (Rilis 2.0.0), CLAUDE.md versi 2.0.0.
   - Belum: uji Android Chrome & iPhone Safari (PWA) nyata, screenshot baru di user guide, rilis bertahap ke Plesk. Error `DATEDIFF` di dashboard admin hanya muncul di SQLite (QA), bukan MySQL produksi.
+- [x] Audit & perbaikan pasca rilis 2.0.0 (17 Okt 2026)
+  - Bug: departemen laporan bisa diganti dari form (store/update) → kini selalu departemen pembuat; prioritas otomatis form tiket publik selalu tampil; grafik dashboard tiket tak terlihat di tema gelap (kini token + gambar ulang saat tema berganti); route tanpa view dikeluarkan; chip "Semua" antrian memakai total.
+  - Bug lama lain: filter halaman Pengguna diabaikan controller; kata sandi pengguna baru tercatat di log; route `/icons/{file}` rawan path traversal (kini `basename` + pola aman); `app.js` menghapus cache static-assets di tiap halaman (offline rusak) & reload otomatis saat SW baru; SW didaftarkan dua kali.
+  - Konflik `x-show` vs kelas `d-*` Bootstrap diatasi global (`[x-show][style*="display: none"]` di bridge.css).
+  - Bahasa Indonesia menyeluruh: `APP_LOCALE=id` + `lang/id` (validasi, auth, pagination), ±90 pesan flash/abort/JSON, notifikasi laporan & komentar.
+  - Layar yang belum mengikuti design system ditulis ulang: Edit Laporan (pola Buat Laporan, lampiran per slot), Rencana Kerja buat/edit (partial bersama, sheet penerima tugas), Buat Tiket, Instal Aplikasi, seluruh Admin (pola `sgAdminList`: tabel/kartu, sheet tambah/edit, hapus massal), Pembersihan Laporan, Impor (`x-sg.import-form`), SLA, Kategori Tiket, Karyawan.
+  - PWA: ikon & favicon dari logo baru (+ maskable), manifest theme #111111, `offline.html` baru, cache SW berversi (v4.1.0).
+  - Dibersihkan: modal-dialogs global, komponen pwa-install, public/js (Mix), dashboard.css, screenshots, manifest.json lama.
+  - Test baru: ReportEditTest, JobPlanFormTest, AdminPagesTest (117 test).
+  - Belum: laporan ditolak tetap tidak bisa diedit/kirim ulang (keputusan produk).

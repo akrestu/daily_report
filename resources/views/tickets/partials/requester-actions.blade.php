@@ -22,13 +22,6 @@
             </form>
         </div>
     </div>
-    <style>
-        .csat-stars { display: inline-flex; flex-direction: row-reverse; gap: 2px; }
-        .csat-stars input { position: absolute; opacity: 0; width: 1px; height: 1px; }
-        .csat-stars label { font-size: 1.9rem; line-height: 1; color: #ced4da; cursor: pointer; }
-        .csat-stars input:checked ~ label, .csat-stars label:hover, .csat-stars label:hover ~ label { color: #ffc107; }
-        .csat-stars input:focus-visible + label { outline: 3px solid var(--sg-primary); border-radius: 4px; }
-    </style>
 @elseif($ticket->csat_rating)
     <div class="alert alert-light border small mb-3">
         <i class="bi bi-star-fill text-warning me-1"></i>

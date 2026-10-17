@@ -4,6 +4,7 @@ import sgReportForm from './report-form';
 import sgComments from './comments';
 import sgQueue from './queue';
 import sgSearch from './search';
+import sgAdminList from './admin-list';
 import notificationStore from './notifications';
 import outboxStore from './outbox';
 import { toast, showFlashes } from './toast';
@@ -19,6 +20,7 @@ export function registerSigap(Alpine) {
     Alpine.data('sgComments', sgComments);
     Alpine.data('sgQueue', sgQueue);
     Alpine.data('sgSearch', sgSearch);
+    Alpine.data('sgAdminList', sgAdminList);
     Alpine.store('notif', notificationStore());
     Alpine.store('outbox', outboxStore());
     Alpine.store('theme', {

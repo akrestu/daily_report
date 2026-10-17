@@ -1,588 +1,143 @@
+{{-- Admin · Job Site — pola daftar master data (lihat admin/departments/index) --}}
+@php
+    $rows = $jobSites->getCollection();
+    $toItem = fn ($s) => ['id' => $s->id, 'name' => $s->name, 'code' => $s->code, 'location' => (string) $s->location,
+        'description' => (string) $s->description, 'is_active' => (bool) $s->is_active, 'reports' => $s->daily_reports_count];
+    $reopen = $errors->any() && old('_sheet') !== null
+        ? ['mode' => old('_sheet') ? 'edit' : 'create', 'item' => ['id' => old('_sheet'), 'name' => old('name'), 'code' => old('code'),
+            'location' => old('location'), 'description' => old('description'), 'is_active' => (bool) old('is_active')]]
+        : null;
+    $badge = fn ($active) => '<span class="sg-badge sg-badge--'.($active ? 'approved' : 'closed').'">'.($active ? 'Aktif' : 'Nonaktif').'</span>';
+@endphp
+
 <x-app-layout title="Job Site">
+    <div x-data="sgAdminList(@js(['base' => url('admin/job-sites'), 'ids' => $rows->pluck('id')]))"
+         @if ($reopen) x-init="$nextTick(() => {{ $reopen['mode'] === 'edit' ? 'edit' : 'create' }}(@js($reopen['item'])))" @endif>
 
-    <!-- Flash Messages -->
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    @endif
+        <x-sg.page-header title="Job Site" :subtitle="\App\Support\Format::number($jobSites->total()).' lokasi kerja'">
+            <x-slot:actions>
+                <button type="button" class="btn btn-primary" @click="create({ is_active: true })"><i class="bi bi-plus-lg" aria-hidden="true"></i> Job site baru</button>
+            </x-slot:actions>
+        </x-sg.page-header>
 
-    @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="bi bi-exclamation-circle me-2"></i>{{ session('error') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    @endif
+        <form method="GET" action="{{ route('admin.job-sites.index') }}" class="sg-filter-bar mb-3">
+            <div class="sg-filter-bar__search"><x-sg.search name="search" placeholder="Cari nama, kode, atau lokasi" /></div>
+            <button type="submit" class="btn btn-outline-secondary">Cari</button>
+            @if (request('search'))
+                <a href="{{ route('admin.job-sites.index') }}" class="btn btn-quiet">Reset</a>
+            @endif
+        </form>
 
-    @if(session('warning'))
-        <div class="alert alert-warning alert-dismissible fade show" role="alert">
-            <i class="bi bi-exclamation-triangle me-2"></i>{{ session('warning') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    @endif
+        @if ($rows->isEmpty())
+            <x-sg.empty icon="bi-geo-alt" title="Tidak ada job site" :text="request('search') ? 'Tidak ada yang cocok dengan pencarian.' : 'Tambahkan job site pertama.'" />
+        @else
+            <div class="sg-list d-lg-none">
+                @foreach ($rows as $s)
+                    <div class="sg-list-card" :class="{ 'is-selected': isSelected({{ $s->id }}) }">
+                        <input type="checkbox" class="form-check-input flex-none mt-1" :checked="isSelected({{ $s->id }})" @change="toggle({{ $s->id }})" aria-label="Pilih {{ $s->name }}">
+                        <div class="sg-list-card__body">
+                            <div class="sg-list-card__top">{!! $badge($s->is_active) !!}</div>
+                            <div class="sg-list-card__title sg-clamp-2">{{ $s->name }}</div>
+                            <div class="sg-list-card__meta sg-clamp-1">{{ collect([$s->code, $s->location, $s->daily_reports_count.' laporan'])->filter()->implode(' · ') }}</div>
+                        </div>
+                        <div class="d-flex gap-1 flex-none">
+                            <button type="button" class="btn btn-outline-secondary btn-icon" @click="edit(@js($toItem($s)))" aria-label="Edit {{ $s->name }}"><i class="bi bi-pencil-square" aria-hidden="true"></i></button>
+                            <button type="button" class="btn btn-outline-secondary btn-icon text-danger" @click="remove(@js($toItem($s)))" aria-label="Hapus {{ $s->name }}"><i class="bi bi-trash3" aria-hidden="true"></i></button>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
 
-    <div class="card">
-        <div class="card-header bg-white py-3">
-            <div class="row align-items-center">
-                <div class="col-md-6 mb-2 mb-md-0">
-                    <h5 class="mb-0">All Job Sites</h5>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <button type="button" class="btn btn-primary w-100 w-md-auto" data-bs-toggle="modal" data-bs-target="#createJobSiteModal">
-                        <i class="bi bi-plus-lg me-1"></i> Job site baru
-                    </button>
-                </div>
+            <x-sg.table class="d-none d-lg-block" caption="Daftar job site">
+                <x-slot:head>
+                    <tr>
+                        <th style="width:44px"><input type="checkbox" class="form-check-input" :checked="allSelected" @change="toggleAll()" aria-label="Pilih semua di halaman ini"></th>
+                        <th>Nama</th><th>Kode</th><th>Lokasi</th><th>Status</th><th class="text-end">Laporan</th><th style="width:110px"><span class="visually-hidden">Aksi</span></th>
+                    </tr>
+                </x-slot:head>
+                @foreach ($rows as $s)
+                    <tr :class="{ 'table-active': isSelected({{ $s->id }}) }">
+                        <td><input type="checkbox" class="form-check-input" :checked="isSelected({{ $s->id }})" @change="toggle({{ $s->id }})" aria-label="Pilih {{ $s->name }}"></td>
+                        <td class="fw-semibold">{{ $s->name }}</td>
+                        <td class="text-nowrap">{{ $s->code }}</td>
+                        <td class="text-muted">{{ $s->location ?: '-' }}</td>
+                        <td>{!! $badge($s->is_active) !!}</td>
+                        <td class="text-end sg-num">{{ $s->daily_reports_count }}</td>
+                        <td class="text-end text-nowrap">
+                            <button type="button" class="btn btn-quiet btn-icon" @click="edit(@js($toItem($s)))" aria-label="Edit {{ $s->name }}"><i class="bi bi-pencil-square" aria-hidden="true"></i></button>
+                            <button type="button" class="btn btn-quiet btn-icon text-danger" @click="remove(@js($toItem($s)))" aria-label="Hapus {{ $s->name }}"><i class="bi bi-trash3" aria-hidden="true"></i></button>
+                        </td>
+                    </tr>
+                @endforeach
+            </x-sg.table>
+            <div class="mt-3">{{ $jobSites->withQueryString()->links() }}</div>
+        @endif
+
+        <div class="sg-batch-bar" x-show="selected.length" x-cloak>
+            <div class="d-flex gap-2 align-items-center w-100">
+                <span class="fw-semibold me-auto" x-text="selected.length + ' dipilih'"></span>
+                <button type="button" class="btn btn-outline-secondary" @click="selected = []">Batal</button>
+                <button type="button" class="btn btn-reject" @click="sheet('bulk-sheet')" x-text="'Hapus (' + selected.length + ')'"></button>
             </div>
         </div>
-        <div class="card-body">
-            <!-- Filter Controls -->
-            <form action="{{ route('admin.job-sites.index') }}" method="GET" class="mb-4">
-                <div class="row g-3">
-                    <div class="col-md-4 col-12">
-                        <div class="input-group">
-                            <span class="input-group-text bg-light">
-                                <i class="bi bi-search"></i>
-                            </span>
-                            <input type="text" name="search" aria-label="Cari" class="form-control" placeholder="Cari…" value="{{ request('search') }}" style="height: 42px;">
-                        </div>
+
+        <x-sg.sheet id="item-sheet" title="Job site">
+            <form method="POST" :action="mode === 'edit' ? url(item.id) : @js(route('admin.job-sites.store'))" novalidate>
+                @csrf
+                <template x-if="mode === 'edit'"><input type="hidden" name="_method" value="PUT"></template>
+                <input type="hidden" name="_sheet" :value="mode === 'edit' ? item.id : ''">
+                <p class="fw-semibold mb-3" x-text="mode === 'edit' ? 'Edit job site' : 'Job site baru'"></p>
+                <div class="mb-3">
+                    <label for="s-name" class="form-label fw-semibold">Nama <span class="text-danger">*</span></label>
+                    <input id="s-name" name="name" class="form-control @error('name') is-invalid @enderror" x-model="item.name" required maxlength="255">
+                    @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-5">
+                        <label for="s-code" class="form-label fw-semibold">Kode <span class="text-danger">*</span></label>
+                        <input id="s-code" name="code" class="form-control @error('code') is-invalid @enderror" x-model="item.code" required maxlength="50" placeholder="Mis. HO" autocapitalize="characters">
+                        @error('code')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
-                    <div class="col-md-2 col-12">
-                        <div class="d-flex">
-                            <button type="submit" class="btn btn-primary me-2">Filter</button>
-                            <a href="{{ route('admin.job-sites.index') }}" class="btn btn-secondary">Reset</a>
-                        </div>
+                    <div class="col-7">
+                        <label for="s-location" class="form-label fw-semibold">Lokasi</label>
+                        <input id="s-location" name="location" class="form-control @error('location') is-invalid @enderror" x-model="item.location" maxlength="255">
+                        @error('location')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
+                </div>
+                <div class="mb-3">
+                    <label for="s-desc" class="form-label fw-semibold">Deskripsi</label>
+                    <textarea id="s-desc" name="description" rows="2" class="form-control @error('description') is-invalid @enderror" x-model="item.description"></textarea>
+                    @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" role="switch" id="s-active" name="is_active" value="1" x-model="item.is_active">
+                    <label class="form-check-label" for="s-active">Aktif (bisa dipilih di laporan)</label>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-secondary flex-fill" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary flex-fill">Simpan</button>
                 </div>
             </form>
+        </x-sg.sheet>
 
-            @if(count($jobSites ?? []) > 0)
-            <!-- Mobile Card View (visible only on mobile) -->
-            <div class="d-md-none mb-4">
-                <form id="mobile-bulk-action-form" method="POST" action="{{ route('admin.job-sites.batch-delete') }}">
-                    @csrf
-                    @method('DELETE')
+        <x-sg.sheet id="delete-sheet" title="Hapus job site?">
+            <form method="POST" :action="url(item.id)">
+                @csrf
+                @method('DELETE')
+                <p>Job site <strong x-text="item.name"></strong> akan dihapus permanen.</p>
+                <div class="alert alert-danger small" x-show="item.reports > 0">
+                    Masih ada <strong x-text="item.reports"></strong> laporan di job site ini, jadi tidak bisa dihapus. Nonaktifkan saja bila tidak dipakai lagi.
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-secondary flex-fill" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-reject flex-fill" :disabled="item.reports > 0">Hapus</button>
+                </div>
+            </form>
+        </x-sg.sheet>
 
-                    @foreach($jobSites as $jobSite)
-                    <div class="card mb-3 border rounded shadow-sm">
-                        <div class="card-body p-3">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <div class="d-flex align-items-center">
-                                    <div class="avatar-sm me-2 bg-primary rounded-circle text-white d-flex align-items-center justify-content-center">
-                                        <i class="bi bi-geo-alt"></i>
-                                    </div>
-                                    <div>
-                                        <h6 class="mb-0">{{ $jobSite->name }}</h6>
-                                        <span class="text-muted small">{{ $jobSite->code }}</span>
-                                    </div>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input mobile-select-checkbox" type="checkbox" name="ids[]" value="{{ $jobSite->id }}">
-                                </div>
-                            </div>
-
-                            @if($jobSite->location)
-                            <div class="mb-2">
-                                <span class="text-muted small">
-                                    <i class="bi bi-geo-alt me-1"></i>{{ $jobSite->location }}
-                                </span>
-                            </div>
-                            @endif
-
-                            <div class="mb-2">
-                                <p class="mb-1 text-muted small">{{ Str::limit($jobSite->description, 100) }}</p>
-                            </div>
-
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <span class="badge {{ $jobSite->is_active ? 'bg-success' : 'bg-secondary' }}">
-                                        {{ $jobSite->is_active ? 'Active' : 'Inactive' }}
-                                    </span>
-                                    <span class="badge bg-info">{{ $jobSite->daily_reports_count }} reports</span>
-                                </div>
-
-                                <div class="d-flex">
-                                    <button type="button" class="btn btn-sm btn-outline-secondary me-1 jobsite-edit-btn"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#editJobSiteModal"
-                                            data-jobsite-id="{{ $jobSite->id }}"
-                                            data-jobsite-name="{{ $jobSite->name }}"
-                                            data-jobsite-code="{{ $jobSite->code }}"
-                                            data-jobsite-location="{{ $jobSite->location }}"
-                                            data-jobsite-description="{{ $jobSite->description }}"
-                                            data-jobsite-active="{{ $jobSite->is_active ? '1' : '0' }}" aria-label="Edit {{ $jobSite->name }}">
-                                        <i class="bi bi-pencil-square" aria-hidden="true"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-outline-danger jobsite-delete-btn"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#deleteJobSiteModal"
-                                            data-jobsite-id="{{ $jobSite->id }}"
-                                            data-jobsite-name="{{ $jobSite->name }}"
-                                            data-jobsite-reports="{{ $jobSite->daily_reports_count }}" aria-label="Hapus {{ $jobSite->name }}">
-                                        <i class="bi bi-trash3" aria-hidden="true"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    @endforeach
-
-                    <div class="mt-3 d-flex justify-content-between align-items-center">
-                        <div>
-                            <button type="button" class="btn btn-danger mobile-bulk-delete-btn" disabled data-bs-toggle="modal" data-bs-target="#bulkDeleteModal">
-                                <i class="bi bi-trash3 me-1"></i> Delete Selected
-                            </button>
-                        </div>
-                        <div>
-                            {{ $jobSites->links() }}
-                        </div>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Desktop Table View (hidden on mobile) -->
-            <div class="table-responsive d-none d-md-block">
-                <form id="bulk-action-form" method="POST" action="{{ route('admin.job-sites.batch-delete') }}">
-                    @csrf
-                    @method('DELETE')
-                    <table class="table table-hover align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th width="40">
-                                    <div class="form-check">
-                                        <input class="form-check-input select-all-checkbox" type="checkbox" id="selectAll">
-                                    </div>
-                                </th>
-                                <th>Nama</th>
-                                <th>Kode</th>
-                                <th>Lokasi</th>
-                                <th>Status</th>
-                                <th>Laporan</th>
-                                <th width="120">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($jobSites as $jobSite)
-                            <tr>
-                                <td>
-                                    <div class="form-check">
-                                        <input class="form-check-input select-checkbox" type="checkbox" name="ids[]" value="{{ $jobSite->id }}">
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="avatar-sm me-2 bg-primary rounded-circle text-white d-flex align-items-center justify-content-center">
-                                            <i class="bi bi-geo-alt"></i>
-                                        </div>
-                                        <div>
-                                            <a href="#" class="fw-medium text-decoration-none jobsite-edit-btn"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#editJobSiteModal"
-                                                data-jobsite-id="{{ $jobSite->id }}"
-                                                data-jobsite-name="{{ $jobSite->name }}"
-                                                data-jobsite-code="{{ $jobSite->code }}"
-                                                data-jobsite-location="{{ $jobSite->location }}"
-                                                data-jobsite-description="{{ $jobSite->description }}"
-                                                data-jobsite-active="{{ $jobSite->is_active ? '1' : '0' }}">
-                                                {{ $jobSite->name }}
-                                            </a>
-                                            @if($jobSite->description)
-                                            <br><small class="text-muted">{{ Str::limit($jobSite->description, 50) }}</small>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>{{ $jobSite->code }}</td>
-                                <td>
-                                    @if($jobSite->location)
-                                        <i class="bi bi-geo-alt text-muted me-1"></i>{{ $jobSite->location }}
-                                    @else
-                                        <span class="text-muted">-</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    <span class="badge {{ $jobSite->is_active ? 'bg-success' : 'bg-secondary' }}">
-                                        {{ $jobSite->is_active ? 'Active' : 'Inactive' }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <span class="badge bg-info">{{ $jobSite->daily_reports_count }} reports</span>
-                                </td>
-                                <td>
-                                    <div class="d-flex">
-                                        <button type="button" class="btn btn-sm btn-outline-secondary me-1 jobsite-edit-btn"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#editJobSiteModal"
-                                                data-jobsite-id="{{ $jobSite->id }}"
-                                                data-jobsite-name="{{ $jobSite->name }}"
-                                                data-jobsite-code="{{ $jobSite->code }}"
-                                                data-jobsite-location="{{ $jobSite->location }}"
-                                                data-jobsite-description="{{ $jobSite->description }}"
-                                                data-jobsite-active="{{ $jobSite->is_active ? '1' : '0' }}" aria-label="Edit {{ $jobSite->name }}">
-                                            <i class="bi bi-pencil-square" aria-hidden="true"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-outline-danger jobsite-delete-btn"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#deleteJobSiteModal"
-                                                data-jobsite-id="{{ $jobSite->id }}"
-                                                data-jobsite-name="{{ $jobSite->name }}"
-                                                data-jobsite-reports="{{ $jobSite->daily_reports_count }}" aria-label="Hapus {{ $jobSite->name }}">
-                                            <i class="bi bi-trash3" aria-hidden="true"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-
-                    <div class="mt-3 d-flex justify-content-between align-items-center">
-                        <div>
-                            <button type="button" class="btn btn-danger bulk-delete-btn" disabled data-bs-toggle="modal" data-bs-target="#bulkDeleteModal">
-                                <i class="bi bi-trash3 me-1"></i> Delete Selected
-                            </button>
-                        </div>
-                        <div>
-                            {{ $jobSites->links() }}
-                        </div>
-                    </div>
-                </form>
-            </div>
-            @else
-            <div class="alert alert-info">
-                <i class="bi bi-info-circle me-2"></i> Tidak ada job site yang cocok dengan filter.
-            </div>
-            @endif
-        </div>
+        <x-sg.confirm-danger id="bulk-sheet" title="Hapus job site terpilih?" :action="route('admin.job-sites.batch-delete')" confirm-text="HAPUS"
+                             text="Job site yang masih memiliki laporan akan dilewati.">
+            <template x-for="id in selected" :key="id"><input type="hidden" name="ids[]" :value="id"></template>
+        </x-sg.confirm-danger>
     </div>
-
-    <!-- Create Job Site Modal -->
-    <div class="modal fade" id="createJobSiteModal" tabindex="-1" aria-labelledby="createJobSiteModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="createJobSiteModalLabel">Create New Job Site</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form action="{{ route('admin.job-sites.store') }}" method="POST">
-                    <div class="modal-body">
-                        @csrf
-
-                        @if ($errors->any())
-                            <div class="alert alert-danger">
-                                <ul class="mb-0">
-                                    @foreach ($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        @endif
-
-                        <div class="mb-3">
-                            <label for="name" class="form-label">Nama job site <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-lg @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required placeholder="Nama job site">
-                            @error('name')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="mb-3">
-                            <label for="code" class="form-label">Kode job site <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-lg @error('code') is-invalid @enderror" id="code" name="code" value="{{ old('code') }}" required placeholder="Kode job site (mis. HO, SBY, BDG)">
-                            @error('code')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="mb-3">
-                            <label for="location" class="form-label">Lokasi</label>
-                            <input type="text" class="form-control form-control-lg @error('location') is-invalid @enderror" id="location" name="location" value="{{ old('location') }}" placeholder="Lokasi">
-                            @error('location')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="mb-3">
-                            <label for="description" class="form-label">Deskripsi</label>
-                            <textarea class="form-control form-control-lg @error('description') is-invalid @enderror" id="description" name="description" rows="3" placeholder="Masukkan deskripsi">{{ old('description') }}</textarea>
-                            @error('description')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="mb-3">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
-                                <label class="form-check-label" for="is_active">
-                                    Active
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer justify-content-between flex-wrap">
-                        <button type="button" class="btn btn-secondary mb-2 mb-sm-0 col-12 col-sm-auto" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary col-12 col-sm-auto">Create Job Site</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Edit Job Site Modal -->
-    <div class="modal fade" id="editJobSiteModal" tabindex="-1" aria-labelledby="editJobSiteModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editJobSiteModalLabel">Edit job site</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form id="editJobSiteForm" method="POST">
-                    <div class="modal-body">
-                        @csrf
-                        @method('PUT')
-                        <div class="mb-3">
-                            <label for="edit_name" class="form-label">Nama job site <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-lg" id="edit_name" name="name" required placeholder="Nama job site">
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_code" class="form-label">Kode job site <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-lg" id="edit_code" name="code" required placeholder="Kode job site">
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_location" class="form-label">Lokasi</label>
-                            <input type="text" class="form-control form-control-lg" id="edit_location" name="location" placeholder="Lokasi">
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_description" class="form-label">Deskripsi</label>
-                            <textarea class="form-control form-control-lg" id="edit_description" name="description" rows="3" placeholder="Masukkan deskripsi"></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" id="edit_is_active" name="is_active">
-                                <label class="form-check-label" for="edit_is_active">
-                                    Active
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer justify-content-between flex-wrap">
-                        <button type="button" class="btn btn-secondary mb-2 mb-sm-0 col-12 col-sm-auto" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary col-12 col-sm-auto">Simpan job site</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Delete Job Site Modal -->
-    <div class="modal fade" id="deleteJobSiteModal" tabindex="-1" aria-labelledby="deleteJobSiteModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="deleteJobSiteModalLabel">Konfirmasi hapus</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Hapus job site <strong id="delete-jobsite-name"></strong>?</p>
-                    <div id="delete-jobsite-warning" class="alert alert-danger d-none">
-                        <i class="bi bi-exclamation-triangle me-2"></i> Job site ini memiliki <span id="delete-jobsite-reports-count"></span> reports associated with it. You cannot delete it until all reports are reassigned.
-                    </div>
-                    <p class="text-danger">Tindakan ini tidak dapat dibatalkan.</p>
-                </div>
-                <div class="modal-footer justify-content-between flex-wrap">
-                    <button type="button" class="btn btn-secondary mb-2 mb-sm-0 col-12 col-sm-auto" data-bs-dismiss="modal">Batal</button>
-                    <form id="deleteJobSiteForm" method="POST" class="col-12 col-sm-auto p-0">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-danger w-100" id="confirmDeleteButton">Delete Job Site</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Bulk Delete Modal -->
-    <div class="modal fade" id="bulkDeleteModal" tabindex="-1" aria-labelledby="bulkDeleteModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="bulkDeleteModalLabel">Konfirmasi hapus massal</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Hapus semua job site terpilih?</p>
-                    <p class="text-danger">Tindakan ini tidak dapat dibatalkan. Job site yang masih memiliki laporan tidak akan dihapus.</p>
-                </div>
-                <div class="modal-footer justify-content-between flex-wrap">
-                    <button type="button" class="btn btn-secondary mb-2 mb-sm-0 col-12 col-sm-auto" data-bs-dismiss="modal">Batal</button>
-                    <button type="button" class="btn btn-danger col-12 col-sm-auto" id="confirmBulkDelete">Hapus job site terpilih</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <style>
-        .avatar-sm {
-            width: 36px;
-            height: 36px;
-            font-size: 14px;
-        }
-
-        @media (max-width: 768px) {
-            .card-body {
-                padding: 1rem;
-            }
-
-            .modal-body, .modal-footer {
-                padding: 1rem;
-            }
-
-            .form-control, .btn {
-                font-size: 16px;
-            }
-
-            .form-control-lg {
-                height: 50px;
-            }
-
-            .modal-footer .btn {
-                padding: 0.5rem 1rem;
-            }
-
-            .pagination {
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-        }
-    </style>
-
-    @push('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Select all checkbox functionality
-            const selectAllCheckbox = document.getElementById('selectAll');
-            const checkboxes = document.querySelectorAll('.select-checkbox');
-            const bulkDeleteBtn = document.querySelector('.bulk-delete-btn');
-
-            if (selectAllCheckbox) {
-                selectAllCheckbox.addEventListener('change', function() {
-                    checkboxes.forEach(checkbox => {
-                        checkbox.checked = this.checked;
-                    });
-                    updateBulkDeleteButton();
-                });
-            }
-
-            checkboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', function() {
-                    updateBulkDeleteButton();
-
-                    if (!this.checked) {
-                        selectAllCheckbox.checked = false;
-                    } else {
-                        let allChecked = true;
-                        checkboxes.forEach(cb => {
-                            if (!cb.checked) allChecked = false;
-                        });
-                        selectAllCheckbox.checked = allChecked;
-                    }
-                });
-            });
-
-            function updateBulkDeleteButton() {
-                let checkedCount = 0;
-                checkboxes.forEach(checkbox => {
-                    if (checkbox.checked) checkedCount++;
-                });
-
-                if (bulkDeleteBtn) {
-                    bulkDeleteBtn.disabled = checkedCount === 0;
-                }
-            }
-
-            // Mobile checkboxes
-            const mobileCheckboxes = document.querySelectorAll('.mobile-select-checkbox');
-            const mobileBulkDeleteBtn = document.querySelector('.mobile-bulk-delete-btn');
-
-            mobileCheckboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', function() {
-                    updateMobileBulkDeleteButton();
-                });
-            });
-
-            function updateMobileBulkDeleteButton() {
-                let checkedCount = 0;
-                mobileCheckboxes.forEach(checkbox => {
-                    if (checkbox.checked) checkedCount++;
-                });
-
-                if (mobileBulkDeleteBtn) {
-                    mobileBulkDeleteBtn.disabled = checkedCount === 0;
-                }
-            }
-
-            // Edit job site modal
-            const editJobSiteBtns = document.querySelectorAll('.jobsite-edit-btn');
-            editJobSiteBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const jobsiteId = this.getAttribute('data-jobsite-id');
-                    const jobsiteName = this.getAttribute('data-jobsite-name');
-                    const jobsiteCode = this.getAttribute('data-jobsite-code');
-                    const jobsiteLocation = this.getAttribute('data-jobsite-location');
-                    const jobsiteDescription = this.getAttribute('data-jobsite-description');
-                    const jobsiteActive = this.getAttribute('data-jobsite-active');
-
-                    document.getElementById('editJobSiteForm').action = '{{ url("admin/job-sites") }}/' + jobsiteId;
-                    document.getElementById('edit_name').value = jobsiteName;
-                    document.getElementById('edit_code').value = jobsiteCode;
-                    document.getElementById('edit_location').value = jobsiteLocation || '';
-                    document.getElementById('edit_description').value = jobsiteDescription || '';
-                    document.getElementById('edit_is_active').checked = jobsiteActive === '1';
-                });
-            });
-
-            // Delete job site modal
-            const deleteJobSiteBtns = document.querySelectorAll('.jobsite-delete-btn');
-            deleteJobSiteBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const jobsiteId = this.getAttribute('data-jobsite-id');
-                    const jobsiteName = this.getAttribute('data-jobsite-name');
-                    const jobsiteReports = parseInt(this.getAttribute('data-jobsite-reports'));
-
-                    document.getElementById('deleteJobSiteForm').action = '{{ url("admin/job-sites") }}/' + jobsiteId;
-                    document.getElementById('delete-jobsite-name').textContent = jobsiteName;
-
-                    const warningElement = document.getElementById('delete-jobsite-warning');
-                    const deleteButton = document.getElementById('confirmDeleteButton');
-
-                    if (jobsiteReports > 0) {
-                        warningElement.classList.remove('d-none');
-                        document.getElementById('delete-jobsite-reports-count').textContent = jobsiteReports;
-                        deleteButton.disabled = true;
-                    } else {
-                        warningElement.classList.add('d-none');
-                        deleteButton.disabled = false;
-                    }
-                });
-            });
-
-            // Bulk delete confirmation
-            const bulkActionForm = document.getElementById('bulk-action-form');
-            const mobileBulkActionForm = document.getElementById('mobile-bulk-action-form');
-            const confirmBulkDelete = document.getElementById('confirmBulkDelete');
-
-            if (confirmBulkDelete) {
-                confirmBulkDelete.addEventListener('click', function() {
-                    if (window.innerWidth < 768 && mobileBulkActionForm) {
-                        mobileBulkActionForm.submit();
-                    } else if (bulkActionForm) {
-                        bulkActionForm.submit();
-                    }
-                });
-            }
-
-            // Auto-open modal if there are validation errors
-            @if($errors->any())
-                const createModal = new bootstrap.Modal(document.getElementById('createJobSiteModal'));
-                createModal.show();
-            @endif
-        });
-    </script>
-    @endpush
 </x-app-layout>

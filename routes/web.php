@@ -15,7 +15,8 @@ use Illuminate\Support\Facades\Route;
 // Serve PWA icons directly via Laravel routes
 // This ensures icons work even if .htaccess is disabled or server is Nginx
 Route::get('/icons/{filename}', function ($filename) {
-    $path = public_path('icons/' . $filename);
+    // basename + pola tanpa '/' mencegah path traversal ke file lain di server (mis. lampiran laporan)
+    $path = public_path('icons/' . basename($filename));
 
     if (!file_exists($path)) {
         abort(404);
@@ -27,23 +28,7 @@ Route::get('/icons/{filename}', function ($filename) {
         'Content-Type' => $mimeType,
         'Cache-Control' => 'public, max-age=31536000', // Cache for 1 year
     ]);
-})->where('filename', '.*\.(png|jpg|jpeg|svg|ico)$');
-
-// Serve screenshots
-Route::get('/screenshots/{filename}', function ($filename) {
-    $path = public_path('screenshots/' . $filename);
-
-    if (!file_exists($path)) {
-        abort(404);
-    }
-
-    $mimeType = mime_content_type($path);
-
-    return response()->file($path, [
-        'Content-Type' => $mimeType,
-        'Cache-Control' => 'public, max-age=31536000',
-    ]);
-})->where('filename', '.*\.(png|jpg|jpeg)$');
+})->where('filename', '[A-Za-z0-9._-]+\.(png|jpg|jpeg|svg|ico)');
 
 // ===== PUBLIC TICKET ROUTES (tanpa auth) =====
 Route::get('/request', [PublicTicketController::class, 'showForm'])->name('tickets.public.form');

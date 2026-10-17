@@ -1,602 +1,155 @@
+{{-- Admin · Section — pola daftar master data (lihat admin/departments/index) --}}
+@php
+    $rows = $sections->getCollection();
+    $toItem = fn ($s) => ['id' => $s->id, 'name' => $s->name, 'code' => $s->code, 'department_id' => (string) $s->department_id,
+        'description' => (string) $s->description, 'is_active' => (bool) $s->is_active, 'reports' => $s->daily_reports_count];
+    $reopen = $errors->any() && old('_sheet') !== null
+        ? ['mode' => old('_sheet') ? 'edit' : 'create', 'item' => ['id' => old('_sheet'), 'name' => old('name'), 'code' => old('code'),
+            'department_id' => (string) old('department_id'), 'description' => old('description'), 'is_active' => (bool) old('is_active')]]
+        : null;
+    $badge = fn ($active) => '<span class="sg-badge sg-badge--'.($active ? 'approved' : 'closed').'">'.($active ? 'Aktif' : 'Nonaktif').'</span>';
+@endphp
+
 <x-app-layout title="Section">
+    <div x-data="sgAdminList(@js(['base' => url('admin/sections'), 'ids' => $rows->pluck('id')]))"
+         @if ($reopen) x-init="$nextTick(() => {{ $reopen['mode'] === 'edit' ? 'edit' : 'create' }}(@js($reopen['item'])))" @endif>
 
-    <!-- Flash Messages -->
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    @endif
+        <x-sg.page-header title="Section" :subtitle="\App\Support\Format::number($sections->total()).' section'">
+            <x-slot:actions>
+                <button type="button" class="btn btn-primary" @click="create({ is_active: true, department_id: @js((string) request('department_id', '')) })"><i class="bi bi-plus-lg" aria-hidden="true"></i> Section baru</button>
+            </x-slot:actions>
+        </x-sg.page-header>
 
-    @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="bi bi-exclamation-circle me-2"></i>{{ session('error') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    @endif
+        <form method="GET" action="{{ route('admin.sections.index') }}" class="sg-filter-bar mb-3">
+            <div class="sg-filter-bar__search"><x-sg.search name="search" placeholder="Cari nama, kode, atau departemen" /></div>
+            <label for="f-sec-dept" class="visually-hidden">Departemen</label>
+            <select id="f-sec-dept" name="department_id" class="form-select" onchange="this.form.submit()">
+                <option value="">Semua departemen</option>
+                @foreach ($departments as $dept)
+                    <option value="{{ $dept->id }}" @selected(request('department_id') == $dept->id)>{{ $dept->name }}</option>
+                @endforeach
+            </select>
+            <button type="submit" class="btn btn-outline-secondary">Cari</button>
+            @if (request()->hasAny(['search', 'department_id']))
+                <a href="{{ route('admin.sections.index') }}" class="btn btn-quiet">Reset</a>
+            @endif
+        </form>
 
-    @if(session('warning'))
-        <div class="alert alert-warning alert-dismissible fade show" role="alert">
-            <i class="bi bi-exclamation-triangle me-2"></i>{{ session('warning') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    @endif
+        @if ($rows->isEmpty())
+            <x-sg.empty icon="bi-diagram-2" title="Tidak ada section" :text="request()->hasAny(['search', 'department_id']) ? 'Tidak ada yang cocok dengan saringan.' : 'Tambahkan section pertama.'" />
+        @else
+            <div class="sg-list d-lg-none">
+                @foreach ($rows as $s)
+                    <div class="sg-list-card" :class="{ 'is-selected': isSelected({{ $s->id }}) }">
+                        <input type="checkbox" class="form-check-input flex-none mt-1" :checked="isSelected({{ $s->id }})" @change="toggle({{ $s->id }})" aria-label="Pilih {{ $s->name }}">
+                        <div class="sg-list-card__body">
+                            <div class="sg-list-card__top">{!! $badge($s->is_active) !!}</div>
+                            <div class="sg-list-card__title sg-clamp-2">{{ $s->name }}</div>
+                            <div class="sg-list-card__meta sg-clamp-1">{{ collect([$s->code, $s->department?->name, $s->daily_reports_count.' laporan'])->filter()->implode(' · ') }}</div>
+                        </div>
+                        <div class="d-flex gap-1 flex-none">
+                            <button type="button" class="btn btn-outline-secondary btn-icon" @click="edit(@js($toItem($s)))" aria-label="Edit {{ $s->name }}"><i class="bi bi-pencil-square" aria-hidden="true"></i></button>
+                            <button type="button" class="btn btn-outline-secondary btn-icon text-danger" @click="remove(@js($toItem($s)))" aria-label="Hapus {{ $s->name }}"><i class="bi bi-trash3" aria-hidden="true"></i></button>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
 
-    <div class="card">
-        <div class="card-header bg-white py-3">
-            <div class="row align-items-center">
-                <div class="col-md-6 mb-2 mb-md-0">
-                    <h5 class="mb-0">All Sections</h5>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <button type="button" class="btn btn-primary w-100 w-md-auto" data-bs-toggle="modal" data-bs-target="#createSectionModal">
-                        <i class="bi bi-plus-lg me-1"></i> Section baru
-                    </button>
-                </div>
+            <x-sg.table class="d-none d-lg-block" caption="Daftar section">
+                <x-slot:head>
+                    <tr>
+                        <th style="width:44px"><input type="checkbox" class="form-check-input" :checked="allSelected" @change="toggleAll()" aria-label="Pilih semua di halaman ini"></th>
+                        <th>Nama</th><th>Kode</th><th>Departemen</th><th>Status</th><th class="text-end">Laporan</th><th style="width:110px"><span class="visually-hidden">Aksi</span></th>
+                    </tr>
+                </x-slot:head>
+                @foreach ($rows as $s)
+                    <tr :class="{ 'table-active': isSelected({{ $s->id }}) }">
+                        <td><input type="checkbox" class="form-check-input" :checked="isSelected({{ $s->id }})" @change="toggle({{ $s->id }})" aria-label="Pilih {{ $s->name }}"></td>
+                        <td class="fw-semibold">{{ $s->name }}</td>
+                        <td class="text-nowrap">{{ $s->code }}</td>
+                        <td>{{ $s->department?->name ?? '-' }}</td>
+                        <td>{!! $badge($s->is_active) !!}</td>
+                        <td class="text-end sg-num">{{ $s->daily_reports_count }}</td>
+                        <td class="text-end text-nowrap">
+                            <button type="button" class="btn btn-quiet btn-icon" @click="edit(@js($toItem($s)))" aria-label="Edit {{ $s->name }}"><i class="bi bi-pencil-square" aria-hidden="true"></i></button>
+                            <button type="button" class="btn btn-quiet btn-icon text-danger" @click="remove(@js($toItem($s)))" aria-label="Hapus {{ $s->name }}"><i class="bi bi-trash3" aria-hidden="true"></i></button>
+                        </td>
+                    </tr>
+                @endforeach
+            </x-sg.table>
+            <div class="mt-3">{{ $sections->withQueryString()->links() }}</div>
+        @endif
+
+        <div class="sg-batch-bar" x-show="selected.length" x-cloak>
+            <div class="d-flex gap-2 align-items-center w-100">
+                <span class="fw-semibold me-auto" x-text="selected.length + ' dipilih'"></span>
+                <button type="button" class="btn btn-outline-secondary" @click="selected = []">Batal</button>
+                <button type="button" class="btn btn-reject" @click="sheet('bulk-sheet')" x-text="'Hapus (' + selected.length + ')'"></button>
             </div>
         </div>
-        <div class="card-body">
-            <!-- Filter Controls -->
-            <form action="{{ route('admin.sections.index') }}" method="GET" class="mb-4">
-                <div class="row g-3">
-                    <div class="col-md-4 col-12">
-                        <div class="input-group">
-                            <span class="input-group-text bg-light">
-                                <i class="bi bi-search"></i>
-                            </span>
-                            <input type="text" name="search" aria-label="Cari" class="form-control" placeholder="Cari…" value="{{ request('search') }}" style="height: 42px;">
-                        </div>
+
+        <x-sg.sheet id="item-sheet" title="Section">
+            <form method="POST" :action="mode === 'edit' ? url(item.id) : @js(route('admin.sections.store'))" novalidate>
+                @csrf
+                <template x-if="mode === 'edit'"><input type="hidden" name="_method" value="PUT"></template>
+                <input type="hidden" name="_sheet" :value="mode === 'edit' ? item.id : ''">
+                <p class="fw-semibold mb-3" x-text="mode === 'edit' ? 'Edit section' : 'Section baru'"></p>
+                <div class="mb-3">
+                    <label for="c-dept" class="form-label fw-semibold">Departemen <span class="text-danger">*</span></label>
+                    <select id="c-dept" name="department_id" class="form-select @error('department_id') is-invalid @enderror" x-model="item.department_id" required>
+                        <option value="">Pilih departemen</option>
+                        @foreach ($departments as $dept)
+                            <option value="{{ $dept->id }}">{{ $dept->name }}</option>
+                        @endforeach
+                    </select>
+                    @error('department_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-7">
+                        <label for="c-name" class="form-label fw-semibold">Nama <span class="text-danger">*</span></label>
+                        <input id="c-name" name="name" class="form-control @error('name') is-invalid @enderror" x-model="item.name" required maxlength="255">
+                        @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
-                    <div class="col-md-3 col-12">
-                        <select name="department_id" class="form-select" style="height: 42px;">
-                            <option value="">Semua departemen</option>
-                            @foreach($departments as $dept)
-                                <option value="{{ $dept->id }}" {{ request('department_id') == $dept->id ? 'selected' : '' }}>
-                                    {{ $dept->name }}
-                                </option>
-                            @endforeach
-                        </select>
+                    <div class="col-5">
+                        <label for="c-code" class="form-label fw-semibold">Kode <span class="text-danger">*</span></label>
+                        <input id="c-code" name="code" class="form-control @error('code') is-invalid @enderror" x-model="item.code" required maxlength="50" placeholder="Mis. IT-NET" autocapitalize="characters">
+                        @error('code')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
-                    <div class="col-md-3 col-12">
-                        <div class="d-flex">
-                            <button type="submit" class="btn btn-primary me-2">Filter</button>
-                            <a href="{{ route('admin.sections.index') }}" class="btn btn-secondary">Reset</a>
-                        </div>
-                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="c-desc" class="form-label fw-semibold">Deskripsi</label>
+                    <textarea id="c-desc" name="description" rows="2" class="form-control @error('description') is-invalid @enderror" x-model="item.description"></textarea>
+                    @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" role="switch" id="c-active" name="is_active" value="1" x-model="item.is_active">
+                    <label class="form-check-label" for="c-active">Aktif (bisa dipilih di laporan)</label>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-secondary flex-fill" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary flex-fill">Simpan</button>
                 </div>
             </form>
+        </x-sg.sheet>
 
-            @if(count($sections ?? []) > 0)
-            <!-- Mobile Card View (visible only on mobile) -->
-            <div class="d-md-none mb-4">
-                <form id="mobile-bulk-action-form" method="POST" action="{{ route('admin.sections.batch-delete') }}">
-                    @csrf
-                    @method('DELETE')
+        <x-sg.sheet id="delete-sheet" title="Hapus section?">
+            <form method="POST" :action="url(item.id)">
+                @csrf
+                @method('DELETE')
+                <p>Section <strong x-text="item.name"></strong> akan dihapus permanen.</p>
+                <div class="alert alert-danger small" x-show="item.reports > 0">
+                    Masih ada <strong x-text="item.reports"></strong> laporan di section ini, jadi tidak bisa dihapus. Nonaktifkan saja bila tidak dipakai lagi.
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-secondary flex-fill" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-reject flex-fill" :disabled="item.reports > 0">Hapus</button>
+                </div>
+            </form>
+        </x-sg.sheet>
 
-                    @foreach($sections as $section)
-                    <div class="card mb-3 border rounded shadow-sm">
-                        <div class="card-body p-3">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <div class="d-flex align-items-center">
-                                    <div class="avatar-sm me-2 bg-success rounded-circle text-white d-flex align-items-center justify-content-center">
-                                        <i class="bi bi-layers"></i>
-                                    </div>
-                                    <div>
-                                        <h6 class="mb-0">{{ $section->name }}</h6>
-                                        <span class="text-muted small">{{ $section->code }}</span>
-                                    </div>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input mobile-select-checkbox" type="checkbox" name="ids[]" value="{{ $section->id }}">
-                                </div>
-                            </div>
-
-                            <div class="mb-2">
-                                <span class="badge bg-primary">{{ $section->department->name }}</span>
-                            </div>
-
-                            @if($section->description)
-                            <div class="mb-2">
-                                <p class="mb-1 text-muted small">{{ Str::limit($section->description, 100) }}</p>
-                            </div>
-                            @endif
-
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <span class="badge {{ $section->is_active ? 'bg-success' : 'bg-secondary' }}">
-                                        {{ $section->is_active ? 'Active' : 'Inactive' }}
-                                    </span>
-                                    <span class="badge bg-info">{{ $section->daily_reports_count }} reports</span>
-                                </div>
-
-                                <div class="d-flex">
-                                    <button type="button" class="btn btn-sm btn-outline-secondary me-1 section-edit-btn"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#editSectionModal"
-                                            data-section-id="{{ $section->id }}"
-                                            data-section-name="{{ $section->name }}"
-                                            data-section-code="{{ $section->code }}"
-                                            data-section-department="{{ $section->department_id }}"
-                                            data-section-description="{{ $section->description }}"
-                                            data-section-active="{{ $section->is_active ? '1' : '0' }}" aria-label="Edit {{ $section->name }}">
-                                        <i class="bi bi-pencil-square" aria-hidden="true"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-outline-danger section-delete-btn"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#deleteSectionModal"
-                                            data-section-id="{{ $section->id }}"
-                                            data-section-name="{{ $section->name }}"
-                                            data-section-reports="{{ $section->daily_reports_count }}" aria-label="Hapus {{ $section->name }}">
-                                        <i class="bi bi-trash3" aria-hidden="true"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    @endforeach
-
-                    <div class="mt-3 d-flex justify-content-between align-items-center">
-                        <div>
-                            <button type="button" class="btn btn-danger mobile-bulk-delete-btn" disabled data-bs-toggle="modal" data-bs-target="#bulkDeleteModal">
-                                <i class="bi bi-trash3 me-1"></i> Delete Selected
-                            </button>
-                        </div>
-                        <div>
-                            {{ $sections->links() }}
-                        </div>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Desktop Table View (hidden on mobile) -->
-            <div class="table-responsive d-none d-md-block">
-                <form id="bulk-action-form" method="POST" action="{{ route('admin.sections.batch-delete') }}">
-                    @csrf
-                    @method('DELETE')
-                    <table class="table table-hover align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th width="40">
-                                    <div class="form-check">
-                                        <input class="form-check-input select-all-checkbox" type="checkbox" id="selectAll">
-                                    </div>
-                                </th>
-                                <th>Nama</th>
-                                <th>Kode</th>
-                                <th>Departemen</th>
-                                <th>Status</th>
-                                <th>Laporan</th>
-                                <th width="120">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($sections as $section)
-                            <tr>
-                                <td>
-                                    <div class="form-check">
-                                        <input class="form-check-input select-checkbox" type="checkbox" name="ids[]" value="{{ $section->id }}">
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="avatar-sm me-2 bg-success rounded-circle text-white d-flex align-items-center justify-content-center">
-                                            <i class="bi bi-layers"></i>
-                                        </div>
-                                        <div>
-                                            <a href="#" class="fw-medium text-decoration-none section-edit-btn"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#editSectionModal"
-                                                data-section-id="{{ $section->id }}"
-                                                data-section-name="{{ $section->name }}"
-                                                data-section-code="{{ $section->code }}"
-                                                data-section-department="{{ $section->department_id }}"
-                                                data-section-description="{{ $section->description }}"
-                                                data-section-active="{{ $section->is_active ? '1' : '0' }}">
-                                                {{ $section->name }}
-                                            </a>
-                                            @if($section->description)
-                                            <br><small class="text-muted">{{ Str::limit($section->description, 50) }}</small>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>{{ $section->code }}</td>
-                                <td>
-                                    <span class="badge bg-primary">{{ $section->department->name }}</span>
-                                </td>
-                                <td>
-                                    <span class="badge {{ $section->is_active ? 'bg-success' : 'bg-secondary' }}">
-                                        {{ $section->is_active ? 'Active' : 'Inactive' }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <span class="badge bg-info">{{ $section->daily_reports_count }} reports</span>
-                                </td>
-                                <td>
-                                    <div class="d-flex">
-                                        <button type="button" class="btn btn-sm btn-outline-secondary me-1 section-edit-btn"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#editSectionModal"
-                                                data-section-id="{{ $section->id }}"
-                                                data-section-name="{{ $section->name }}"
-                                                data-section-code="{{ $section->code }}"
-                                                data-section-department="{{ $section->department_id }}"
-                                                data-section-description="{{ $section->description }}"
-                                                data-section-active="{{ $section->is_active ? '1' : '0' }}" aria-label="Edit {{ $section->name }}">
-                                            <i class="bi bi-pencil-square" aria-hidden="true"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-outline-danger section-delete-btn"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#deleteSectionModal"
-                                                data-section-id="{{ $section->id }}"
-                                                data-section-name="{{ $section->name }}"
-                                                data-section-reports="{{ $section->daily_reports_count }}" aria-label="Hapus {{ $section->name }}">
-                                            <i class="bi bi-trash3" aria-hidden="true"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-
-                    <div class="mt-3 d-flex justify-content-between align-items-center">
-                        <div>
-                            <button type="button" class="btn btn-danger bulk-delete-btn" disabled data-bs-toggle="modal" data-bs-target="#bulkDeleteModal">
-                                <i class="bi bi-trash3 me-1"></i> Delete Selected
-                            </button>
-                        </div>
-                        <div>
-                            {{ $sections->links() }}
-                        </div>
-                    </div>
-                </form>
-            </div>
-            @else
-            <div class="alert alert-info">
-                <i class="bi bi-info-circle me-2"></i> Tidak ada section yang cocok dengan filter.
-            </div>
-            @endif
-        </div>
+        <x-sg.confirm-danger id="bulk-sheet" title="Hapus section terpilih?" :action="route('admin.sections.batch-delete')" confirm-text="HAPUS"
+                             text="Section yang masih memiliki laporan akan dilewati.">
+            <template x-for="id in selected" :key="id"><input type="hidden" name="ids[]" :value="id"></template>
+        </x-sg.confirm-danger>
     </div>
-
-    <!-- Create Section Modal -->
-    <div class="modal fade" id="createSectionModal" tabindex="-1" aria-labelledby="createSectionModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="createSectionModalLabel">Create New Section</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form action="{{ route('admin.sections.store') }}" method="POST">
-                    <div class="modal-body">
-                        @csrf
-
-                        @if ($errors->any())
-                            <div class="alert alert-danger">
-                                <ul class="mb-0">
-                                    @foreach ($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        @endif
-
-                        <div class="mb-3">
-                            <label for="department_id" class="form-label">Departemen <span class="text-danger">*</span></label>
-                            <select class="form-select form-select-lg @error('department_id') is-invalid @enderror" id="department_id" name="department_id" required>
-                                <option value="">Pilih departemen</option>
-                                @foreach($departments as $dept)
-                                    <option value="{{ $dept->id }}" {{ old('department_id') == $dept->id ? 'selected' : '' }}>{{ $dept->name }}</option>
-                                @endforeach
-                            </select>
-                            @error('department_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="mb-3">
-                            <label for="name" class="form-label">Nama section <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-lg @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required placeholder="Nama section">
-                            @error('name')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="mb-3">
-                            <label for="code" class="form-label">Kode section <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-lg @error('code') is-invalid @enderror" id="code" name="code" value="{{ old('code') }}" required placeholder="Kode section (mis. IT-NET, HR-REC)">
-                            @error('code')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="mb-3">
-                            <label for="description" class="form-label">Deskripsi</label>
-                            <textarea class="form-control form-control-lg @error('description') is-invalid @enderror" id="description" name="description" rows="3" placeholder="Masukkan deskripsi">{{ old('description') }}</textarea>
-                            @error('description')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="mb-3">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
-                                <label class="form-check-label" for="is_active">
-                                    Active
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer justify-content-between flex-wrap">
-                        <button type="button" class="btn btn-secondary mb-2 mb-sm-0 col-12 col-sm-auto" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary col-12 col-sm-auto">Create Section</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Edit Section Modal -->
-    <div class="modal fade" id="editSectionModal" tabindex="-1" aria-labelledby="editSectionModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editSectionModalLabel">Edit section</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form id="editSectionForm" method="POST">
-                    <div class="modal-body">
-                        @csrf
-                        @method('PUT')
-                        <div class="mb-3">
-                            <label for="edit_department_id" class="form-label">Departemen <span class="text-danger">*</span></label>
-                            <select class="form-select form-select-lg" id="edit_department_id" name="department_id" required>
-                                <option value="">Pilih departemen</option>
-                                @foreach($departments as $dept)
-                                    <option value="{{ $dept->id }}">{{ $dept->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_name" class="form-label">Nama section <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-lg" id="edit_name" name="name" required placeholder="Nama section">
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_code" class="form-label">Kode section <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-lg" id="edit_code" name="code" required placeholder="Kode section">
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_description" class="form-label">Deskripsi</label>
-                            <textarea class="form-control form-control-lg" id="edit_description" name="description" rows="3" placeholder="Masukkan deskripsi"></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" id="edit_is_active" name="is_active">
-                                <label class="form-check-label" for="edit_is_active">
-                                    Active
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer justify-content-between flex-wrap">
-                        <button type="button" class="btn btn-secondary mb-2 mb-sm-0 col-12 col-sm-auto" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary col-12 col-sm-auto">Simpan section</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Delete Section Modal -->
-    <div class="modal fade" id="deleteSectionModal" tabindex="-1" aria-labelledby="deleteSectionModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="deleteSectionModalLabel">Konfirmasi hapus</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Hapus section <strong id="delete-section-name"></strong>?</p>
-                    <div id="delete-section-warning" class="alert alert-danger d-none">
-                        <i class="bi bi-exclamation-triangle me-2"></i> Section ini memiliki <span id="delete-section-reports-count"></span> reports associated with it. You cannot delete it until all reports are reassigned.
-                    </div>
-                    <p class="text-danger">Tindakan ini tidak dapat dibatalkan.</p>
-                </div>
-                <div class="modal-footer justify-content-between flex-wrap">
-                    <button type="button" class="btn btn-secondary mb-2 mb-sm-0 col-12 col-sm-auto" data-bs-dismiss="modal">Batal</button>
-                    <form id="deleteSectionForm" method="POST" class="col-12 col-sm-auto p-0">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-danger w-100" id="confirmDeleteButton">Delete Section</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Bulk Delete Modal -->
-    <div class="modal fade" id="bulkDeleteModal" tabindex="-1" aria-labelledby="bulkDeleteModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="bulkDeleteModalLabel">Konfirmasi hapus massal</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Hapus semua section terpilih?</p>
-                    <p class="text-danger">Tindakan ini tidak dapat dibatalkan. Section yang masih memiliki laporan tidak akan dihapus.</p>
-                </div>
-                <div class="modal-footer justify-content-between flex-wrap">
-                    <button type="button" class="btn btn-secondary mb-2 mb-sm-0 col-12 col-sm-auto" data-bs-dismiss="modal">Batal</button>
-                    <button type="button" class="btn btn-danger col-12 col-sm-auto" id="confirmBulkDelete">Hapus section terpilih</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <style>
-        .avatar-sm {
-            width: 36px;
-            height: 36px;
-            font-size: 14px;
-        }
-
-        @media (max-width: 768px) {
-            .card-body {
-                padding: 1rem;
-            }
-
-            .modal-body, .modal-footer {
-                padding: 1rem;
-            }
-
-            .form-control, .btn, .form-select {
-                font-size: 16px;
-            }
-
-            .form-control-lg, .form-select-lg {
-                height: 50px;
-            }
-
-            .modal-footer .btn {
-                padding: 0.5rem 1rem;
-            }
-
-            .pagination {
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-        }
-    </style>
-
-    @push('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Select all checkbox functionality
-            const selectAllCheckbox = document.getElementById('selectAll');
-            const checkboxes = document.querySelectorAll('.select-checkbox');
-            const bulkDeleteBtn = document.querySelector('.bulk-delete-btn');
-
-            if (selectAllCheckbox) {
-                selectAllCheckbox.addEventListener('change', function() {
-                    checkboxes.forEach(checkbox => {
-                        checkbox.checked = this.checked;
-                    });
-                    updateBulkDeleteButton();
-                });
-            }
-
-            checkboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', function() {
-                    updateBulkDeleteButton();
-
-                    if (!this.checked) {
-                        selectAllCheckbox.checked = false;
-                    } else {
-                        let allChecked = true;
-                        checkboxes.forEach(cb => {
-                            if (!cb.checked) allChecked = false;
-                        });
-                        selectAllCheckbox.checked = allChecked;
-                    }
-                });
-            });
-
-            function updateBulkDeleteButton() {
-                let checkedCount = 0;
-                checkboxes.forEach(checkbox => {
-                    if (checkbox.checked) checkedCount++;
-                });
-
-                if (bulkDeleteBtn) {
-                    bulkDeleteBtn.disabled = checkedCount === 0;
-                }
-            }
-
-            // Mobile checkboxes
-            const mobileCheckboxes = document.querySelectorAll('.mobile-select-checkbox');
-            const mobileBulkDeleteBtn = document.querySelector('.mobile-bulk-delete-btn');
-
-            mobileCheckboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', function() {
-                    updateMobileBulkDeleteButton();
-                });
-            });
-
-            function updateMobileBulkDeleteButton() {
-                let checkedCount = 0;
-                mobileCheckboxes.forEach(checkbox => {
-                    if (checkbox.checked) checkedCount++;
-                });
-
-                if (mobileBulkDeleteBtn) {
-                    mobileBulkDeleteBtn.disabled = checkedCount === 0;
-                }
-            }
-
-            // Edit section modal
-            const editSectionBtns = document.querySelectorAll('.section-edit-btn');
-            editSectionBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const sectionId = this.getAttribute('data-section-id');
-                    const sectionName = this.getAttribute('data-section-name');
-                    const sectionCode = this.getAttribute('data-section-code');
-                    const sectionDepartment = this.getAttribute('data-section-department');
-                    const sectionDescription = this.getAttribute('data-section-description');
-                    const sectionActive = this.getAttribute('data-section-active');
-
-                    document.getElementById('editSectionForm').action = '{{ url("admin/sections") }}/' + sectionId;
-                    document.getElementById('edit_department_id').value = sectionDepartment;
-                    document.getElementById('edit_name').value = sectionName;
-                    document.getElementById('edit_code').value = sectionCode;
-                    document.getElementById('edit_description').value = sectionDescription || '';
-                    document.getElementById('edit_is_active').checked = sectionActive === '1';
-                });
-            });
-
-            // Delete section modal
-            const deleteSectionBtns = document.querySelectorAll('.section-delete-btn');
-            deleteSectionBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const sectionId = this.getAttribute('data-section-id');
-                    const sectionName = this.getAttribute('data-section-name');
-                    const sectionReports = parseInt(this.getAttribute('data-section-reports'));
-
-                    document.getElementById('deleteSectionForm').action = '{{ url("admin/sections") }}/' + sectionId;
-                    document.getElementById('delete-section-name').textContent = sectionName;
-
-                    const warningElement = document.getElementById('delete-section-warning');
-                    const deleteButton = document.getElementById('confirmDeleteButton');
-
-                    if (sectionReports > 0) {
-                        warningElement.classList.remove('d-none');
-                        document.getElementById('delete-section-reports-count').textContent = sectionReports;
-                        deleteButton.disabled = true;
-                    } else {
-                        warningElement.classList.add('d-none');
-                        deleteButton.disabled = false;
-                    }
-                });
-            });
-
-            // Bulk delete confirmation
-            const bulkActionForm = document.getElementById('bulk-action-form');
-            const mobileBulkActionForm = document.getElementById('mobile-bulk-action-form');
-            const confirmBulkDelete = document.getElementById('confirmBulkDelete');
-
-            if (confirmBulkDelete) {
-                confirmBulkDelete.addEventListener('click', function() {
-                    if (window.innerWidth < 768 && mobileBulkActionForm) {
-                        mobileBulkActionForm.submit();
-                    } else if (bulkActionForm) {
-                        bulkActionForm.submit();
-                    }
-                });
-            }
-
-            // Auto-open modal if there are validation errors
-            @if($errors->any())
-                const createModal = new bootstrap.Modal(document.getElementById('createSectionModal'));
-                createModal.show();
-            @endif
-        });
-    </script>
-    @endpush
 </x-app-layout>

@@ -7,7 +7,6 @@
         $tone = fn ($value, $target = 90) => $value === null ? null : ($value >= $target ? 'approved' : ($value >= $target - 15 ? 'pending' : 'rejected'));
     @endphp
 
-    <style>.chart-box { position: relative; height: 260px; }</style>
 
     <x-sg.page-header title="Dashboard Tiket"
         :subtitle="$from->translatedFormat('d M Y').' – '.$to->translatedFormat('d M Y').' · durasi dalam jam kerja ('.config('tickets.working_hours.start').'–'.config('tickets.working_hours.end').')'" />
@@ -52,38 +51,38 @@
     {{-- Grafik --}}
     <div class="row g-3 mb-3">
         <div class="col-lg-8">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-header bg-white fw-semibold">Tiket Masuk vs Selesai per Hari</div>
+            <div class="card h-100">
+                <h2 class="h6 fw-bold px-3 pt-3 mb-0">Tiket Masuk vs Selesai per Hari</h2>
                 <div class="card-body"><div class="chart-box"><canvas id="trendChart" aria-label="Grafik tiket masuk dan selesai per hari" role="img"></canvas></div></div>
             </div>
         </div>
         <div class="col-lg-4">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-header bg-white fw-semibold">Prioritas</div>
+            <div class="card h-100">
+                <h2 class="h6 fw-bold px-3 pt-3 mb-0">Prioritas</h2>
                 <div class="card-body"><div class="chart-box"><canvas id="priorityChart" aria-label="Grafik tiket per prioritas" role="img"></canvas></div></div>
             </div>
         </div>
         <div class="col-lg-6">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-header bg-white fw-semibold">Kategori</div>
+            <div class="card h-100">
+                <h2 class="h6 fw-bold px-3 pt-3 mb-0">Kategori</h2>
                 <div class="card-body"><div class="chart-box"><canvas id="categoryChart" aria-label="Grafik tiket per kategori" role="img"></canvas></div></div>
             </div>
         </div>
         <div class="col-lg-6">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-header bg-white fw-semibold">Departemen Pemohon Terbanyak</div>
+            <div class="card h-100">
+                <h2 class="h6 fw-bold px-3 pt-3 mb-0">Departemen Pemohon Terbanyak</h2>
                 <div class="card-body"><div class="chart-box"><canvas id="departmentChart" aria-label="Grafik tiket per departemen" role="img"></canvas></div></div>
             </div>
         </div>
     </div>
 
     {{-- Kinerja teknisi --}}
-    <div class="card shadow-sm border-0 mb-3">
-        <div class="card-header bg-white fw-semibold">Kinerja Teknisi</div>
+    <div class="card mb-3">
+                <h2 class="h6 fw-bold px-3 pt-3 mb-0">Kinerja Teknisi</h2>
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle small mb-0">
-                    <thead class="table-light">
+                    <thead>
                         <tr>
                             <th class="ps-3">Teknisi</th>
                             <th class="text-end">Aktif</th>
@@ -115,8 +114,8 @@
     </div>
 
     {{-- Masukan pemohon --}}
-    <div class="card shadow-sm border-0">
-        <div class="card-header bg-white fw-semibold">Masukan Pemohon Terbaru</div>
+    <div class="card">
+                <h2 class="h6 fw-bold px-3 pt-3 mb-0">Masukan Pemohon Terbaru</h2>
         <ul class="list-group list-group-flush small">
             @forelse($feedback as $item)
                 <li class="list-group-item">

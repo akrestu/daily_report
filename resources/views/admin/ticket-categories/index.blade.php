@@ -1,67 +1,75 @@
+{{-- Admin · Kategori Tiket — daftar + sheet tambah/edit (sgAdminList) --}}
+@php
+    $toItem = fn ($c) => ['id' => $c->id, 'name' => $c->name, 'description' => (string) $c->description,
+        'requires_approval' => (bool) $c->requires_approval, 'is_active' => (bool) $c->is_active];
+    $reopen = $errors->any() && old('_sheet') !== null
+        ? ['mode' => old('_sheet') ? 'edit' : 'create', 'item' => ['id' => old('_sheet'), 'name' => old('name'), 'description' => old('description'),
+            'requires_approval' => (bool) old('requires_approval'), 'is_active' => (bool) old('is_active')]]
+        : null;
+@endphp
+
 <x-app-layout title="Kategori Tiket">
+    <div x-data="sgAdminList(@js(['base' => url('admin/ticket-categories')]))"
+         @if ($reopen) x-init="$nextTick(() => {{ $reopen['mode'] === 'edit' ? 'edit' : 'create' }}(@js($reopen['item'])))" @endif>
 
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show"><i class="bi bi-check-circle me-2"></i>{{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
-    @endif
-    @if($errors->any())
-        <div class="alert alert-danger small"><ul class="mb-0">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>
-    @endif
+        <x-sg.page-header title="Kategori Tiket" subtitle="Kategori yang perlu persetujuan atasan mewajibkan pemohon mengunggah formulir bertanda tangan sebelum tiket dikerjakan.">
+            <x-slot:actions>
+                <button type="button" class="btn btn-primary" @click="create({ is_active: true, requires_approval: false })"><i class="bi bi-plus-lg" aria-hidden="true"></i> Kategori baru</button>
+            </x-slot:actions>
+        </x-sg.page-header>
 
-    <div class="card mb-3">
-        <div class="card-header bg-white py-3">
-            <h5 class="mb-0">Kategori Tiket</h5>
-            <div class="text-muted small">
-                Kategori bertanda <strong>Perlu persetujuan atasan</strong> mewajibkan pemohon memilih atasan,
-                mencetak formulir, dan mengunggah bukti tanda tangan sebelum tiket dikerjakan.
+        @if ($categories->isEmpty())
+            <x-sg.empty icon="bi-tags" title="Belum ada kategori" text="Tambahkan kategori agar pemohon bisa memilih jenis bantuan." />
+        @else
+            <div class="sg-list">
+                @foreach ($categories as $c)
+                    <button type="button" class="sg-list-card text-start w-100" @click="edit(@js($toItem($c)))">
+                        <span class="sg-list-card__body">
+                            <span class="sg-list-card__top">
+                                <span class="d-flex gap-1 flex-wrap">
+                                    <span class="sg-badge sg-badge--{{ $c->is_active ? 'approved' : 'closed' }}">{{ $c->is_active ? 'Aktif' : 'Nonaktif' }}</span>
+                                    @if ($c->requires_approval)<span class="sg-badge sg-badge--pending">Perlu persetujuan atasan</span>@endif
+                                </span>
+                                <span class="sg-list-card__time sg-num">{{ $c->tickets_count }} tiket</span>
+                            </span>
+                            <span class="sg-list-card__title d-block">{{ $c->name }}</span>
+                            @if ($c->description)<span class="sg-list-card__meta d-block sg-clamp-1">{{ $c->description }}</span>@endif
+                        </span>
+                        <i class="bi bi-pencil-square sg-list-card__chevron" aria-hidden="true"></i>
+                    </button>
+                @endforeach
             </div>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table align-middle small">
-                    <thead class="table-light">
-                        <tr><th>Nama</th><th>Deskripsi</th><th class="text-center">Persetujuan atasan</th><th class="text-center">Aktif</th><th class="text-center">Tiket</th><th></th></tr>
-                    </thead>
-                    <tbody>
-                        @foreach($categories as $category)
-                        @php($formId = 'category-'.$category->id)
-                        <tr>
-                            <td><input type="text" name="name" form="{{ $formId }}" aria-label="Nama kategori" class="form-control form-control-sm" value="{{ $category->name }}" required maxlength="255"></td>
-                            <td><input type="text" name="description" form="{{ $formId }}" aria-label="Deskripsi {{ $category->name }}" class="form-control form-control-sm" value="{{ $category->description }}" maxlength="255"></td>
-                            <td class="text-center"><input type="checkbox" form="{{ $formId }}" class="form-check-input" aria-label="Perlu persetujuan: {{ $category->name }}" name="requires_approval" value="1" {{ $category->requires_approval ? 'checked' : '' }}></td>
-                            <td class="text-center"><input type="checkbox" form="{{ $formId }}" class="form-check-input" aria-label="Aktif: {{ $category->name }}" name="is_active" value="1" {{ $category->is_active ? 'checked' : '' }}></td>
-                            <td class="text-center">{{ $category->tickets_count }}</td>
-                            <td class="text-end">
-                                <form method="POST" action="{{ route('admin.ticket-categories.update', $category) }}" id="{{ $formId }}">
-                                    @csrf
-                                    @method('PUT')
-                                    <button type="submit" class="btn btn-outline-primary btn-sm">Simpan</button>
-                                </form>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+        @endif
 
-    <div class="card">
-        <div class="card-header bg-white py-3"><h6 class="mb-0">Tambah Kategori</h6></div>
-        <div class="card-body">
-            <form method="POST" action="{{ route('admin.ticket-categories.store') }}" class="row g-2 align-items-center">
+        <x-sg.sheet id="item-sheet" title="Kategori tiket">
+            <form method="POST" :action="mode === 'edit' ? url(item.id) : @js(route('admin.ticket-categories.store'))" novalidate>
                 @csrf
-                <div class="col-md-3"><input type="text" name="name" class="form-control form-control-sm" aria-label="Nama kategori baru" placeholder="Nama kategori" required maxlength="255"></div>
-                <div class="col-md-4"><input type="text" name="description" class="form-control form-control-sm" aria-label="Deskripsi kategori baru" placeholder="Deskripsi (opsional)" maxlength="255"></div>
-                <div class="col-md-3">
-                    <div class="form-check">
-                        <input type="checkbox" class="form-check-input" name="requires_approval" value="1" id="newRequiresApproval">
-                        <label class="form-check-label small" for="newRequiresApproval">Perlu persetujuan atasan</label>
-                    </div>
+                <template x-if="mode === 'edit'"><input type="hidden" name="_method" value="PUT"></template>
+                <input type="hidden" name="_sheet" :value="mode === 'edit' ? item.id : ''">
+                <p class="fw-semibold mb-3" x-text="mode === 'edit' ? 'Edit kategori' : 'Kategori baru'"></p>
+                <div class="mb-3">
+                    <label for="k-name" class="form-label fw-semibold">Nama <span class="text-danger">*</span></label>
+                    <input id="k-name" name="name" class="form-control @error('name') is-invalid @enderror" x-model="item.name" required maxlength="255" placeholder="Mis. Jaringan & internet">
+                    @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <input type="hidden" name="is_active" value="1">
-                <div class="col-md-2"><button type="submit" class="btn btn-primary btn-sm w-100">Tambah</button></div>
+                <div class="mb-3">
+                    <label for="k-desc" class="form-label fw-semibold">Deskripsi</label>
+                    <input id="k-desc" name="description" class="form-control @error('description') is-invalid @enderror" x-model="item.description" maxlength="255" placeholder="Opsional">
+                    @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+                <div class="form-check form-switch mb-2">
+                    <input class="form-check-input" type="checkbox" role="switch" id="k-approval" name="requires_approval" value="1" x-model="item.requires_approval">
+                    <label class="form-check-label" for="k-approval">Perlu persetujuan atasan</label>
+                </div>
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" role="switch" id="k-active" name="is_active" value="1" x-model="item.is_active">
+                    <label class="form-check-label" for="k-active">Aktif (muncul di form tiket)</label>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-secondary flex-fill" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary flex-fill">Simpan</button>
+                </div>
             </form>
-        </div>
+        </x-sg.sheet>
     </div>
 </x-app-layout>

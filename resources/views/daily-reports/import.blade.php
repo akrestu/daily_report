@@ -1,75 +1,16 @@
+{{-- Impor Laporan dari Excel --}}
 <x-app-layout title="Impor Laporan" :back="route('daily-reports.user-jobs')">
-
-    <div class="row">
-        <div class="col-md-8 mx-auto">
-            <div class="card">
-                <div class="card-header bg-white py-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Impor laporan dari Excel</h5>
-                        <a href="{{ route('daily-reports.user-jobs') }}" class="btn btn-sm btn-secondary">
-                            <i class="bi bi-arrow-left me-1"></i> Back to My Reports
-                        </a>
-                    </div>
-                </div>
-                <div class="card-body">
-                    @if(session('error'))
-                        <div class="alert alert-danger">
-                            {{ session('error') }}
-                        </div>
-                    @endif
-
-                    @if($errors->has('import_errors'))
-                        <div class="alert alert-danger">
-                            <strong>Import Errors:</strong>
-                            <ul class="mb-0 mt-2">
-                                @foreach($errors->get('import_errors') as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
-
-                    <form action="{{ route('daily-reports.import') }}" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        <div class="mb-4">
-                            <label for="file" class="form-label">File Excel</label>
-                            <input type="file" class="form-control @error('file') is-invalid @enderror" id="file" name="file" required>
-                            @error('file')
-                                <div class="invalid-feedback">
-                                    {{ $message }}
-                                </div>
-                            @enderror
-                            <div class="form-text">Supported formats: .xlsx, .xls, .csv</div>
-                        </div>
-
-                        <div class="alert alert-info">
-                            <h6 class="alert-heading"><i class="bi bi-info-circle me-2"></i>Panduan impor</h6>
-                            <p>The Excel file should have the following columns with a header row:</p>
-                            <ul class="mb-1">
-                                <li><strong>job_name</strong> (required): Name of the job or task</li>
-                                <li><strong>department</strong> (required): Department name (must exist in the system)</li>
-                                <li><strong>job_site</strong> (optional): Job site name (must match existing active job site)</li>
-                                <li><strong>section</strong> (optional): Section name (must match existing active section for the department)</li>
-                                <li><strong>status</strong> (required): Must be one of: pending, in_progress, completed</li>
-                                <li><strong>report_date</strong> (required): Format: DD/MM/YYYY (e.g., 28/04/2025)</li>
-                                <li><strong>due_date</strong> (required): Format: DD/MM/YYYY (e.g., 30/04/2025)</li>
-                                <li><strong>description</strong> (required): Detailed description of the task</li>
-                                <li><strong>remark</strong> (optional): Additional notes or remarks</li>
-                                <li><strong>user_id</strong> (required): User ID of the Person In Charge</li>
-                            </ul>
-                            <a href="{{ route('daily-reports.export-template') }}" class="btn btn-sm btn-outline-primary mt-2">
-                                <i class="bi bi-download me-1"></i> Download Template
-                            </a>
-                        </div>
-
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-box-arrow-in-down me-1"></i> Import Reports
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-sg.import-form title="Impor Laporan" :action="route('daily-reports.import')" :template="route('daily-reports.export-template')"
+                      :back="route('daily-reports.user-jobs')" button="Impor laporan" :columns="[
+        ['job_name', true, 'Nama pekerjaan'],
+        ['department', true, 'Nama departemen (harus sudah ada)'],
+        ['job_site', false, 'Nama job site aktif'],
+        ['section', false, 'Nama section aktif di departemen tersebut'],
+        ['status', true, 'pending, in_progress, atau completed'],
+        ['report_date', true, 'Tanggal laporan, format DD/MM/YYYY'],
+        ['due_date', true, 'Due date, format DD/MM/YYYY'],
+        ['description', true, 'Deskripsi pekerjaan'],
+        ['remark', false, 'Catatan tambahan'],
+        ['user_id', true, 'User ID PIC (atasan yang menyetujui)'],
+    ]" />
 </x-app-layout>

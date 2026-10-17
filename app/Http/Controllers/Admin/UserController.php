@@ -31,9 +31,19 @@ class UserController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::with(['role', 'department', 'jobSite'])->latest()->paginate(10);
+        // Filter di halaman (cari, role, departemen) sebelumnya diabaikan
+        $users = User::with(['role', 'department', 'jobSite'])
+            ->when($request->filled('search'), function ($query) use ($request) {
+                $like = '%'.addcslashes($request->input('search'), '%_\\').'%';
+                $query->where(fn ($q) => $q->where('name', 'like', $like)->orWhere('email', 'like', $like)->orWhere('user_id', 'like', $like));
+            })
+            ->when($request->filled('role'), fn ($query) => $query->where('role_id', $request->input('role')))
+            ->when($request->filled('department'), fn ($query) => $query->where('department_id', $request->input('department')))
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
         $roles = Role::pluck('name', 'id');
         $departments = Department::pluck('name', 'id');
 
@@ -58,7 +68,7 @@ class UserController extends Controller
     {
         try {
             // Log the request for debugging
-            Log::info('User creation request received', ['request' => $request->all()]);
+            Log::info('User creation request received', ['request' => $request->except(['password', 'password_confirmation', '_token'])]);
             
             $request->validate([
                 'name' => ['required', 'string', 'max:255'],
@@ -82,7 +92,7 @@ class UserController extends Controller
             ];
             
             // Log attempt
-            Log::info('Attempting to create user with data', $userData);
+            Log::info('Attempting to create user with data', \Illuminate\Support\Arr::except($userData, ['password']));
 
             try {
                 $user = User::create($userData);
@@ -91,7 +101,7 @@ class UserController extends Controller
                 Notification::create([
                     'user_id' => $user->id,
                     'type' => 'welcome',
-                    'message' => 'Welcome to SiGAP! We\'re glad to have you on board.',
+                    'message' => 'Selamat datang di SiGAP! Lengkapi profil dan atur notifikasi Anda.',
                     'is_read' => false,
                 ]);
                 

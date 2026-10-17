@@ -1,487 +1,134 @@
-<x-app-layout title="Departemen">
+{{-- Admin · Departemen — pola daftar master data (sgAdminList): cari, tabel/kartu, sheet tambah/edit, hapus & hapus massal --}}
+@php
+    $rows = $departments->getCollection();
+    $toItem = fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'description' => (string) $d->description, 'users' => $d->users_count];
+    // Gagal validasi di sheet → buka lagi dengan isian lama
+    $reopen = $errors->any() && old('_sheet') !== null
+        ? ['mode' => old('_sheet') ? 'edit' : 'create', 'item' => ['id' => old('_sheet'), 'name' => old('name'), 'code' => old('code'), 'description' => old('description')]]
+        : null;
+@endphp
 
-    <div class="card">
-        <div class="card-header bg-white py-3">
-            <div class="row align-items-center">
-                <div class="col-md-6 mb-2 mb-md-0">
-                    <h5 class="mb-0">Semua departemen</h5>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <button type="button" class="btn btn-primary w-100 w-md-auto" data-bs-toggle="modal" data-bs-target="#createDepartmentModal">
-                        <i class="bi bi-plus-lg me-1"></i> Departemen baru
-                    </button>
-                </div>
+<x-app-layout title="Departemen">
+    <div x-data="sgAdminList(@js(['base' => url('admin/departments'), 'ids' => $rows->pluck('id')]))"
+         @if ($reopen) x-init="$nextTick(() => {{ $reopen['mode'] === 'edit' ? 'edit' : 'create' }}(@js($reopen['item'])))" @endif>
+
+        <x-sg.page-header title="Departemen" :subtitle="\App\Support\Format::number($departments->total()).' departemen'">
+            <x-slot:actions>
+                <button type="button" class="btn btn-primary" @click="create()"><i class="bi bi-plus-lg" aria-hidden="true"></i> Departemen baru</button>
+            </x-slot:actions>
+        </x-sg.page-header>
+
+        <form method="GET" action="{{ route('admin.departments.index') }}" class="sg-filter-bar mb-3">
+            <div class="sg-filter-bar__search"><x-sg.search name="search" placeholder="Cari nama, kode, atau deskripsi" /></div>
+            <button type="submit" class="btn btn-outline-secondary">Cari</button>
+            @if (request('search'))
+                <a href="{{ route('admin.departments.index') }}" class="btn btn-quiet">Reset</a>
+            @endif
+        </form>
+
+        @if ($rows->isEmpty())
+            <x-sg.empty icon="bi-building" title="Tidak ada departemen" :text="request('search') ? 'Tidak ada yang cocok dengan pencarian.' : 'Tambahkan departemen pertama.'" />
+        @else
+            {{-- Mobile --}}
+            <div class="sg-list d-lg-none">
+                @foreach ($rows as $d)
+                    <div class="sg-list-card" :class="{ 'is-selected': isSelected({{ $d->id }}) }">
+                        <input type="checkbox" class="form-check-input flex-none mt-1" :checked="isSelected({{ $d->id }})" @change="toggle({{ $d->id }})" aria-label="Pilih {{ $d->name }}">
+                        <div class="sg-list-card__body">
+                            <div class="sg-list-card__title sg-clamp-2"><a href="{{ route('admin.departments.show', $d) }}" class="text-reset text-decoration-none stretched-link">{{ $d->name }}</a></div>
+                            <div class="sg-list-card__meta">{{ $d->code }} · {{ $d->users_count }} pengguna</div>
+                        </div>
+                        <div class="d-flex gap-1 flex-none">
+                            <button type="button" class="btn btn-outline-secondary btn-icon" @click="edit(@js($toItem($d)))" aria-label="Edit {{ $d->name }}"><i class="bi bi-pencil-square" aria-hidden="true"></i></button>
+                            <button type="button" class="btn btn-outline-secondary btn-icon text-danger" @click="remove(@js($toItem($d)))" aria-label="Hapus {{ $d->name }}"><i class="bi bi-trash3" aria-hidden="true"></i></button>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
+            {{-- Desktop --}}
+            <x-sg.table class="d-none d-lg-block" caption="Daftar departemen">
+                <x-slot:head>
+                    <tr>
+                        <th style="width:44px"><input type="checkbox" class="form-check-input" :checked="allSelected" @change="toggleAll()" aria-label="Pilih semua di halaman ini"></th>
+                        <th>Nama</th><th>Kode</th><th>Deskripsi</th><th class="text-end">Pengguna</th><th style="width:110px"><span class="visually-hidden">Aksi</span></th>
+                    </tr>
+                </x-slot:head>
+                @foreach ($rows as $d)
+                    <tr :class="{ 'table-active': isSelected({{ $d->id }}) }">
+                        <td><input type="checkbox" class="form-check-input" :checked="isSelected({{ $d->id }})" @change="toggle({{ $d->id }})" aria-label="Pilih {{ $d->name }}"></td>
+                        <td><a href="{{ route('admin.departments.show', $d) }}" class="fw-semibold text-reset">{{ $d->name }}</a></td>
+                        <td class="text-nowrap">{{ $d->code }}</td>
+                        <td class="text-muted"><span class="sg-clamp-1">{{ $d->description ?: '-' }}</span></td>
+                        <td class="text-end sg-num">{{ $d->users_count }}</td>
+                        <td class="text-end text-nowrap">
+                            <button type="button" class="btn btn-quiet btn-icon" @click="edit(@js($toItem($d)))" aria-label="Edit {{ $d->name }}"><i class="bi bi-pencil-square" aria-hidden="true"></i></button>
+                            <button type="button" class="btn btn-quiet btn-icon text-danger" @click="remove(@js($toItem($d)))" aria-label="Hapus {{ $d->name }}"><i class="bi bi-trash3" aria-hidden="true"></i></button>
+                        </td>
+                    </tr>
+                @endforeach
+            </x-sg.table>
+            <div class="mt-3">{{ $departments->withQueryString()->links() }}</div>
+        @endif
+
+        {{-- Bar hapus massal --}}
+        <div class="sg-batch-bar" x-show="selected.length" x-cloak>
+            <div class="d-flex gap-2 align-items-center w-100">
+                <span class="fw-semibold me-auto" x-text="selected.length + ' dipilih'"></span>
+                <button type="button" class="btn btn-outline-secondary" @click="selected = []">Batal</button>
+                <button type="button" class="btn btn-reject" @click="sheet('bulk-sheet')" x-text="'Hapus (' + selected.length + ')'"></button>
             </div>
         </div>
-        <div class="card-body">
-            <!-- Filter Controls -->
-            <form action="{{ route('admin.departments.index') }}" method="GET" class="mb-4">
-                <div class="row g-3">
-                    <div class="col-md-4 col-12">
-                        <div class="input-group">
-                            <span class="input-group-text bg-light">
-                                <i class="bi bi-search"></i>
-                            </span>
-                            <input type="text" name="search" aria-label="Cari" class="form-control" placeholder="Cari…" value="{{ request('search') }}" style="height: 42px;">
-                        </div>
-                    </div>
-                    <div class="col-md-2 col-12">
-                        <div class="d-flex">
-                            <button type="submit" class="btn btn-primary me-2">Filter</button>
-                            <a href="{{ route('admin.departments.index') }}" class="btn btn-secondary">Reset</a>
-                        </div>
-                    </div>
+
+        {{-- Tambah / edit --}}
+        <x-sg.sheet id="item-sheet" title="Departemen">
+            <form method="POST" :action="mode === 'edit' ? url(item.id) : @js(route('admin.departments.store'))" novalidate>
+                @csrf
+                <template x-if="mode === 'edit'"><input type="hidden" name="_method" value="PUT"></template>
+                <input type="hidden" name="_sheet" :value="mode === 'edit' ? item.id : ''">
+                <p class="fw-semibold mb-3" x-text="mode === 'edit' ? 'Edit departemen' : 'Departemen baru'"></p>
+                <div class="mb-3">
+                    <label for="d-name" class="form-label fw-semibold">Nama <span class="text-danger">*</span></label>
+                    <input id="d-name" name="name" class="form-control @error('name') is-invalid @enderror" x-model="item.name" required maxlength="255">
+                    @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+                <div class="mb-3">
+                    <label for="d-code" class="form-label fw-semibold">Kode <span class="text-danger">*</span></label>
+                    <input id="d-code" name="code" class="form-control @error('code') is-invalid @enderror" x-model="item.code" required maxlength="50" placeholder="Mis. HR, IT, FIN" autocapitalize="characters">
+                    @error('code')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+                <div class="mb-3">
+                    <label for="d-desc" class="form-label fw-semibold">Deskripsi</label>
+                    <textarea id="d-desc" name="description" rows="3" class="form-control @error('description') is-invalid @enderror" x-model="item.description"></textarea>
+                    @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-secondary flex-fill" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary flex-fill">Simpan</button>
                 </div>
             </form>
+        </x-sg.sheet>
 
-            @if(count($departments ?? []) > 0)
-            <!-- Mobile Card View (visible only on mobile) -->
-            <div class="d-md-none mb-4">
-                <form id="mobile-bulk-action-form" method="POST" action="{{ route('admin.departments.batch-delete') }}">
-                    @csrf
-                    @method('DELETE')
-                    
-                    @foreach($departments as $department)
-                    <div class="card mb-3 border rounded shadow-sm">
-                        <div class="card-body p-3">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <div class="d-flex align-items-center">
-                                    <div class="avatar-sm me-2 bg-primary rounded-circle text-white d-flex align-items-center justify-content-center">
-                                        {{ substr($department->name, 0, 1) }}
-                                    </div>
-                                    <div>
-                                        <h6 class="mb-0">{{ $department->name }}</h6>
-                                        <span class="text-muted small">{{ $department->code }}</span>
-                                    </div>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input mobile-select-checkbox" type="checkbox" name="ids[]" value="{{ $department->id }}">
-                                </div>
-                            </div>
-                            
-                            <div class="mb-2">
-                                <p class="mb-1 text-muted small">{{ Str::limit($department->description, 100) }}</p>
-                            </div>
-                            
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="badge bg-info">{{ $department->users_count }} users</span>
-                                
-                                <div class="d-flex">
-                                    <button type="button" class="btn btn-sm btn-outline-secondary me-1 dept-edit-btn"
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#editDepartmentModal" 
-                                            data-dept-id="{{ $department->id }}"
-                                            data-dept-name="{{ $department->name }}"
-                                            data-dept-code="{{ $department->code }}"
-                                            data-dept-description="{{ $department->description }}" aria-label="Edit {{ $department->name }}">
-                                        <i class="bi bi-pencil-square" aria-hidden="true"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-outline-danger dept-delete-btn"
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#deleteDepartmentModal" 
-                                            data-dept-id="{{ $department->id }}"
-                                            data-dept-name="{{ $department->name }}"
-                                            data-dept-users="{{ $department->users_count }}" aria-label="Hapus {{ $department->name }}">
-                                        <i class="bi bi-trash3" aria-hidden="true"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    @endforeach
-                    
-                    <div class="mt-3 d-flex justify-content-between align-items-center">
-                        <div>
-                            <button type="button" class="btn btn-danger mobile-bulk-delete-btn" disabled data-bs-toggle="modal" data-bs-target="#bulkDeleteModal">
-                                <i class="bi bi-trash3 me-1"></i> Delete Selected
-                            </button>
-                        </div>
-                        <div>
-                            {{ $departments->links() }}
-                        </div>
-                    </div>
-                </form>
-            </div>
-            
-            <!-- Desktop Table View (hidden on mobile) -->
-            <div class="table-responsive d-none d-md-block">
-                <form id="bulk-action-form" method="POST" action="{{ route('admin.departments.batch-delete') }}">
-                    @csrf
-                    @method('DELETE')
-                    <table class="table table-hover align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th width="40">
-                                    <div class="form-check">
-                                        <input class="form-check-input select-all-checkbox" type="checkbox" id="selectAll">
-                                    </div>
-                                </th>
-                                <th>Nama</th>
-                                <th>Kode</th>
-                                <th>Deskripsi</th>
-                                <th>Pengguna</th>
-                                <th width="120">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($departments as $department)
-                            <tr>
-                                <td>
-                                    <div class="form-check">
-                                        <input class="form-check-input select-checkbox" type="checkbox" name="ids[]" value="{{ $department->id }}">
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="avatar-sm me-2 bg-primary rounded-circle text-white d-flex align-items-center justify-content-center">
-                                            {{ substr($department->name, 0, 1) }}
-                                        </div>
-                                        <div>
-                                            <a href="#" class="fw-medium text-decoration-none dept-edit-btn"
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#editDepartmentModal" 
-                                                data-dept-id="{{ $department->id }}"
-                                                data-dept-name="{{ $department->name }}"
-                                                data-dept-code="{{ $department->code }}"
-                                                data-dept-description="{{ $department->description }}">
-                                                {{ $department->name }}
-                                            </a>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>{{ $department->code }}</td>
-                                <td>{{ Str::limit($department->description, 30) }}</td>
-                                <td>
-                                    <span class="badge bg-info">{{ $department->users_count }} users</span>
-                                </td>
-                                <td>
-                                    <div class="d-flex">
-                                        <button type="button" class="btn btn-sm btn-outline-secondary me-1 dept-edit-btn"
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#editDepartmentModal" 
-                                                data-dept-id="{{ $department->id }}"
-                                                data-dept-name="{{ $department->name }}"
-                                                data-dept-code="{{ $department->code }}"
-                                                data-dept-description="{{ $department->description }}" aria-label="Edit {{ $department->name }}">
-                                            <i class="bi bi-pencil-square" aria-hidden="true"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-outline-danger dept-delete-btn"
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#deleteDepartmentModal" 
-                                                data-dept-id="{{ $department->id }}"
-                                                data-dept-name="{{ $department->name }}"
-                                                data-dept-users="{{ $department->users_count }}" aria-label="Hapus {{ $department->name }}">
-                                            <i class="bi bi-trash3" aria-hidden="true"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+        {{-- Hapus satu --}}
+        <x-sg.sheet id="delete-sheet" title="Hapus departemen?">
+            <form method="POST" :action="url(item.id)">
+                @csrf
+                @method('DELETE')
+                <p>Departemen <strong x-text="item.name"></strong> akan dihapus permanen.</p>
+                <div class="alert alert-danger small" x-show="item.users > 0">
+                    Masih ada <strong x-text="item.users"></strong> pengguna di departemen ini. Pindahkan dulu sebelum menghapus.
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-secondary flex-fill" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-reject flex-fill" :disabled="item.users > 0">Hapus</button>
+                </div>
+            </form>
+        </x-sg.sheet>
 
-                    <div class="mt-3 d-flex justify-content-between align-items-center">
-                        <div>
-                            <button type="button" class="btn btn-danger bulk-delete-btn" disabled data-bs-toggle="modal" data-bs-target="#bulkDeleteModal">
-                                <i class="bi bi-trash3 me-1"></i> Delete Selected
-                            </button>
-                        </div>
-                        <div>
-                            {{ $departments->links() }}
-                        </div>
-                    </div>
-                </form>
-            </div>
-            @else
-            <div class="alert alert-info">
-                <i class="bi bi-info-circle me-2"></i> Tidak ada departemen yang cocok dengan filter.
-            </div>
-            @endif
-        </div>
+        {{-- Hapus massal --}}
+        <x-sg.confirm-danger id="bulk-sheet" title="Hapus departemen terpilih?" :action="route('admin.departments.batch-delete')" confirm-text="HAPUS"
+                             text="Departemen yang masih memiliki pengguna akan dilewati.">
+            <template x-for="id in selected" :key="id"><input type="hidden" name="ids[]" :value="id"></template>
+        </x-sg.confirm-danger>
     </div>
-
-    <!-- Create Department Modal -->
-    <div class="modal fade" id="createDepartmentModal" tabindex="-1" aria-labelledby="createDepartmentModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="createDepartmentModalLabel">Create New Department</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form action="{{ route('admin.departments.store') }}" method="POST">
-                    <div class="modal-body">
-                        @csrf
-                        <div class="mb-3">
-                            <label for="name" class="form-label">Nama departemen <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-lg" id="name" name="name" required placeholder="Nama departemen">
-                        </div>
-                        <div class="mb-3">
-                            <label for="code" class="form-label">Kode departemen <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-lg" id="code" name="code" required placeholder="Kode departemen (mis. HR, IT, FIN)">
-                        </div>
-                        <div class="mb-3">
-                            <label for="description" class="form-label">Deskripsi</label>
-                            <textarea class="form-control form-control-lg" id="description" name="description" rows="3" placeholder="Masukkan deskripsi"></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer justify-content-between flex-wrap">
-                        <button type="button" class="btn btn-secondary mb-2 mb-sm-0 col-12 col-sm-auto" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary col-12 col-sm-auto">Create Department</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Edit Department Modal -->
-    <div class="modal fade" id="editDepartmentModal" tabindex="-1" aria-labelledby="editDepartmentModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editDepartmentModalLabel">Edit departemen</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form id="editDepartmentForm" method="POST">
-                    <div class="modal-body">
-                        @csrf
-                        @method('PUT')
-                        <div class="mb-3">
-                            <label for="edit_name" class="form-label">Nama departemen <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-lg" id="edit_name" name="name" required placeholder="Nama departemen">
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_code" class="form-label">Kode departemen <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-lg" id="edit_code" name="code" required placeholder="Kode departemen (mis. HR, IT, FIN)">
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_description" class="form-label">Deskripsi</label>
-                            <textarea class="form-control form-control-lg" id="edit_description" name="description" rows="3" placeholder="Masukkan deskripsi"></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer justify-content-between flex-wrap">
-                        <button type="button" class="btn btn-secondary mb-2 mb-sm-0 col-12 col-sm-auto" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary col-12 col-sm-auto">Simpan departemen</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Delete Department Modal -->
-    <div class="modal fade" id="deleteDepartmentModal" tabindex="-1" aria-labelledby="deleteDepartmentModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="deleteDepartmentModalLabel">Konfirmasi hapus</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Hapus departemen <strong id="delete-dept-name"></strong>?</p>
-                    <div id="delete-dept-warning" class="alert alert-danger d-none">
-                        <i class="bi bi-exclamation-triangle me-2"></i> Departemen ini memiliki <span id="delete-dept-users-count"></span> users assigned to it. You cannot delete it until all users are reassigned.
-                    </div>
-                    <p class="text-danger">Tindakan ini tidak dapat dibatalkan.</p>
-                </div>
-                <div class="modal-footer justify-content-between flex-wrap">
-                    <button type="button" class="btn btn-secondary mb-2 mb-sm-0 col-12 col-sm-auto" data-bs-dismiss="modal">Batal</button>
-                    <form id="deleteDepartmentForm" method="POST" class="col-12 col-sm-auto p-0">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-danger w-100" id="confirmDeleteButton">Hapus departemen</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Bulk Delete Modal -->
-    <div class="modal fade" id="bulkDeleteModal" tabindex="-1" aria-labelledby="bulkDeleteModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="bulkDeleteModalLabel">Konfirmasi hapus massal</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Hapus semua departemen terpilih?</p>
-                    <p class="text-danger">Tindakan ini tidak dapat dibatalkan. Departemen yang masih memiliki pengguna tidak akan dihapus.</p>
-                </div>
-                <div class="modal-footer justify-content-between flex-wrap">
-                    <button type="button" class="btn btn-secondary mb-2 mb-sm-0 col-12 col-sm-auto" data-bs-dismiss="modal">Batal</button>
-                    <button type="button" class="btn btn-danger col-12 col-sm-auto" id="confirmBulkDelete">Hapus departemen terpilih</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <style>
-        .avatar-sm {
-            width: 36px;
-            height: 36px;
-            font-size: 14px;
-        }
-        
-        /* Mobile optimizations */
-        @media (max-width: 768px) {
-            .card-body {
-                padding: 1rem;
-            }
-            
-            .modal-body, .modal-footer {
-                padding: 1rem;
-            }
-            
-            .form-control, .btn {
-                font-size: 16px; /* Prevent auto-zoom on iOS */
-            }
-            
-            .form-control-lg {
-                height: 50px;
-            }
-            
-            .modal-footer .btn {
-                padding: 0.5rem 1rem;
-            }
-            
-            /* Improve pagination on mobile */
-            .pagination {
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-        }
-    </style>
-
-    @push('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Select all checkbox functionality (desktop)
-            const selectAllCheckbox = document.getElementById('selectAll');
-            const checkboxes = document.querySelectorAll('.select-checkbox');
-            const bulkDeleteBtn = document.querySelector('.bulk-delete-btn');
-
-            if (selectAllCheckbox) {
-                selectAllCheckbox.addEventListener('change', function() {
-                    checkboxes.forEach(checkbox => {
-                        checkbox.checked = this.checked;
-                    });
-                    updateBulkDeleteButton();
-                });
-            }
-
-            checkboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', function() {
-                    updateBulkDeleteButton();
-                    
-                    // Update select all checkbox
-                    if (!this.checked) {
-                        selectAllCheckbox.checked = false;
-                    } else {
-                        // Check if all checkboxes are checked
-                        let allChecked = true;
-                        checkboxes.forEach(cb => {
-                            if (!cb.checked) allChecked = false;
-                        });
-                        selectAllCheckbox.checked = allChecked;
-                    }
-                });
-            });
-
-            function updateBulkDeleteButton() {
-                let checkedCount = 0;
-                checkboxes.forEach(checkbox => {
-                    if (checkbox.checked) checkedCount++;
-                });
-                
-                if (bulkDeleteBtn) {
-                    bulkDeleteBtn.disabled = checkedCount === 0;
-                }
-            }
-            
-            // Mobile checkboxes functionality
-            const mobileCheckboxes = document.querySelectorAll('.mobile-select-checkbox');
-            const mobileBulkDeleteBtn = document.querySelector('.mobile-bulk-delete-btn');
-            
-            mobileCheckboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', function() {
-                    updateMobileBulkDeleteButton();
-                });
-            });
-            
-            function updateMobileBulkDeleteButton() {
-                let checkedCount = 0;
-                mobileCheckboxes.forEach(checkbox => {
-                    if (checkbox.checked) checkedCount++;
-                });
-                
-                if (mobileBulkDeleteBtn) {
-                    mobileBulkDeleteBtn.disabled = checkedCount === 0;
-                }
-            }
-
-            // Edit department modal
-            const editDeptBtns = document.querySelectorAll('.dept-edit-btn');
-            editDeptBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const deptId = this.getAttribute('data-dept-id');
-                    const deptName = this.getAttribute('data-dept-name');
-                    const deptCode = this.getAttribute('data-dept-code');
-                    const deptDescription = this.getAttribute('data-dept-description');
-                    
-                    // Set form action
-                    document.getElementById('editDepartmentForm').action = '/admin/departments/' + deptId;
-                    
-                    // Populate form fields
-                    document.getElementById('edit_name').value = deptName;
-                    document.getElementById('edit_code').value = deptCode;
-                    document.getElementById('edit_description').value = deptDescription || '';
-                });
-            });
-            
-            // Delete department modal
-            const deleteDeptBtns = document.querySelectorAll('.dept-delete-btn');
-            deleteDeptBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const deptId = this.getAttribute('data-dept-id');
-                    const deptName = this.getAttribute('data-dept-name');
-                    const deptUsers = parseInt(this.getAttribute('data-dept-users'));
-                    
-                    // Set form action
-                    document.getElementById('deleteDepartmentForm').action = '/admin/departments/' + deptId;
-                    
-                    // Set department name in confirmation message
-                    document.getElementById('delete-dept-name').textContent = deptName;
-                    
-                    // Show warning if department has users
-                    const warningElement = document.getElementById('delete-dept-warning');
-                    const deleteButton = document.getElementById('confirmDeleteButton');
-                    
-                    if (deptUsers > 0) {
-                        warningElement.classList.remove('d-none');
-                        document.getElementById('delete-dept-users-count').textContent = deptUsers;
-                        deleteButton.disabled = true;
-                    } else {
-                        warningElement.classList.add('d-none');
-                        deleteButton.disabled = false;
-                    }
-                });
-            });
-            
-            // Bulk delete confirmation
-            const bulkActionForm = document.getElementById('bulk-action-form');
-            const mobileBulkActionForm = document.getElementById('mobile-bulk-action-form');
-            const confirmBulkDelete = document.getElementById('confirmBulkDelete');
-            
-            if (confirmBulkDelete) {
-                confirmBulkDelete.addEventListener('click', function() {
-                    // Check which form to submit based on viewport
-                    if (window.innerWidth < 768 && mobileBulkActionForm) {
-                        mobileBulkActionForm.submit();
-                    } else if (bulkActionForm) {
-                        bulkActionForm.submit();
-                    }
-                });
-            }
-        });
-    </script>
-    @endpush
-</x-app-layout> 
+</x-app-layout>

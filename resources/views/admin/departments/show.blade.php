@@ -1,128 +1,51 @@
+{{-- Admin · Detail Departemen — info, statistik, anggota --}}
+@use('App\Support\Format')
 <x-app-layout title="Detail Departemen" :back="route('admin.departments.index')">
+    <x-sg.page-header :title="$department->name" :subtitle="$department->code">
+        <x-slot:actions>
+            <a href="{{ route('admin.departments.edit', $department) }}" class="btn btn-primary"><i class="bi bi-pencil-square" aria-hidden="true"></i> Edit</a>
+        </x-slot:actions>
+    </x-sg.page-header>
 
-    <div class="card">
-        <div class="card-header bg-white py-3">
-            <div class="row align-items-center">
-                <div class="col">
-                    <h5 class="mb-0">{{ $department->name }}</h5>
-                </div>
-                <div class="col text-end">
-                    <a href="{{ route('admin.departments.index') }}" class="btn btn-outline-secondary me-2">
-                        <i class="bi bi-arrow-left me-1"></i> Back to Departments
-                    </a>
-                    <a href="{{ route('admin.departments.edit', $department) }}" class="btn btn-primary">
-                        <i class="bi bi-pencil-square me-1"></i> Edit departemen
-                    </a>
-                </div>
-            </div>
+    <div class="row g-3 g-lg-4">
+        <div class="col-lg-4">
+            <section class="card p-3 mb-3" aria-label="Informasi departemen">
+                <dl class="sg-meta-grid border-0 pt-0 mb-0">
+                    <div><dt>Kode</dt><dd>{{ $department->code }}</dd></div>
+                    <div><dt>Pengguna</dt><dd class="sg-num">{{ Format::number($department->users->count()) }}</dd></div>
+                    <div><dt>Laporan</dt><dd class="sg-num">{{ Format::number($department->dailyReports()->count()) }}</dd></div>
+                    <div><dt>Diperbarui</dt><dd>{{ Format::date($department->updated_at) }}</dd></div>
+                </dl>
+                @if ($department->description)
+                    <h2 class="sg-section-label mt-3">Deskripsi</h2>
+                    <p class="sg-prewrap mb-0">{{ $department->description }}</p>
+                @endif
+            </section>
         </div>
-        <div class="card-body">
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <h6 class="text-muted">Informasi departemen</h6>
-                    <div class="table-responsive">
-                        <table class="table table-bordered">
-                            <tr>
-                                <th class="bg-light" width="30%">Nama</th>
-                                <td>{{ $department->name }}</td>
-                            </tr>
-                            <tr>
-                                <th class="bg-light">Kode</th>
-                                <td>{{ $department->code }}</td>
-                            </tr>
-                            <tr>
-                                <th class="bg-light">Deskripsi</th>
-                                <td>{{ $department->description ?: 'No description available' }}</td>
-                            </tr>
-                            <tr>
-                                <th class="bg-light">Created</th>
-                                <td>{{ $department->created_at->format('M d, Y h:i A') }}</td>
-                            </tr>
-                            <tr>
-                                <th class="bg-light">Terakhir diperbarui</th>
-                                <td>{{ $department->updated_at->format('M d, Y h:i A') }}</td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <h6 class="text-muted">Statistik departemen</h6>
-                    <div class="row g-3">
-                        <div class="col-6">
-                            <div class="card bg-primary bg-opacity-10">
-                                <div class="card-body text-center">
-                                    <div class="fs-1 fw-bold text-primary">{{ $department->users->count() }}</div>
-                                    <div>Total pengguna</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="card bg-success bg-opacity-10">
-                                <div class="card-body text-center">
-                                    <div class="fs-1 fw-bold text-success">{{ $department->dailyReports->count() }}</div>
-                                    <div>Total laporan</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <h6 class="mb-3">Anggota departemen</h6>
-            @if($department->users->count() > 0)
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Nama</th>
-                                <th>Email</th>
-                                <th>Role</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($department->users as $user)
-                            <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="avatar-sm me-2 bg-primary rounded-circle text-white d-flex align-items-center justify-content-center">
-                                            {{ substr($user->name, 0, 1) }}
-                                        </div>
-                                        <div>{{ $user->name }}</div>
+
+        <div class="col-lg-8">
+            <section aria-labelledby="dp-members">
+                <h2 id="dp-members" class="h6 fw-bold mb-2">Anggota ({{ $department->users->count() }})</h2>
+                @if ($department->users->isEmpty())
+                    <x-sg.empty icon="bi-people" title="Belum ada anggota" text="Atur departemen pengguna di halaman Pengguna." />
+                @else
+                    <div class="sg-list">
+                        @foreach ($department->users->sortByDesc(fn ($u) => $u->getRoleLevel()) as $member)
+                            <div class="sg-list-card">
+                                <x-sg.avatar :user="$member" :size="40" class="flex-none" />
+                                <div class="sg-list-card__body">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <a href="{{ route('admin.users.edit', $member) }}" class="sg-list-card__title sg-clamp-1 text-reset text-decoration-none stretched-link">{{ $member->name }}</a>
+                                        <x-sg.badge-level :user="$member" short class="flex-none" />
                                     </div>
-                                </td>
-                                <td>{{ $user->email }}</td>
-                                <td>{{ $user->role->name ?? 'No Role' }}</td>
-                                <td>
-                                    <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-sm btn-outline-secondary">
-                                        <i class="bi bi-person-gear me-1"></i> Edit pengguna
-                                    </a>
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            @else
-                <div class="alert alert-info">
-                    <i class="bi bi-info-circle me-2"></i> Belum ada pengguna di departemen ini.
-                </div>
-            @endif
-        </div>
-        <div class="card-footer bg-white py-3">
-            <div class="d-flex justify-content-end">
-                <a href="{{ route('admin.departments.edit', $department) }}" class="btn btn-primary">
-                    <i class="bi bi-pencil-square me-1"></i> Edit departemen
-                </a>
-            </div>
+                                    <div class="sg-list-card__meta sg-clamp-1">{{ $member->user_id ?: $member->email ?: '-' }}</div>
+                                </div>
+                                <i class="bi bi-chevron-right sg-list-card__chevron" aria-hidden="true"></i>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+            </section>
         </div>
     </div>
-    
-    <style>
-        .avatar-sm {
-            width: 36px;
-            height: 36px;
-            font-size: 14px;
-        }
-    </style>
-</x-app-layout> 
+</x-app-layout>

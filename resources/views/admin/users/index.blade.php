@@ -1,712 +1,109 @@
+{{-- Admin · Pengguna — daftar + filter (cari, role, departemen) + hapus massal. Tambah/edit di halaman form (admin/users/partials/form). --}}
+@php
+    $rows = $users->getCollection();
+    $filtered = collect(request()->only(['search', 'role', 'department']))->filter()->isNotEmpty();
+@endphp
+
 <x-app-layout title="Pengguna">
+    <div x-data="sgAdminList(@js(['base' => url('admin/users'), 'ids' => $rows->where('id', '!=', auth()->id())->pluck('id')->values()]))">
 
-    <div class="card">
-        <div class="card-header bg-white py-3">
-            <div class="row align-items-center">
-                <div class="col-md-6 mb-2 mb-md-0">
-                    <h5 class="mb-0">Semua pengguna</h5>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <div class="d-flex flex-wrap justify-content-center justify-content-md-end gap-2">
-                        <div class="btn-group me-md-2 mb-2 mb-md-0">
-                            <a href="{{ route('admin.users.export') }}" class="btn btn-outline-primary" aria-label="Ekspor">
-                                <i class="bi bi-box-arrow-up me-1" aria-hidden="true"></i> <span class="d-none d-sm-inline">Ekspor</span>
-                            </a>
-                            <a href="{{ route('admin.users.show-import') }}" class="btn btn-outline-success" aria-label="Impor">
-                                <i class="bi bi-box-arrow-in-down me-1" aria-hidden="true"></i> <span class="d-none d-sm-inline">Impor</span>
-                            </a>
-                        </div>
-                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createUserModal" aria-label="Pengguna baru">
-                            <i class="bi bi-person-plus me-1" aria-hidden="true"></i> <span class="d-none d-sm-inline">Pengguna baru</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="card-body">
-            <!-- Filter Controls -->
-            <form action="{{ route('admin.users.index') }}" method="GET" class="mb-4">
-                <div class="row g-3">
-                    <div class="col-12 col-md-3">
-                        <div class="input-group">
-                            <span class="input-group-text bg-light">
-                                <i class="bi bi-search"></i>
-                            </span>
-                            <input type="text" name="search" aria-label="Cari" class="form-control" placeholder="Cari…" value="{{ request('search') }}">
-                        </div>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <select name="role" class="form-select">
-                            <option value="">Semua role</option>
-                            @foreach($roles ?? [] as $id => $name)
-                                <option value="{{ $id }}" {{ request('role') == $id ? 'selected' : '' }}>{{ $name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <select name="department" class="form-select">
-                            <option value="">Semua departemen</option>
-                            @foreach($departments ?? [] as $id => $name)
-                                <option value="{{ $id }}" {{ request('department') == $id ? 'selected' : '' }}>{{ $name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-12 col-md-3">
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary flex-grow-1" aria-label="Filter">
-                                <i class="bi bi-funnel me-1" aria-hidden="true"></i> <span class="d-none d-sm-inline">Filter</span>
-                            </button>
-                            <a href="{{ route('admin.users.index') }}" class="btn btn-secondary flex-grow-1" aria-label="Reset">
-                                <i class="bi bi-arrow-clockwise me-1" aria-hidden="true"></i> <span class="d-none d-sm-inline">Reset</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </form>
+        <x-sg.page-header title="Pengguna" :subtitle="\App\Support\Format::number($users->total()).' pengguna'">
+            <x-slot:actions>
+                <a href="{{ route('admin.users.export') }}" class="btn btn-outline-secondary"><i class="bi bi-box-arrow-up" aria-hidden="true"></i> Ekspor</a>
+                <a href="{{ route('admin.users.show-import') }}" class="btn btn-outline-secondary"><i class="bi bi-box-arrow-in-down" aria-hidden="true"></i> Impor</a>
+                <a href="{{ route('admin.users.create') }}" class="btn btn-primary"><i class="bi bi-person-plus" aria-hidden="true"></i> Pengguna baru</a>
+            </x-slot:actions>
+        </x-sg.page-header>
 
-            @if(count($users ?? []) > 0)
-            <!-- Desktop Table View -->
-            <div class="table-responsive d-none d-lg-block">
-                <form id="bulk-action-form" method="POST" action="{{ route('admin.users.batch-delete') }}">
-                    @csrf
-                    @method('DELETE')
-                    <table class="table table-hover align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th width="40">
-                                    <div class="form-check">
-                                        <input class="form-check-input select-all-checkbox" type="checkbox" id="selectAll">
-                                    </div>
-                                </th>
-                                <th>Nama</th>
-                                <th>Email</th>
-                                <th>Role</th>
-                                <th>Departemen</th>
-                                <th>Job Site</th>
-                                <!-- <th>Status</th> -->
-                                <th width="120">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($users as $user)
-                            <tr>
-                                <td>
-                                    <div class="form-check">
-                                        <input class="form-check-input select-checkbox" type="checkbox" name="selected_users[]" value="{{ $user->id }}">
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="avatar-sm me-2 bg-primary rounded-circle text-white d-flex align-items-center justify-content-center">
-                                            {{ substr($user->name, 0, 1) }}
-                                        </div>
-                                        <div>
-                                            <a href="#" class="fw-medium text-decoration-none user-edit-btn" 
-                                               data-bs-toggle="modal" 
-                                               data-bs-target="#editUserModal" 
-                                               data-user-id="{{ $user->id }}"
-                                               data-user-name="{{ $user->name }}"
-                                               data-user-email="{{ $user->email }}"
-                                               data-user-role="{{ $user->role_id }}"
-                                               data-user-department="{{ $user->department_id }}"
-                                               data-user-jobsite="{{ $user->job_site_id }}"
-                                               data-user-userid="{{ $user->user_id }}">
-                                                {{ $user->name }}
-                                            </a>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>{{ $user->email }}</td>
-                                <td>{{ $user->role->name ?? 'No Role' }}</td>
-                                <td>{{ $user->department->name ?? 'No Department' }}</td>
-                                <td>
-                                    @if($user->jobSite)
-                                        <span class="badge bg-info">{{ $user->jobSite->name }}</span>
-                                    @else
-                                        <span class="badge bg-secondary">All Sites</span>
-                                    @endif
-                                </td>
-                                <!-- Hide verification status
-                                <td>
-                                    @if($user->email_verified_at)
-                                        <span class="badge bg-success">Terverifikasi</span>
-                                    @else
-                                        <span class="badge bg-warning">Belum terverifikasi</span>
-                                    @endif
-                                </td>
-                                -->
-                                <td>
-                                    <div class="d-flex">
-                                        <button type="button" class="btn btn-sm btn-outline-secondary me-1 user-edit-btn"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#editUserModal"
-                                                data-user-id="{{ $user->id }}"
-                                                data-user-name="{{ $user->name }}"
-                                                data-user-email="{{ $user->email }}"
-                                                data-user-role="{{ $user->role_id }}"
-                                                data-user-department="{{ $user->department_id }}"
-                                                data-user-jobsite="{{ $user->job_site_id }}"
-                                                data-user-userid="{{ $user->user_id }}" aria-label="Edit {{ $user->name }}">
-                                            <i class="bi bi-pencil-square" aria-hidden="true"></i>
-                                        </button>
-                                        @if(auth()->id() !== $user->id)
-                                        <button type="button" class="btn btn-sm btn-outline-danger user-delete-btn" 
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#deleteUserModal" 
-                                                data-user-id="{{ $user->id }}" 
-                                                data-user-name="{{ $user->name }}" aria-label="Hapus {{ $user->name }}">
-                                            <i class="bi bi-trash3" aria-hidden="true"></i>
-                                        </button>
-                                        @endif
-                                    </div>
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-
-                    <div class="mt-3 d-flex justify-content-between align-items-center">
-                        <div>
-                            <button type="button" class="btn btn-danger bulk-delete-btn" disabled data-bs-toggle="modal" data-bs-target="#bulkDeleteModal">
-                                <i class="bi bi-trash3 me-1"></i> Delete Selected
-                            </button>
-                        </div>
-                        <div>
-                            {{ $users->links() }}
-                        </div>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Mobile Card View -->
-            <div class="d-lg-none">
-                <form id="mobile-bulk-action-form" method="POST" action="{{ route('admin.users.batch-delete') }}">
-                    @csrf
-                    @method('DELETE')
-                    
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <div class="form-check">
-                            <input class="form-check-input mobile-select-all" type="checkbox" id="mobileSelectAll">
-                            <label class="form-check-label" for="mobileSelectAll">Pilih semua</label>
-                        </div>
-                        <button type="button" class="btn btn-danger btn-sm mobile-bulk-delete-btn" disabled data-bs-toggle="modal" data-bs-target="#bulkDeleteModal">
-                            <i class="bi bi-trash3 me-1"></i> Hapus
-                        </button>
-                    </div>
-                    
-                    <div class="row g-3">
-                        @foreach($users as $user)
-                        <div class="col-12">
-                            <div class="card shadow-sm h-100">
-                                <div class="card-body p-3">
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <div class="d-flex align-items-center">
-                                            <div class="avatar-sm me-2 bg-primary rounded-circle text-white d-flex align-items-center justify-content-center">
-                                                {{ substr($user->name, 0, 1) }}
-                                            </div>
-                                            <div>
-                                                <h6 class="mb-0 fw-bold">{{ $user->name }}</h6>
-                                                <span class="text-muted small">{{ $user->email }}</span>
-                                            </div>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input mobile-select-checkbox" type="checkbox" name="selected_users[]" value="{{ $user->id }}">
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="row g-2 mb-3">
-                                        <div class="col-6">
-                                            <div class="d-flex align-items-center">
-                                                <i class="bi bi-person-vcard text-primary me-2 small"></i>
-                                                <span class="small text-truncate">{{ $user->role->name ?? 'No Role' }}</span>
-                                            </div>
-                                        </div>
-                                        <div class="col-6">
-                                            <div class="d-flex align-items-center">
-                                                <i class="bi bi-building text-primary me-2 small"></i>
-                                                <span class="small text-truncate">{{ $user->department->name ?? 'No Department' }}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <!-- Hide verification status
-                                        <div>
-                                            @if($user->email_verified_at)
-                                                <span class="badge bg-success">Terverifikasi</span>
-                                            @else
-                                                <span class="badge bg-warning">Belum terverifikasi</span>
-                                            @endif
-                                        </div>
-                                        -->
-                                        <div class="btn-group">
-                                            <button type="button" class="btn btn-sm btn-outline-secondary user-edit-btn"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#editUserModal"
-                                                data-user-id="{{ $user->id }}"
-                                                data-user-name="{{ $user->name }}"
-                                                data-user-email="{{ $user->email }}"
-                                                data-user-role="{{ $user->role_id }}"
-                                                data-user-department="{{ $user->department_id }}"
-                                                data-user-jobsite="{{ $user->job_site_id }}"
-                                                data-user-userid="{{ $user->user_id }}">
-                                                <i class="bi bi-pencil-square me-1"></i> Edit
-                                            </button>
-                                            @if(auth()->id() !== $user->id)
-                                            <button type="button" class="btn btn-sm btn-outline-danger user-delete-btn" 
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#deleteUserModal" 
-                                                data-user-id="{{ $user->id }}" 
-                                                data-user-name="{{ $user->name }}">
-                                                <i class="bi bi-trash3 me-1"></i> Hapus
-                                            </button>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        @endforeach
-                    </div>
-                    
-                    <div class="mt-3 d-flex justify-content-center">
-                        {{ $users->links() }}
-                    </div>
-                </form>
-            </div>
-            @else
-            <div class="alert alert-info">
-                <i class="bi bi-info-circle me-2"></i> Tidak ada pengguna yang cocok dengan filter.
-            </div>
+        <form method="GET" action="{{ route('admin.users.index') }}" class="sg-filter-bar mb-3">
+            <div class="sg-filter-bar__search"><x-sg.search name="search" placeholder="Cari nama, User ID, atau email" /></div>
+            <label for="f-u-role" class="visually-hidden">Role</label>
+            <select id="f-u-role" name="role" class="form-select" onchange="this.form.submit()">
+                <option value="">Semua role</option>
+                @foreach ($roles as $id => $name)
+                    <option value="{{ $id }}" @selected(request('role') == $id)>{{ $name }}</option>
+                @endforeach
+            </select>
+            <label for="f-u-dept" class="visually-hidden">Departemen</label>
+            <select id="f-u-dept" name="department" class="form-select" onchange="this.form.submit()">
+                <option value="">Semua departemen</option>
+                @foreach ($departments as $id => $name)
+                    <option value="{{ $id }}" @selected(request('department') == $id)>{{ $name }}</option>
+                @endforeach
+            </select>
+            <button type="submit" class="btn btn-outline-secondary">Cari</button>
+            @if ($filtered)
+                <a href="{{ route('admin.users.index') }}" class="btn btn-quiet">Reset</a>
             @endif
-        </div>
-    </div>
+        </form>
 
-    <!-- Create User Modal -->
-    <div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="createUserModalLabel">Create New User</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form action="{{ route('admin.users.store') }}" method="POST">
-                    <div class="modal-body">
-                        @csrf
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="name" class="form-label">Nama <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="name" name="name" required>
+        @if ($rows->isEmpty())
+            <x-sg.empty icon="bi-people" title="Tidak ada pengguna" :text="$filtered ? 'Tidak ada yang cocok dengan saringan.' : 'Tambahkan pengguna pertama.'" />
+        @else
+            <div class="sg-list d-lg-none">
+                @foreach ($rows as $u)
+                    <div class="sg-list-card" :class="{ 'is-selected': isSelected({{ $u->id }}) }">
+                        @unless ($u->id === auth()->id())
+                            <input type="checkbox" class="form-check-input flex-none mt-1 position-relative" style="z-index:2" :checked="isSelected({{ $u->id }})" @change="toggle({{ $u->id }})" aria-label="Pilih {{ $u->name }}">
+                        @endunless
+                        <x-sg.avatar :user="$u" :size="40" class="flex-none" />
+                        <div class="sg-list-card__body">
+                            <div class="d-flex align-items-center gap-2">
+                                <a href="{{ route('admin.users.edit', $u) }}" class="sg-list-card__title sg-clamp-1 text-reset text-decoration-none stretched-link">{{ $u->name }}</a>
+                                <x-sg.badge-level :user="$u" short class="flex-none" />
                             </div>
-                            <div class="col-md-6">
-                                <label for="email" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="email" name="email" placeholder="Email (opsional)">
-                            </div>
+                            <div class="sg-list-card__meta sg-clamp-1">{{ collect([$u->user_id, $u->department?->name, $u->jobSite?->name])->filter()->implode(' · ') ?: '-' }}</div>
                         </div>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="role_id" class="form-label">Role <span class="text-danger">*</span></label>
-                                <select class="form-select" id="role_id" name="role_id" required>
-                                    <option value="">Pilih role</option>
-                                    @foreach($roles ?? [] as $id => $name)
-                                        <option value="{{ $id }}">{{ $name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="department_id" class="form-label">Departemen</label>
-                                <select class="form-select" id="department_id" name="department_id">
-                                    <option value="">Pilih departemen</option>
-                                    @foreach($departments ?? [] as $id => $name)
-                                        <option value="{{ $id }}">{{ $name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="job_site_id" class="form-label">Job Site</label>
-                                <select class="form-select" id="job_site_id" name="job_site_id">
-                                    <option value="">Semua site (khusus admin)</option>
-                                    @php
-                                        $jobSites = \App\Models\JobSite::where('is_active', true)->orderBy('name')->get();
-                                    @endphp
-                                    @foreach($jobSites as $site)
-                                        <option value="{{ $site->id }}">{{ $site->name }}</option>
-                                    @endforeach
-                                </select>
-                                <small class="text-muted">Kosongkan untuk admin</small>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="user_id" class="form-label">User ID</label>
-                                <input type="text" class="form-control" id="user_id" name="user_id">
-                            </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="password" class="form-label">Kata sandi <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <input type="password" class="form-control" id="password" name="password" required>
-                                    <button class="btn btn-outline-secondary toggle-password" type="button" data-target="password" aria-label="Tampilkan kata sandi">
-                                        <i class="bi bi-eye" aria-hidden="true"></i>
-                                    </button>
+                        <i class="bi bi-chevron-right sg-list-card__chevron" aria-hidden="true"></i>
+                    </div>
+                @endforeach
+            </div>
+
+            <x-sg.table class="d-none d-lg-block" caption="Daftar pengguna">
+                <x-slot:head>
+                    <tr>
+                        <th style="width:44px"><input type="checkbox" class="form-check-input" :checked="allSelected" @change="toggleAll()" aria-label="Pilih semua di halaman ini"></th>
+                        <th>Nama</th><th>User ID</th><th>Role</th><th>Departemen</th><th>Job site</th><th style="width:60px"><span class="visually-hidden">Aksi</span></th>
+                    </tr>
+                </x-slot:head>
+                @foreach ($rows as $u)
+                    <tr :class="{ 'table-active': isSelected({{ $u->id }}) }">
+                        <td>
+                            @unless ($u->id === auth()->id())
+                                <input type="checkbox" class="form-check-input" :checked="isSelected({{ $u->id }})" @change="toggle({{ $u->id }})" aria-label="Pilih {{ $u->name }}">
+                            @endunless
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <x-sg.avatar :user="$u" :size="32" />
+                                <div class="min-w-0">
+                                    <a href="{{ route('admin.users.edit', $u) }}" class="fw-semibold text-reset sg-clamp-1">{{ $u->name }}</a>
+                                    <div class="small text-muted sg-clamp-1">{{ $u->email ?: '-' }}</div>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <label for="password_confirmation" class="form-label">Confirm Password <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" required>
-                                    <button class="btn btn-outline-secondary toggle-password" type="button" data-target="password_confirmation" aria-label="Tampilkan kata sandi">
-                                        <i class="bi bi-eye" aria-hidden="true"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <div class="alert alert-info small">
-                                <i class="bi bi-info-circle me-1"></i> New users will automatically receive a welcome notification.
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary">Create User</button>
-                    </div>
-                </form>
+                        </td>
+                        <td class="text-nowrap">{{ $u->user_id ?: '-' }}</td>
+                        <td><x-sg.badge-level :user="$u" /></td>
+                        <td>{{ $u->department?->name ?? '-' }}</td>
+                        <td>{{ $u->jobSite?->name ?? '-' }}</td>
+                        <td class="text-end"><a href="{{ route('admin.users.edit', $u) }}" class="btn btn-quiet btn-icon" aria-label="Edit {{ $u->name }}"><i class="bi bi-pencil-square" aria-hidden="true"></i></a></td>
+                    </tr>
+                @endforeach
+            </x-sg.table>
+            <div class="mt-3">{{ $users->links() }}</div>
+        @endif
+
+        <div class="sg-batch-bar" x-show="selected.length" x-cloak>
+            <div class="d-flex gap-2 align-items-center w-100">
+                <span class="fw-semibold me-auto" x-text="selected.length + ' dipilih'"></span>
+                <button type="button" class="btn btn-outline-secondary" @click="selected = []">Batal</button>
+                <button type="button" class="btn btn-reject" @click="sheet('bulk-sheet')" x-text="'Hapus (' + selected.length + ')'"></button>
             </div>
         </div>
+
+        <x-sg.confirm-danger id="bulk-sheet" title="Hapus pengguna terpilih?" :action="route('admin.users.batch-delete')" confirm-text="HAPUS"
+                             text="Akun yang dipilih dihapus permanen. Akun Anda sendiri tidak ikut terhapus.">
+            <template x-for="id in selected" :key="id"><input type="hidden" name="selected_users[]" :value="id"></template>
+        </x-sg.confirm-danger>
     </div>
-
-    <!-- Edit User Modal -->
-    <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editUserModalLabel">Edit pengguna</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form id="editUserForm" method="POST">
-                    <div class="modal-body">
-                        @csrf
-                        @method('PUT')
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="edit_name" class="form-label">Nama <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="edit_name" name="name" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="edit_email" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="edit_email" name="email" placeholder="Email (opsional)">
-                            </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="edit_role_id" class="form-label">Role <span class="text-danger">*</span></label>
-                                <select class="form-select" id="edit_role_id" name="role_id" required>
-                                    <option value="">Pilih role</option>
-                                    @foreach($roles ?? [] as $id => $name)
-                                        <option value="{{ $id }}">{{ $name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="edit_department_id" class="form-label">Departemen</label>
-                                <select class="form-select" id="edit_department_id" name="department_id">
-                                    <option value="">Pilih departemen</option>
-                                    @foreach($departments ?? [] as $id => $name)
-                                        <option value="{{ $id }}">{{ $name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="edit_job_site_id" class="form-label">Job Site</label>
-                                <select class="form-select" id="edit_job_site_id" name="job_site_id">
-                                    <option value="">Semua site (khusus admin)</option>
-                                    @php
-                                        $jobSites = \App\Models\JobSite::where('is_active', true)->orderBy('name')->get();
-                                    @endphp
-                                    @foreach($jobSites as $site)
-                                        <option value="{{ $site->id }}">{{ $site->name }}</option>
-                                    @endforeach
-                                </select>
-                                <small class="text-muted">Kosongkan untuk admin</small>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="edit_user_id" class="form-label">User ID</label>
-                                <input type="text" class="form-control" id="edit_user_id" name="user_id">
-                            </div>
-                            <div class="col-md-6">
-                                <label for="edit_password" class="form-label">Kata sandi <small class="text-muted">(leave blank to keep current)</small></label>
-                                <div class="input-group">
-                                    <input type="password" class="form-control" id="edit_password" name="password">
-                                    <button class="btn btn-outline-secondary toggle-password" type="button" data-target="edit_password" aria-label="Tampilkan kata sandi">
-                                        <i class="bi bi-eye" aria-hidden="true"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary">Simpan pengguna</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Delete User Modal -->
-    <div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="deleteUserModalLabel">Konfirmasi hapus</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Hapus pengguna <strong id="delete-user-name"></strong>?</p>
-                    <p class="text-danger">Tindakan ini tidak dapat dibatalkan.</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <form id="deleteUserForm" method="POST">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-danger">Hapus pengguna</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Bulk Delete Modal -->
-    <div class="modal fade" id="bulkDeleteModal" tabindex="-1" aria-labelledby="bulkDeleteModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="bulkDeleteModalLabel">Konfirmasi hapus massal</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Hapus semua pengguna terpilih?</p>
-                    <p class="text-danger">Tindakan ini tidak dapat dibatalkan.</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="button" class="btn btn-danger" id="confirmBulkDelete">Hapus pengguna terpilih</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <style>
-        .avatar-sm {
-            width: 36px;
-            height: 36px;
-            font-size: 14px;
-        }
-        
-        /* Mobile specific styles */
-        @media (max-width: 991.98px) {
-            .card {
-                border-radius: 10px;
-                overflow: hidden;
-            }
-            
-            .btn-group .btn {
-                padding: 0.4rem 0.75rem;
-                min-height: 38px;
-            }
-            
-            /* Improve touch target size */
-            .form-check-input[type="checkbox"] {
-                width: 20px;
-                height: 20px;
-                cursor: pointer;
-            }
-            
-            /* Make pagination more mobile friendly */
-            .pagination {
-                flex-wrap: wrap;
-                justify-content: center;
-                gap: 5px;
-            }
-            
-            .page-item .page-link {
-                min-width: 38px;
-                height: 38px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-        }
-    </style>
-
-    @push('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Password toggle visibility
-            const togglePasswordButtons = document.querySelectorAll('.toggle-password');
-            togglePasswordButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const targetId = this.getAttribute('data-target');
-                    const passwordInput = document.getElementById(targetId);
-                    
-                    // Toggle the type attribute
-                    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-                    passwordInput.setAttribute('type', type);
-                    
-                    // Toggle the icon
-                    this.querySelector('i').classList.toggle('bi-eye');
-                    this.querySelector('i').classList.toggle('bi-eye-slash');
-                });
-            });
-            
-            // Desktop select all functionality
-            const selectAllCheckbox = document.getElementById('selectAll');
-            const checkboxes = document.querySelectorAll('.select-checkbox');
-            const bulkDeleteBtn = document.querySelector('.bulk-delete-btn');
-
-            if (selectAllCheckbox) {
-                selectAllCheckbox.addEventListener('change', function() {
-                    checkboxes.forEach(checkbox => {
-                        checkbox.checked = this.checked;
-                    });
-                    updateBulkDeleteButton();
-                });
-            }
-
-            checkboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', function() {
-                    updateBulkDeleteButton();
-                    
-                    // Update select all checkbox
-                    if (!this.checked) {
-                        selectAllCheckbox.checked = false;
-                    } else {
-                        // Check if all checkboxes are checked
-                        let allChecked = true;
-                        checkboxes.forEach(cb => {
-                            if (!cb.checked) allChecked = false;
-                        });
-                        selectAllCheckbox.checked = allChecked;
-                    }
-                });
-            });
-
-            function updateBulkDeleteButton() {
-                let checkedCount = 0;
-                checkboxes.forEach(checkbox => {
-                    if (checkbox.checked) checkedCount++;
-                });
-                
-                if (bulkDeleteBtn) {
-                    bulkDeleteBtn.disabled = checkedCount === 0;
-                }
-            }
-            
-            // Mobile select all functionality
-            const mobileSelectAll = document.getElementById('mobileSelectAll');
-            const mobileCheckboxes = document.querySelectorAll('.mobile-select-checkbox');
-            const mobileBulkDeleteBtn = document.querySelector('.mobile-bulk-delete-btn');
-            
-            if (mobileSelectAll) {
-                mobileSelectAll.addEventListener('change', function() {
-                    mobileCheckboxes.forEach(checkbox => {
-                        checkbox.checked = this.checked;
-                    });
-                    updateMobileBulkDeleteButton();
-                });
-            }
-            
-            mobileCheckboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', function() {
-                    updateMobileBulkDeleteButton();
-                    
-                    // Update select all checkbox
-                    if (!this.checked) {
-                        mobileSelectAll.checked = false;
-                    } else {
-                        // Check if all checkboxes are checked
-                        let allChecked = true;
-                        mobileCheckboxes.forEach(cb => {
-                            if (!cb.checked) allChecked = false;
-                        });
-                        mobileSelectAll.checked = allChecked;
-                    }
-                });
-            });
-            
-            function updateMobileBulkDeleteButton() {
-                let checkedCount = 0;
-                mobileCheckboxes.forEach(checkbox => {
-                    if (checkbox.checked) checkedCount++;
-                });
-                
-                if (mobileBulkDeleteBtn) {
-                    mobileBulkDeleteBtn.disabled = checkedCount === 0;
-                }
-            }
-
-            // Edit user modal - update to work with both desktop and mobile buttons
-            const editUserBtns = document.querySelectorAll('.user-edit-btn');
-            editUserBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const userId = this.getAttribute('data-user-id');
-                    const userName = this.getAttribute('data-user-name');
-                    const userEmail = this.getAttribute('data-user-email');
-                    const userRole = this.getAttribute('data-user-role');
-                    const userDepartment = this.getAttribute('data-user-department');
-                    const userJobSite = this.getAttribute('data-user-jobsite');
-                    const userUserId = this.getAttribute('data-user-userid');
-
-                    // Set form action
-                    document.getElementById('editUserForm').action = '/admin/users/' + userId;
-
-                    // Populate form fields
-                    document.getElementById('edit_name').value = userName;
-                    document.getElementById('edit_email').value = userEmail;
-                    document.getElementById('edit_role_id').value = userRole;
-                    document.getElementById('edit_department_id').value = userDepartment || '';
-                    document.getElementById('edit_job_site_id').value = userJobSite || '';
-                    document.getElementById('edit_user_id').value = userUserId || '';
-                    document.getElementById('edit_password').value = '';
-                });
-            });
-            
-            // Delete user modal - update to work with both desktop and mobile buttons
-            const deleteUserBtns = document.querySelectorAll('.user-delete-btn');
-            deleteUserBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const userId = this.getAttribute('data-user-id');
-                    const userName = this.getAttribute('data-user-name');
-                    
-                    // Set form action
-                    document.getElementById('deleteUserForm').action = '/admin/users/' + userId;
-                    
-                    // Set user name in confirmation message
-                    document.getElementById('delete-user-name').textContent = userName;
-                });
-            });
-            
-            // Bulk delete confirmation - update to work with both forms
-            const bulkActionForm = document.getElementById('bulk-action-form');
-            const mobileBulkActionForm = document.getElementById('mobile-bulk-action-form');
-            const confirmBulkDelete = document.getElementById('confirmBulkDelete');
-            
-            if (confirmBulkDelete) {
-                confirmBulkDelete.addEventListener('click', function() {
-                    // Check which form to submit based on viewport
-                    if (window.innerWidth >= 992) {
-                        bulkActionForm.submit();
-                    } else {
-                        mobileBulkActionForm.submit();
-                    }
-                });
-            }
-        });
-    </script>
-    @endpush
-</x-app-layout> 
+</x-app-layout>

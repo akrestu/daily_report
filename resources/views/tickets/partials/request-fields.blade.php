@@ -21,7 +21,7 @@
             @foreach (\App\Models\Ticket::TYPES as $value => $label)
                 <input type="radio" class="btn-check" name="type" id="type-{{ $value }}" value="{{ $value }}" x-model="type" autocomplete="off" required>
                 <label class="sg-segment__item" for="type-{{ $value }}">
-                    <i class="bi {{ $value === 'incident' ? 'bi-exclamation-triangle' : 'bi-box-seam' }}" aria-hidden="true"></i>{{ $label }}
+                    <i class="bi {{ $value === 'incident' ? 'bi-exclamation-triangle' : 'bi-box-seam' }}" aria-hidden="true"></i>{{ $value === 'incident' ? 'Gangguan' : 'Permintaan' }}
                 </label>
             @endforeach
         </div>
@@ -63,9 +63,11 @@
         </div>
     </div>
     <div class="mb-3" aria-live="polite">
-        <div class="d-flex align-items-center gap-2" x-show="priority" x-cloak>
-            <span class="small text-muted">Prioritas otomatis:</span>
-            <span class="sg-priority" :class="priority && priorities[priority].class" x-text="priority && (priorities[priority].code + ' ' + priorities[priority].label)"></span>
+        <div x-show="priority" x-cloak>
+            <div class="d-flex align-items-center gap-2">
+                <span class="small text-muted">Prioritas otomatis:</span>
+                <span class="sg-priority" :class="priority && priorities[priority].class" x-text="priority && (priorities[priority].code + ' ' + priorities[priority].label)"></span>
+            </div>
         </div>
         <div class="small text-muted" x-show="!priority">Prioritas dan target waktu penanganan ditentukan otomatis dari dampak dan urgensi.</div>
     </div>

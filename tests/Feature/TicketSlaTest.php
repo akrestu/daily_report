@@ -174,7 +174,7 @@ class TicketSlaTest extends TestCase
             $policies[$priority] = ['response_hours' => $response, 'resolution_hours' => $resolution];
         }
 
-        $this->actingAs($admin)->get(route('admin.sla.index'))->assertOk()->assertSee('Matriks Prioritas');
+        $this->actingAs($admin)->get(route('admin.sla.index'))->assertOk()->assertSee('Matriks prioritas');
         $this->actingAs($admin)->put(route('admin.sla.update'), ['policies' => $policies])->assertSessionHas('success');
 
         $this->assertSame(120, SlaPolicy::forPriority('urgent')->resolution_minutes);
