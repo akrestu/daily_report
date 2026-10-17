@@ -136,7 +136,7 @@ class JobPlanController extends Controller
         // Verify assignee is in eligible list
         $eligibleIds = collect($this->getEligibleAssignees($user))->pluck('id')->toArray();
         if (!in_array((int) $validated['assignee_id'], $eligibleIds)) {
-            return back()->withErrors(['assignee_id' => 'Assignee yang dipilih tidak valid.'])->withInput();
+            return back()->withErrors(['assignee_id' => 'Anggota tim ini tidak bisa Anda tugaskan.'])->withInput();
         }
 
         DB::beginTransaction();
@@ -226,7 +226,7 @@ class JobPlanController extends Controller
         // Always allow current assignee to stay
         $eligibleIds[] = $jobPlan->assignee_id;
         if (!in_array((int) $validated['assignee_id'], $eligibleIds)) {
-            return back()->withErrors(['assignee_id' => 'Assignee yang dipilih tidak valid.'])->withInput();
+            return back()->withErrors(['assignee_id' => 'Anggota tim ini tidak bisa Anda tugaskan.'])->withInput();
         }
 
         $jobPlan->update([

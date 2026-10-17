@@ -158,8 +158,6 @@ return [
     'uuid' => ':Attribute harus UUID yang valid.',
 
     'custom' => [
-        'due_date' => ['after_or_equal' => 'Due date tidak boleh sebelum tanggal laporan.'],
-        'reports.*.due_date' => ['after_or_equal' => 'Due date tidak boleh sebelum tanggal laporan.'],
         'rejection_reason' => ['required_if' => 'Alasan penolakan wajib diisi.'],
     ],
 

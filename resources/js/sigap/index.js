@@ -1,5 +1,5 @@
 // Registrasi komponen UI SiGAP. Dipanggil dari app.js sebelum Alpine.start().
-import sgUploader from './uploader';
+import sgUploader, { sgSlot } from './uploader';
 import sgReportForm from './report-form';
 import sgComments from './comments';
 import sgQueue from './queue';
@@ -13,6 +13,7 @@ import { themedChart } from './charts';
 
 export function registerSigap(Alpine) {
     Alpine.data('sgUploader', sgUploader);
+    Alpine.data('sgSlot', sgSlot);
     Alpine.data('sgReportForm', sgReportForm);
     Alpine.data('sgComments', sgComments);
     Alpine.data('sgQueue', sgQueue);

@@ -87,3 +87,42 @@ export default function sgUploader({ max = 3, maxMb = 5, names = null } = {}) {
         },
     };
 }
+
+// Satu slot lampiran yang sudah ada isinya (Edit Laporan): tampilkan file lama, "Ganti" lewat kamera/galeri.
+// File baru masuk ke <input x-ref="field" name="attachment|attachment_2|attachment_3"> dan menggantikan file lama saat disimpan.
+export function sgSlot({ maxMb = 5 } = {}) {
+    return {
+        picked: null,
+        preview: null,
+        busy: false,
+        error: '',
+
+        async pick(event) {
+            const original = event.target.files?.[0];
+            event.target.value = '';
+            if (!original) return;
+            this.error = '';
+            this.busy = true;
+            const file = await compressImage(original);
+            this.busy = false;
+            if (file.size > maxMb * 1024 * 1024) {
+                this.error = `${file.name} lebih dari ${maxMb} MB.`;
+                return;
+            }
+            const transfer = new DataTransfer();
+            transfer.items.add(file);
+            this.$refs.field.files = transfer.files;
+            if (this.preview) URL.revokeObjectURL(this.preview);
+            this.preview = file.type.startsWith('image/') ? URL.createObjectURL(file) : null;
+            this.picked = file.name;
+        },
+
+        undo() {
+            this.$refs.field.value = '';
+            if (this.preview) URL.revokeObjectURL(this.preview);
+            this.preview = null;
+            this.picked = null;
+            this.error = '';
+        },
+    };
+}
