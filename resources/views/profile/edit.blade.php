@@ -1,901 +1,180 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="d-flex align-items-center">
-            <i class="bi bi-person-circle fs-4 me-2 text-primary"></i>
-            <span>Profile Settings</span>
-        </div>
-    </x-slot>
+{{-- Profil — mockup: ProfileMobile, ProfileDesktop --}}
+@php
+    $user = auth()->user();
+    $statusText = [
+        'profile-updated' => 'Data diri disimpan',
+        'password-updated' => 'Kata sandi diperbarui',
+        'profile-picture-updated' => 'Foto profil diperbarui',
+    ][session('status')] ?? null;
+    $notifTypes = [
+        'job_approved' => ['Laporan disetujui', 'bi-check-circle'],
+        'job_rejected' => ['Laporan ditolak', 'bi-x-circle'],
+        'pending_approval' => ['Menunggu persetujuan saya', 'bi-hourglass-split'],
+        'new_comment' => ['Komentar baru', 'bi-chat-left-text'],
+        'email_notifications' => ['Kirim juga lewat email', 'bi-envelope'],
+    ];
+@endphp
 
-    <div class="row g-4">
-        <!-- Mobile-only profile picture section that appears at the top on mobile -->
-        <div class="col-12 d-md-none">
-            <div class="card shadow-sm mb-3 border-0">
-                <div class="card-body text-center py-4">
-                    <div class="d-flex justify-content-center mb-3">
-                        @if($user->profile_picture)
-                            <img src="{{ $user->profile_picture_url }}" alt="Profile Picture" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-                        @else
-                            <div class="avatar-lg bg-primary rounded-circle text-white d-flex align-items-center justify-content-center" style="box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-                                {{ substr($user->name, 0, 1) }}
-                            </div>
-                        @endif
+<x-app-layout title="Profil">
+    <div class="mx-auto" style="max-width:880px">
+        {{-- Kartu identitas + foto --}}
+        <section class="card p-3 p-lg-4 mb-3" aria-labelledby="me-name">
+            <div class="d-flex align-items-center gap-3">
+                <div class="position-relative flex-none">
+                    <x-sg.avatar :user="$user" :size="80" />
+                </div>
+                <div class="min-w-0">
+                    <h1 id="me-name" class="h4 fw-bold mb-1">{{ $user->name }}</h1>
+                    <div class="d-flex flex-wrap align-items-center gap-2 small text-muted">
+                        <x-sg.badge-level :user="$user" />{{ $user->department?->name }}{{ $user->jobSite ? ' · '.$user->jobSite->name : '' }}
                     </div>
-                    
-                    <h5 class="mb-1">{{ $user->name }}</h5>
-                    <p class="text-muted mb-3">{{ $user->email }}</p>
-                    
-                    <form action="{{ route('profile.update-picture') }}" method="POST" enctype="multipart/form-data" id="mobileProfilePictureForm">
+                    <div class="small text-muted mt-1">User ID: <span class="font-monospace">{{ $user->user_id }}</span></div>
+                </div>
+            </div>
+            <form action="{{ route('profile.update-picture') }}" method="POST" enctype="multipart/form-data" class="mt-3" x-data="{ busy: false }"
+                  x-ref="pic" @change="busy = true; $refs.pic.submit()">
+                @csrf
+                <input type="file" name="profile_picture" accept="image/*" capture="user" class="d-none" x-ref="camera">
+                <input type="file" name="profile_picture" accept="image/*" class="d-none" x-ref="gallery">
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-secondary flex-fill" @click="$refs.gallery.disabled = true; $refs.camera.disabled = false; $refs.camera.click()" :disabled="busy">
+                        <i class="bi bi-camera" aria-hidden="true"></i> Ambil Foto
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary flex-fill" @click="$refs.camera.disabled = true; $refs.gallery.disabled = false; $refs.gallery.click()" :disabled="busy">
+                        <i class="bi bi-images" aria-hidden="true"></i> Pilih dari Galeri
+                    </button>
+                </div>
+                <div class="small mt-1" :class="busy ? '' : 'text-muted'" x-text="busy ? 'Mengunggah…' : 'JPG atau PNG, maks. 2 MB.'"></div>
+                @error('profile_picture')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+            </form>
+        </section>
+
+        <div class="row g-3">
+            {{-- Data diri --}}
+            <div class="col-lg-6">
+                <section class="card p-3 p-lg-4 h-100" aria-labelledby="info-title">
+                    <h2 id="info-title" class="h6 fw-bold mb-3">Data diri</h2>
+                    <form action="{{ route('profile.update') }}" method="POST">
                         @csrf
-                        <div>
-                            <div class="d-grid">
-                                <label for="mobile_profile_picture" class="btn btn-primary">
-                                    <i class="bi bi-camera me-1"></i> Change Picture
-                                </label>
-                                <input type="file" class="d-none" id="mobile_profile_picture" name="profile_picture" accept="image/*">
-                            </div>
-                            @error('profile_picture')
-                                <div class="text-danger small mt-1">{{ $message }}</div>
-                            @enderror
-                            <div class="form-text text-center">Max size: 2MB. Formats: JPG, PNG, GIF</div>
-                        </div>
+                        @method('PATCH')
+                        <label for="name" class="form-label fw-semibold">Nama lengkap</label>
+                        <input id="name" name="name" class="form-control mb-1 @error('name') is-invalid @enderror" value="{{ old('name', $user->name) }}" required autocomplete="name">
+                        @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <label for="email" class="form-label fw-semibold mt-2">Email</label>
+                        <input id="email" type="email" name="email" class="form-control mb-1 @error('email') is-invalid @enderror" value="{{ old('email', $user->email) }}" required autocomplete="email">
+                        @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <button type="submit" class="btn btn-primary w-100 mt-3">Simpan data diri</button>
                     </form>
-                </div>
+                </section>
             </div>
-        </div>
-        
-        <!-- Desktop Profile Header - Desktop only -->
-        <div class="col-12 d-none d-md-block mb-2">
-            <div class="card border-0 overflow-hidden position-relative profile-header">
-                <div class="profile-cover-bg"></div>
-                <div class="card-body position-relative z-index-1 pt-5 pb-0">
-                    <div class="d-flex align-items-end">
-                        <div class="profile-pic me-4">
-                            @if($user->profile_picture)
-                                <img src="{{ $user->profile_picture_url }}" alt="Profile Picture" class="rounded-circle border border-4 border-white shadow" style="width: 120px; height: 120px; object-fit: cover;">
-                            @else
-                                <div class="avatar-xl bg-white rounded-circle text-indigo d-flex align-items-center justify-content-center border border-4 border-white shadow">
-                                    {{ substr($user->name, 0, 1) }}
-                                </div>
-                            @endif
+
+            {{-- Kata sandi --}}
+            <div class="col-lg-6">
+                <section class="card p-3 p-lg-4 h-100" aria-labelledby="pw-title" x-data="{ show: false }">
+                    <h2 id="pw-title" class="h6 fw-bold mb-3">Kata sandi</h2>
+                    <form action="{{ route('password.update') }}" method="POST">
+                        @csrf
+                        @method('PUT')
+                        @foreach (['current_password' => ['Kata sandi saat ini', 'current-password'], 'password' => ['Kata sandi baru', 'new-password'], 'password_confirmation' => ['Ulangi kata sandi baru', 'new-password']] as $field => [$label, $ac])
+                            <label for="{{ $field }}" class="form-label fw-semibold {{ $loop->first ? '' : 'mt-2' }}">{{ $label }}</label>
+                            <input id="{{ $field }}" name="{{ $field }}" :type="show ? 'text' : 'password'" type="password" autocomplete="{{ $ac }}"
+                                   class="form-control mb-1 {{ $errors->updatePassword->has($field) ? 'is-invalid' : '' }}">
+                            @if ($errors->updatePassword->has($field))<div class="invalid-feedback">{{ $errors->updatePassword->first($field) }}</div>@endif
+                        @endforeach
+                        <div class="form-check mt-2">
+                            <input class="form-check-input" type="checkbox" id="pw-show" x-model="show">
+                            <label class="form-check-label" for="pw-show">Tampilkan kata sandi</label>
                         </div>
-                        <div class="profile-info pb-3">
-                            <h4 class="mb-1 text-white">{{ $user->name }}</h4>
-                            <div>
-                                <span class="badge bg-white text-dark me-2">
-                                    <i class="bi bi-building me-1 text-secondary"></i>
-                                    {{ $user->department->name ?? 'No Department' }}
-                                </span>
-                                <span class="badge bg-white text-dark">
-                                    <i class="bi bi-person-vcard me-1 text-secondary"></i>
-                                    {{ $user->role->name ?? 'No Role' }}
-                                </span>
-                            </div>
-                        </div>
-                        <div class="ms-auto">
-                            <form action="{{ route('profile.update-picture') }}" method="POST" enctype="multipart/form-data" id="profilePictureForm" class="mb-0">
-                                @csrf
-                                <label for="profile_picture" class="btn btn-light btn-sm shadow-sm">
-                                    <i class="bi bi-camera me-1"></i> Change Photo
-                                </label>
-                                <input type="file" class="d-none" id="profile_picture" name="profile_picture" accept="image/*">
-                            </form>
-                        </div>
+                        <button type="submit" class="btn btn-primary w-100 mt-3">Perbarui kata sandi</button>
+                    </form>
+                </section>
+            </div>
+
+            {{-- Tampilan --}}
+            <div class="col-lg-6">
+                <section class="card p-3 p-lg-4 h-100" aria-labelledby="theme-title" x-data>
+                    <h2 id="theme-title" class="h6 fw-bold mb-1">Tampilan</h2>
+                    <p class="small text-muted">Disimpan di perangkat ini.</p>
+                    <div class="sg-segment" role="radiogroup" aria-label="Tema">
+                        @foreach (['light' => ['Terang', 'bi-sun'], 'dark' => ['Gelap', 'bi-moon'], 'system' => ['Sistem', 'bi-circle-half']] as $mode => [$label, $icon])
+                            <input type="radio" class="btn-check" name="theme" id="theme-{{ $mode }}" value="{{ $mode }}"
+                                   :checked="$store.theme.mode === '{{ $mode }}'" @change="$store.theme.set('{{ $mode }}')">
+                            <label class="sg-segment__item" for="theme-{{ $mode }}"><i class="bi {{ $icon }}" aria-hidden="true"></i>{{ $label }}</label>
+                        @endforeach
                     </div>
-                    
-                    <ul class="nav nav-tabs mt-4 border-0">
-                        <li class="nav-item">
-                            <a class="nav-link active px-3" href="#profile-info" data-bs-toggle="tab">
-                                <i class="bi bi-person me-2"></i>Profile
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link px-3" href="#security" data-bs-toggle="tab">
-                                <i class="bi bi-shield-check me-2"></i>Security
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link px-3" href="#account-settings" data-bs-toggle="tab">
-                                <i class="bi bi-gear me-2"></i>Account
-                            </a>
-                        </li>
-                    </ul>
-                </div>
+                </section>
+            </div>
+
+            {{-- Preferensi notifikasi (disimpan otomatis) --}}
+            <div class="col-lg-6">
+                <section class="card p-3 p-lg-4 h-100" aria-labelledby="notif-title"
+                         x-data="{
+                            prefs: {}, loaded: false, saving: false,
+                            async load() {
+                                try { const r = await fetch('/notifications/preferences', { headers: { Accept: 'application/json' } }); this.prefs = (await r.json()).preferences || {}; }
+                                finally { this.loaded = true; }
+                            },
+                            async save() {
+                                this.saving = true;
+                                try {
+                                    const r = await fetch('/notifications/preferences', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json',
+                                        'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content }, body: JSON.stringify(this.prefs) });
+                                    const d = await r.json();
+                                    sgToast(d.success ? 'Preferensi notifikasi disimpan' : (d.message || 'Gagal menyimpan'), { tone: d.success ? 'success' : 'danger' });
+                                } catch (e) { sgToast('Gagal menyimpan preferensi', { tone: 'danger' }); }
+                                finally { this.saving = false; }
+                            }
+                         }" x-init="load()">
+                    <h2 id="notif-title" class="h6 fw-bold mb-1">Notifikasi</h2>
+                    <p class="small text-muted">Perubahan disimpan otomatis.</p>
+                    <template x-if="!loaded"><x-sg.skeleton :count="1" /></template>
+                    <div x-show="loaded" x-cloak>
+                        @foreach ($notifTypes as $key => [$label, $icon])
+                            <div class="form-check form-switch sg-switch-row">
+                                <label class="form-check-label" for="pref-{{ $key }}"><i class="bi {{ $icon }} me-2" aria-hidden="true"></i>{{ $label }}</label>
+                                <input class="form-check-input" type="checkbox" role="switch" id="pref-{{ $key }}" x-model="prefs.{{ $key }}" @change="save()" :disabled="saving">
+                            </div>
+                        @endforeach
+                    </div>
+                </section>
             </div>
         </div>
 
-        <!-- Main Content -->
-        <div class="col-md-8 order-1 order-md-0">
-            <div class="tab-content d-none d-md-block">
-                <!-- Profile Information Tab -->
-                <div class="tab-pane fade show active" id="profile-info">
-                    <div class="card shadow-sm border-0 mb-4">
-                        <div class="card-header bg-white py-3 border-bottom">
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-person-vcard text-primary me-2"></i>
-                                <h5 class="mb-0">Profile Information</h5>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <form action="{{ route('profile.update') }}" method="POST">
-                                @csrf
-                                @method('PATCH')
-                                
-                                <div class="mb-3">
-                                    <x-input 
-                                        label="Name" 
-                                        name="name"
-                                        required="true"
-                                        placeholder="Enter your name"
-                                        :value="old('name', $user->name)"
-                                    />
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <x-input 
-                                        label="Email" 
-                                        name="email"
-                                        type="email"
-                                        placeholder="Enter your email (optional)"
-                                        :value="old('email', $user->email)"
-                                    />
-                                    
-                                    @if($user->email)
-                                        @if($user->email_verified_at)
-                                            <div class="form-text text-success">
-                                                <i class="bi bi-check-circle me-1"></i> Your email is verified.
-                                            </div>
-                                        @else
-                                            <div class="form-text text-muted">
-                                                <i class="bi bi-info-circle me-1"></i> Email verification is optional.
-                                            </div>
-                                        @endif
-                                    @else
-                                        <div class="form-text text-muted">
-                                            <i class="bi bi-info-circle me-1"></i> Email is optional.
-                                        </div>
-                                    @endif
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <div class="d-flex flex-column flex-sm-row justify-content-between">
-                                        <div class="mb-2 mb-sm-0">
-                                            <strong>Department:</strong> {{ $user->department->name ?? 'Not assigned' }}
-                                        </div>
-                                        <div>
-                                            <strong>Role:</strong> {{ $user->role->name ?? 'Not assigned' }}
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="d-grid d-sm-flex justify-content-sm-end">
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="bi bi-floppy me-1"></i> Update Profile
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Security Tab -->
-                <div class="tab-pane fade" id="security">
-                    <div class="card shadow-sm border-0 mb-4">
-                        <div class="card-header bg-white py-3 border-bottom">
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-lock text-primary me-2"></i>
-                                <h5 class="mb-0">Change Password</h5>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <form action="{{ route('password.update') }}" method="POST">
-                                @csrf
-                                @method('PUT')
-                                
-                                <div class="mb-3">
-                                    <x-input 
-                                        label="Current Password" 
-                                        name="current_password"
-                                        type="password"
-                                        required="true"
-                                        placeholder="Enter your current password"
-                                    />
-                                </div>
-                                
-                                <div class="row">
-                                    <div class="col-sm-6 mb-3">
-                                        <x-input 
-                                            label="New Password" 
-                                            name="password"
-                                            type="password"
-                                            required="true"
-                                            placeholder="Enter new password"
-                                        />
-                                    </div>
-                                    
-                                    <div class="col-sm-6 mb-3">
-                                        <x-input 
-                                            label="Confirm Password" 
-                                            name="password_confirmation"
-                                            type="password"
-                                            required="true"
-                                            placeholder="Confirm new password"
-                                        />
-                                    </div>
-                                </div>
-                                
-                                <div class="alert alert-info mb-3">
-                                    <div class="d-flex">
-                                        <i class="bi bi-info-circle me-2 mt-1"></i>
-                                        <div>
-                                            <strong>Password tips:</strong>
-                                            <ul class="mb-0 ps-3 mt-1">
-                                                <li>Use at least 8 characters</li>
-                                                <li>Include uppercase and lowercase letters</li>
-                                                <li>Use numbers and special characters</li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="d-grid d-sm-flex justify-content-sm-end">
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="bi bi-key me-1"></i> Change Password
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Account Settings Tab -->
-                <div class="tab-pane fade" id="account-settings">
-                    <div class="card shadow-sm border-0 mb-4">
-                        <div class="card-header bg-white py-3 border-bottom">
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-person-gear text-primary me-2"></i>
-                                <h5 class="mb-0">Account Details</h5>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <div class="text-muted mb-4">
-                                <div class="row mb-3">
-                                    <div class="col-sm-4">
-                                        <strong>Account Created</strong>
-                                    </div>
-                                    <div class="col-sm-8">
-                                        {{ $user->created_at->format('F d, Y') }} ({{ $user->created_at->diffForHumans() }})
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-sm-4">
-                                        <strong>Last Updated</strong>
-                                    </div>
-                                    <div class="col-sm-8">
-                                        {{ $user->updated_at->format('F d, Y') }} ({{ $user->updated_at->diffForHumans() }})
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <hr>
-                            
-                            @if(auth()->user()->isAdmin())
-                            <div class="mt-4">
-                                <h5 class="text-danger mb-3">Delete Account</h5>
-                                <p class="card-text">Once your account is deleted, all of its resources and data will be permanently deleted. This action cannot be undone.</p>
-                                
-                                <div class="d-flex justify-content-end">
-                                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
-                                        <i class="bi bi-trash3 me-1"></i> Delete Account
-                                    </button>
-                                </div>
-                            </div>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Mobile view cards - only visible on mobile -->
-            <div class="d-md-none">
-                <!-- Profile Information -->
-                <div class="card shadow-sm border-0 mb-4">
-                    <div class="card-header bg-white py-3">
-                        <h5 class="mb-0">Profile Information</h5>
-                    </div>
-                    <div class="card-body">
-                        <form action="{{ route('profile.update') }}" method="POST">
-                            @csrf
-                            @method('PATCH')
-                            
-                            <div class="mb-3">
-                                <x-input 
-                                    label="Name" 
-                                    name="name"
-                                    required="true"
-                                    placeholder="Enter your name"
-                                    :value="old('name', $user->name)"
-                                />
-                            </div>
-                            
-                            <div class="mb-3">
-                                <x-input 
-                                    label="Email" 
-                                    name="email"
-                                    type="email"
-                                    placeholder="Enter your email (optional)"
-                                    :value="old('email', $user->email)"
-                                />
-                                
-                                @if($user->email)
-                                    @if($user->email_verified_at)
-                                        <div class="form-text text-success">
-                                            <i class="bi bi-check-circle me-1"></i> Your email is verified.
-                                        </div>
-                                    @else
-                                        <div class="form-text text-muted">
-                                            <i class="bi bi-info-circle me-1"></i> Email verification is optional.
-                                        </div>
-                                    @endif
-                                @else
-                                    <div class="form-text text-muted">
-                                        <i class="bi bi-info-circle me-1"></i> Email is optional.
-                                    </div>
-                                @endif
-                            </div>
-                            
-                            <div class="mb-3">
-                                <div class="d-flex flex-column flex-sm-row justify-content-between">
-                                    <div class="mb-2 mb-sm-0">
-                                        <strong>Department:</strong> {{ $user->department->name ?? 'Not assigned' }}
-                                    </div>
-                                    <div>
-                                        <strong>Role:</strong> {{ $user->role->name ?? 'Not assigned' }}
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="d-grid d-sm-flex justify-content-sm-end">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="bi bi-floppy me-1"></i> Update Profile
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-                
-                <!-- Change Password -->
-                <div class="card shadow-sm border-0 mb-4">
-                    <div class="card-header bg-white py-3">
-                        <h5 class="mb-0">Change Password</h5>
-                    </div>
-                    <div class="card-body">
-                        <form action="{{ route('password.update') }}" method="POST">
-                            @csrf
-                            @method('PUT')
-                            
-                            <div class="mb-3">
-                                <x-input 
-                                    label="Current Password" 
-                                    name="current_password"
-                                    type="password"
-                                    required="true"
-                                    placeholder="Enter your current password"
-                                />
-                            </div>
-                            
-                            <div class="mb-3">
-                                <x-input 
-                                    label="New Password" 
-                                    name="password"
-                                    type="password"
-                                    required="true"
-                                    placeholder="Enter new password"
-                                />
-                            </div>
-                            
-                            <div class="mb-3">
-                                <x-input 
-                                    label="Confirm Password" 
-                                    name="password_confirmation"
-                                    type="password"
-                                    required="true"
-                                    placeholder="Confirm new password"
-                                />
-                            </div>
-                            
-                            <div class="d-grid d-sm-flex justify-content-sm-end">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="bi bi-key me-1"></i> Change Password
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Desktop sidebar with account stats - Web only -->
-        <div class="col-md-4 order-0 order-md-1 d-none d-md-block">
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-body">
-                    <h5 class="mb-3">Account Information</h5>
-                    <div class="list-group list-group-flush border-top pt-3">
-                        <div class="list-group-item px-0 py-2 d-flex justify-content-between border-0">
-                            <div class="text-muted">Status</div>
-                            <div><span class="badge bg-success">Active</span></div>
-                        </div>
-                        <div class="list-group-item px-0 py-2 d-flex justify-content-between border-0">
-                            <div class="text-muted">Account Type</div>
-                            <div>{{ $user->role->name ?? 'User' }}</div>
-                        </div>
-                        <div class="list-group-item px-0 py-2 d-flex justify-content-between border-0">
-                            <div class="text-muted">Member Since</div>
-                            <div>{{ $user->created_at->format('M d, Y') }}</div>
-                        </div>
-                        <div class="list-group-item px-0 py-2 d-flex justify-content-between border-0">
-                            <div class="text-muted">Last Updated</div>
-                            <div>{{ $user->updated_at->format('M d, Y') }}</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <h5 class="mb-3">Quick Tips</h5>
-                    <div class="d-flex mb-3">
-                        <div class="flex-shrink-0 me-3">
-                            <div class="icon-circle bg-light text-primary">
-                                <i class="bi bi-shield-check"></i>
-                            </div>
-                        </div>
-                        <div>
-                            <h6 class="mb-1">Secure Your Account</h6>
-                            <p class="small text-muted mb-0">Use a strong password that you don't use elsewhere.</p>
-                        </div>
-                    </div>
-                    <div class="d-flex mb-3">
-                        <div class="flex-shrink-0 me-3">
-                            <div class="icon-circle bg-light text-primary">
-                                <i class="bi bi-envelope"></i>
-                            </div>
-                        </div>
-                        <div>
-                            <h6 class="mb-1">Verify Your Email</h6>
-                            <p class="small text-muted mb-0">Adding a verified email improves account security.</p>
-                        </div>
-                    </div>
-                    <div class="d-flex">
-                        <div class="flex-shrink-0 me-3">
-                            <div class="icon-circle bg-light text-primary">
-                                <i class="bi bi-person-gear"></i>
-                            </div>
-                        </div>
-                        <div>
-                            <h6 class="mb-1">Keep Profile Updated</h6>
-                            <p class="small text-muted mb-0">Make sure your information is current.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Mobile-only sections -->
-        <div class="col-12 d-md-none">
-            <!-- Account Information -->
-            <div class="card shadow-sm border-0 mb-3">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0">Account Information</h5>
-                </div>
-                <div class="card-body">
-                    <div class="text-muted">
-                        <div class="d-flex justify-content-between mb-3 pb-2 border-bottom">
-                            <div><strong>Account Created</strong></div>
-                            <div>{{ $user->created_at->format('d M Y') }}</div>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <div><strong>Last Updated</strong></div>
-                            <div>{{ $user->updated_at->format('d M Y') }}</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Delete Account (Mobile) -->
-            @if(auth()->user()->isAdmin())
-            <div class="card shadow-sm border-0 mb-3">
-                <div class="card-header bg-white text-danger py-3">
-                    <h5 class="mb-0">Delete Account</h5>
-                </div>
-                <div class="card-body">
-                    <p class="card-text">Once your account is deleted, all of its resources and data will be permanently deleted.</p>
-                    
-                    <div class="d-grid">
-                        <button type="button" class="btn btn-danger btn-lg py-3" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
-                            <i class="bi bi-trash3 me-1"></i> Delete Account
-                        </button>
-                    </div>
-                </div>
-            </div>
-            @endif
-        </div>
-    </div>
-    
-    <!-- Delete Account Modal -->
-    <div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-labelledby="deleteAccountModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <form action="{{ route('profile.destroy') }}" method="POST">
+        {{-- Akun --}}
+        <section class="card p-3 p-lg-4 mt-3" aria-labelledby="acc-title">
+            <h2 id="acc-title" class="h6 fw-bold mb-3">Akun</h2>
+            <div class="d-flex flex-column flex-sm-row gap-2">
+                <form method="POST" action="{{ route('logout') }}" class="flex-fill d-grid">
                     @csrf
-                    @method('DELETE')
-                    
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="deleteAccountModalLabel">Delete Account</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p class="mb-3">Are you sure you want to delete your account? Once your account is deleted, all of its resources and data will be permanently deleted.</p>
-                        
-                        <div class="mb-3">
-                            <x-input 
-                                label="Password" 
-                                name="password"
-                                type="password"
-                                required="true"
-                                placeholder="Enter your password to confirm"
-                            />
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-danger">Delete Account</button>
-                    </div>
+                    <button type="submit" class="btn btn-outline-secondary"><i class="bi bi-box-arrow-right" aria-hidden="true"></i> Keluar</button>
                 </form>
+                <button type="button" class="btn btn-reject-outline flex-fill" data-bs-toggle="modal" data-bs-target="#delete-account">
+                    <i class="bi bi-trash3" aria-hidden="true"></i> Hapus akun
+                </button>
             </div>
-        </div>
-    </div>
-    
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card shadow-sm">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-bell me-2"></i>Notification Preferences</h5>
-                </div>
-                <div class="card-body">
-                    <form id="notificationPreferencesForm">
-                        @csrf
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h6 class="text-muted mb-3">App Notifications</h6>
-                                
-                                <div class="form-check form-switch mb-3">
-                                    <input class="form-check-input" type="checkbox" id="job_approved" name="job_approved">
-                                    <label class="form-check-label" for="job_approved">
-                                        <strong>Job Approved</strong>
-                                        <br><small class="text-muted">When your job reports are approved</small>
-                                    </label>
-                                </div>
-                                
-                                <div class="form-check form-switch mb-3">
-                                    <input class="form-check-input" type="checkbox" id="job_rejected" name="job_rejected">
-                                    <label class="form-check-label" for="job_rejected">
-                                        <strong>Job Rejected</strong>
-                                        <br><small class="text-muted">When your job reports are rejected</small>
-                                    </label>
-                                </div>
-                                
-                                <div class="form-check form-switch mb-3">
-                                    <input class="form-check-input" type="checkbox" id="pending_approval" name="pending_approval">
-                                    <label class="form-check-label" for="pending_approval">
-                                        <strong>Pending Approval</strong>
-                                        <br><small class="text-muted">When job reports need your approval</small>
-                                    </label>
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-6">
-                                <h6 class="text-muted mb-3">Communication</h6>
-                                
-                                <div class="form-check form-switch mb-3">
-                                    <input class="form-check-input" type="checkbox" id="new_comment" name="new_comment">
-                                    <label class="form-check-label" for="new_comment">
-                                        <strong>New Comments</strong>
-                                        <br><small class="text-muted">When someone comments on your jobs</small>
-                                    </label>
-                                </div>
-                                
-                                <div class="form-check form-switch mb-3">
-                                    <input class="form-check-input" type="checkbox" id="email_notifications" name="email_notifications">
-                                    <label class="form-check-label" for="email_notifications">
-                                        <strong>Email Notifications</strong>
-                                        <br><small class="text-muted">Receive notifications via email (Coming Soon)</small>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="text-end mt-4">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-floppy me-2"></i>Save Preferences
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+        </section>
     </div>
 
-    <style>
-        .avatar-lg {
-            width: 100px;
-            height: 100px;
-            font-size: 40px;
-        }
-        
-        .avatar-xl {
-            width: 120px;
-            height: 120px;
-            font-size: 48px;
-        }
-        
-        /* Profile header styling */
-        .profile-header {
-            border-radius: 10px;
-            margin-bottom: 1.5rem;
-            overflow: hidden;
-        }
-        
-        .profile-cover-bg {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            height: 100%;
-            background: linear-gradient(120deg, #4338ca 0%, #3b82f6 100%);
-            opacity: 0.85;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-        }
-        
-        .profile-pic {
-            margin-top: -40px;
-            position: relative;
-            z-index: 1;
-        }
-        
-        /* Tab styling */
-        .nav-tabs {
-            border-bottom: none;
-        }
-        
-        .nav-tabs .nav-link {
-            border: none;
-            color: #fff;
-            position: relative;
-            font-weight: 500;
-            padding: 0.75rem 1rem;
-            border-radius: 0;
-        }
-        
-        .nav-tabs .nav-link:hover {
-            color: rgba(255, 255, 255, 0.8);
-            background-color: transparent;
-        }
-        
-        .nav-tabs .nav-link.active {
-            color: #fff;
-            background-color: transparent;
-            font-weight: 600;
-        }
-        
-        .nav-tabs .nav-link.active:after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background-color: #fff;
-        }
-        
-        /* Icon circle */
-        .icon-circle {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        /* Mobile optimizations */
-        @media (max-width: 767.98px) {
-            .card {
-                border-radius: 12px;
-                overflow: hidden;
-            }
-            
-            .card-header {
-                padding: 1rem;
-            }
-            
-            .card-body {
-                padding: 1.25rem;
-            }
-            
-            .btn {
-                padding: 0.5rem 1rem;
-                font-size: 1rem;
-            }
-            
-            .form-control {
-                font-size: 16px; /* Prevent auto-zoom on iOS */
-                padding: 0.625rem 0.75rem;
-                height: auto;
-                min-height: 48px; /* Larger touch target */
-            }
-            
-            .form-label {
-                font-size: 0.95rem;
-                margin-bottom: 0.375rem;
-            }
-            
-            /* Improve spacing between cards */
-            .mb-4 {
-                margin-bottom: 1rem !important;
-            }
-            
-            /* Fix modal on small screens */
-            .modal-dialog {
-                margin: 0.5rem;
-            }
-            
-            .modal-body, .modal-footer {
-                padding: 1rem;
-            }
-        }
-    </style>
+    <x-sg.sheet id="delete-account" title="Hapus akun?">
+        <form method="POST" action="{{ route('profile.destroy') }}">
+            @csrf
+            @method('DELETE')
+            <p>Akun dan data Anda akan dihapus permanen. Masukkan kata sandi untuk konfirmasi.</p>
+            <label for="del-password" class="form-label fw-semibold">Kata sandi</label>
+            <input id="del-password" type="password" name="password" autocomplete="current-password"
+                   class="form-control {{ $errors->userDeletion->has('password') ? 'is-invalid' : '' }}" required>
+            @if ($errors->userDeletion->has('password'))<div class="invalid-feedback">{{ $errors->userDeletion->first('password') }}</div>@endif
+            <div class="d-flex gap-2 mt-3">
+                <button type="button" class="btn btn-outline-secondary flex-fill" data-bs-dismiss="modal">Batal</button>
+                <button type="submit" class="btn btn-reject flex-fill">Hapus akun</button>
+            </div>
+        </form>
+    </x-sg.sheet>
 
     @push('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Profile picture upload handler - Desktop
-            const profilePictureInput = document.getElementById('profile_picture');
-            const profilePictureForm = document.getElementById('profilePictureForm');
-
-            if (profilePictureInput) {
-                profilePictureInput.addEventListener('change', function() {
-                    if (this.files && this.files[0]) {
-                        profilePictureForm.submit();
-                    }
-                });
-            }
-            
-            // Mobile profile picture upload handler
-            const mobileProfilePictureInput = document.getElementById('mobile_profile_picture');
-            const mobileProfilePictureForm = document.getElementById('mobileProfilePictureForm');
-            
-            if (mobileProfilePictureInput) {
-                mobileProfilePictureInput.addEventListener('change', function() {
-                    if (this.files && this.files[0]) {
-                        mobileProfilePictureForm.submit();
-                    }
-                });
-            }
-            
-            // Bootstrap Tab initialization and retention
-            const triggerTabList = [].slice.call(document.querySelectorAll('.nav-tabs a'));
-            triggerTabList.forEach(function(triggerEl) {
-                new bootstrap.Tab(triggerEl);
-                
-                triggerEl.addEventListener('click', function(event) {
-                    event.preventDefault();
-                    // Store the current tab in local storage
-                    localStorage.setItem('activeProfileTab', this.getAttribute('href'));
-                });
-            });
-            
-            // Retrieve and activate the last active tab
-            const activeTab = localStorage.getItem('activeProfileTab');
-            if (activeTab) {
-                const tab = document.querySelector(`.nav-tabs a[href="${activeTab}"]`);
-                if (tab) {
-                    const bsTab = new bootstrap.Tab(tab);
-                    bsTab.show();
-                }
-            }
-            
-            // Load current notification preferences
-            loadNotificationPreferences();
-            
-            // Handle form submission
-            document.getElementById('notificationPreferencesForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                saveNotificationPreferences();
-            });
-        });
-        
-        function loadNotificationPreferences() {
-            fetch('/notifications/preferences')
-                .then(response => response.json())
-                .then(data => {
-                    const preferences = data.preferences;
-                    
-                    // Set checkbox states
-                    Object.keys(preferences).forEach(key => {
-                        const checkbox = document.getElementById(key);
-                        if (checkbox) {
-                            checkbox.checked = preferences[key];
-                        }
-                    });
-                })
-                .catch(error => {
-                    console.error('Error loading preferences:', error);
-                });
-        }
-        
-        function saveNotificationPreferences() {
-            const formData = new FormData(document.getElementById('notificationPreferencesForm'));
-            
-            // Convert FormData to object with boolean values
-            const preferences = {};
-            const checkboxes = ['job_approved', 'job_rejected', 'pending_approval', 'new_comment', 'email_notifications'];
-            
-            checkboxes.forEach(key => {
-                preferences[key] = formData.has(key);
-            });
-            
-            fetch('/notifications/preferences', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                },
-                body: JSON.stringify(preferences)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Show success message
-                    Swal.fire({
-                        toast: true,
-                        position: 'top-end',
-                        icon: 'success',
-                        title: 'Preferences Updated',
-                        text: data.message,
-                        showConfirmButton: false,
-                        timer: 3000,
-                        timerProgressBar: true
-                    });
-                } else {
-                    // Show error message
-                    Swal.fire({
-                        toast: true,
-                        position: 'top-end',
-                        icon: 'error',
-                        title: 'Error',
-                        text: data.message || 'Failed to update preferences',
-                        showConfirmButton: false,
-                        timer: 3000,
-                        timerProgressBar: true
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error saving preferences:', error);
-                Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'An error occurred while saving preferences',
-                    showConfirmButton: false,
-                    timer: 3000,
-                    timerProgressBar: true
-                });
-            });
-        }
-    </script>
+        @if ($statusText)<script>window.__sgFlash = (window.__sgFlash || []).concat([['success', @js($statusText)]]);</script>@endif
+        @if ($errors->userDeletion->isNotEmpty())
+            <script>bootstrap.Modal.getOrCreateInstance(document.getElementById('delete-account')).show();</script>
+        @endif
     @endpush
 </x-app-layout>

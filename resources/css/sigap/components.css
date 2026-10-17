@@ -14,6 +14,12 @@
 /* Tombol primary nonaktif: tetap warna brand (Bootstrap default biru) */
 .btn-primary { --bs-btn-disabled-bg: var(--sg-primary); --bs-btn-disabled-border-color: var(--sg-primary); --bs-btn-disabled-color: var(--sg-on-primary); --bs-btn-disabled-opacity: .4; }
 
+/* Baris switch preferensi: label kiri, switch besar kanan (≥44px target) */
+.sg-switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; padding: 0; margin: 0;
+  border-bottom: 1px solid var(--sg-border); }
+.sg-switch-row:last-child { border-bottom: 0; }
+.sg-switch-row .form-check-input { float: none; margin: 0; width: 52px; height: 30px; flex: none; }
+
 /* Tombol tambahan */
 .btn-approve:hover, .btn-approve:focus-visible { background: #166534; border-color: #166534; color: #fff; }
 .btn-reject { background: var(--sg-reject); border-color: var(--sg-reject); color: #fff; }
