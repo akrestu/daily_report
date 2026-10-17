@@ -1,19 +1,20 @@
+{{-- Badge SLA penyelesaian (logika TicketSla::summary). Dipakai daftar & detail tiket. --}}
 @php($sla = \App\Services\TicketSla::summary($ticket)['resolution'])
 @switch($sla['state'])
     @case('running')
-        <span class="badge {{ $sla['remaining'] <= 60 ? 'bg-warning text-dark' : 'bg-light text-dark border' }}"
-            title="Tenggat: {{ $sla['due']->format('d M Y H:i') }}">
-            <i class="bi bi-stopwatch me-1"></i>{{ \App\Services\TicketSla::formatMinutes($sla['remaining']) }}
+        <span @class(['sg-sla', 'sg-sla--warn' => $sla['remaining'] <= config('sigap-ui.sla_warn_minutes'), 'sg-sla--ok' => $sla['remaining'] > config('sigap-ui.sla_warn_minutes')])
+              title="Tenggat: {{ \App\Support\Format::datetime($sla['due']) }}">
+            <i class="bi bi-clock" aria-hidden="true"></i>Sisa {{ \App\Services\TicketSla::formatMinutes($sla['remaining']) }}
         </span>
         @break
     @case('breached')
-        <span class="badge bg-danger" title="Tenggat: {{ $sla['due']->format('d M Y H:i') }}"><i class="bi bi-exclamation-triangle me-1"></i>Terlewat</span>
+        <span class="sg-sla sg-sla--breach" title="Tenggat: {{ \App\Support\Format::datetime($sla['due']) }}"><i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>Lewat SLA</span>
         @break
     @case('paused')
-        <span class="badge bg-secondary"><i class="bi bi-pause-circle me-1"></i>Dijeda</span>
+        <span class="sg-sla sg-sla--paused"><i class="bi bi-pause-circle" aria-hidden="true"></i>SLA dijeda</span>
         @break
     @case('met')
-        <span class="badge bg-success"><i class="bi bi-check-lg me-1"></i>Tercapai</span>
+        <span class="sg-sla sg-sla--ok"><i class="bi bi-check-lg" aria-hidden="true"></i>Tercapai</span>
         @break
     @default
         <span class="text-muted small">-</span>

@@ -53,6 +53,6 @@ return [
     ],
 
     // Sisa waktu SLA (menit) di bawah ambang ini tampil sebagai .sg-sla--warn
-    'sla_warn_minutes' => 30,
+    'sla_warn_minutes' => 60,
 
 ];

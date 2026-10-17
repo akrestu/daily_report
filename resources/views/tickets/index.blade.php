@@ -1,236 +1,71 @@
-<x-app-layout>
-    <x-slot name="header">Tiket Masuk</x-slot>
+{{-- Tiket Masuk (tim IT) — mockup: TicketListMobile, TicketListDesktop --}}
+@php
+    $statusChips = collect(['' => 'Semua'] + collect(config('sigap-ui.ticket_status'))->map(fn ($s) => $s['label'])->all())
+        ->map(fn ($label, $value) => ['label' => $label, 'href' => route('tickets.index', array_filter(['status' => $value] + request()->except('status', 'page'))), 'active' => (string) request('status') === (string) $value])
+        ->values()->all();
+    $canDelete = auth()->user()->can('deleteAny', App\Models\Ticket::class);
+@endphp
 
-    <div class="card shadow-sm border-0">
-        <div class="card-header bg-white py-3">
-            <div class="row align-items-center">
-                <div class="col-md-6 mb-2 mb-md-0">
-                    <h5 class="mb-0 fw-bold">
-                        <i class="bi bi-ticket-perforated text-primary me-2"></i>Tiket Masuk
-                        @if($openCount > 0)
-                            <span class="badge bg-danger ms-1">{{ $openCount }} terbuka</span>
-                        @endif
-                    </h5>
-                </div>
-                <div class="col-md-6 text-md-end d-flex gap-2 justify-content-md-end">
-                    {{-- Batch delete (hanya admin) --}}
-                    @can('deleteAny', App\Models\Ticket::class)
-                    <form id="batchDeleteForm" action="{{ route('tickets.batch-delete') }}" method="POST">
-                        @csrf
-                        @method('DELETE')
-                        <div id="batchActions" class="d-none">
-                            <button type="button" onclick="confirmBatchDelete()"
-                                class="btn btn-danger btn-sm">
-                                <i class="bi bi-trash3 me-1"></i>Hapus (<span id="selectedCount">0</span>)
-                            </button>
-                        </div>
-                    </form>
-                    @endcan
-                    <a href="{{ route('tickets.public.form') }}" target="_blank" class="btn btn-outline-primary btn-sm">
-                        <i class="bi bi-box-arrow-up-right me-1"></i>Buka Form Publik
-                    </a>
-                </div>
+<x-app-layout title="Tiket Masuk">
+    <x-sg.page-header title="Tiket Masuk" :subtitle="$openCount ? $openCount.' tiket baru belum ditangani' : 'Semua tiket baru sudah ditangani'">
+        <x-slot:actions>
+            <a href="{{ route('tickets.dashboard') }}" class="btn btn-outline-secondary"><i class="bi bi-graph-up" aria-hidden="true"></i> Dashboard</a>
+            <a href="{{ route('tickets.public.form') }}" target="_blank" rel="noopener" class="btn btn-outline-secondary"><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i> Form publik</a>
+        </x-slot:actions>
+    </x-sg.page-header>
+
+    <x-sg.chip-filter class="mb-3" label="Status tiket" :items="$statusChips" />
+
+    <form method="GET" action="{{ route('tickets.index') }}" class="sg-filter-bar mb-3" role="search" aria-label="Saring tiket">
+        @if (request('status'))<input type="hidden" name="status" value="{{ request('status') }}">@endif
+        <div class="sg-filter-bar__search"><x-sg.search name="search" placeholder="Cari tiket, nama, departemen" /></div>
+        <label for="t-priority" class="visually-hidden">Prioritas</label>
+        <select id="t-priority" name="priority" class="form-select">
+            <option value="">Semua prioritas</option>
+            @foreach (config('sigap-ui.priority') as $value => $p)
+                <option value="{{ $value }}" @selected(request('priority') === $value)>{{ $p['code'] }} {{ $p['label'] }}</option>
+            @endforeach
+        </select>
+        <label for="t-category" class="visually-hidden">Kategori</label>
+        <select id="t-category" name="category" class="form-select">
+            <option value="">Semua kategori</option>
+            @foreach ($categories as $cat)
+                <option value="{{ $cat->id }}" @selected((string) request('category') === (string) $cat->id)>{{ $cat->name }}</option>
+            @endforeach
+        </select>
+        <label for="t-sla" class="visually-hidden">SLA</label>
+        <select id="t-sla" name="sla" class="form-select">
+            <option value="">Semua SLA</option>
+            <option value="breached" @selected(request('sla') === 'breached')>Lewat SLA</option>
+        </select>
+        <button type="submit" class="btn btn-primary">Terapkan</button>
+        @if (request()->hasAny(['search', 'priority', 'category', 'sla']))
+            <a href="{{ route('tickets.index', array_filter(['status' => request('status')])) }}" class="btn btn-quiet">Reset</a>
+        @endif
+    </form>
+
+    @if ($canDelete)
+        <form id="ticket-bulk" method="POST" action="{{ route('tickets.batch-delete') }}" class="d-none d-lg-block"
+              x-data="{ count: 0 }" @change.window="count = document.querySelectorAll('[data-select-for=ticket-bulk]:checked').length">
+            @csrf
+            @method('DELETE')
+            <div class="sg-bulk-bar border mb-2" style="border-radius:12px" x-show="count" x-cloak>
+                <span x-text="count + ' dipilih'"></span>
+                <button type="button" class="btn btn-sm btn-reject-outline ms-auto" data-bs-toggle="modal" data-bs-target="#ticket-bulk-confirm">
+                    <i class="bi bi-trash3" aria-hidden="true"></i> Hapus
+                </button>
             </div>
-        </div>
+            <x-sg.sheet id="ticket-bulk-confirm" title="Hapus tiket terpilih?">
+                <p class="mb-0">Tiket yang dipilih akan dihapus. Tindakan ini tidak dapat dibatalkan dari aplikasi.</p>
+                <x-slot:footer>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-reject">Hapus</button>
+                </x-slot:footer>
+            </x-sg.sheet>
+        </form>
+    @endif
 
-        {{-- Filters --}}
-        <div class="card-body border-bottom pb-3">
-            <form method="GET" action="{{ route('tickets.index') }}" class="row g-2 align-items-end">
-                <div class="col-md-3">
-                    <input type="text" name="search" class="form-control form-control-sm"
-                        placeholder="Cari tiket, nama, departemen..." value="{{ request('search') }}">
-                </div>
-                <div class="col-md-2">
-                    <select name="status" class="form-select form-select-sm">
-                        <option value="">Semua Status</option>
-                        @foreach(\App\Models\Ticket::STATUSES as $value => $meta)
-                            <option value="{{ $value }}" {{ request('status') == $value ? 'selected' : '' }}>{{ $meta['label'] }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <select name="sla" class="form-select form-select-sm">
-                        <option value="">Semua SLA</option>
-                        <option value="breached" {{ request('sla') === 'breached' ? 'selected' : '' }}>SLA Terlewat</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <select name="priority" class="form-select form-select-sm">
-                        <option value="">Semua Prioritas</option>
-                        <option value="urgent" {{ request('priority') == 'urgent' ? 'selected' : '' }}>Mendesak</option>
-                        <option value="high"   {{ request('priority') == 'high' ? 'selected' : '' }}>Tinggi</option>
-                        <option value="medium" {{ request('priority') == 'medium' ? 'selected' : '' }}>Sedang</option>
-                        <option value="low"    {{ request('priority') == 'low' ? 'selected' : '' }}>Rendah</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <select name="category" class="form-select form-select-sm">
-                        <option value="">Semua Kategori</option>
-                        @foreach($categories as $cat)
-                            <option value="{{ $cat->id }}" {{ request('category') == $cat->id ? 'selected' : '' }}>
-                                {{ $cat->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <div class="d-flex gap-1">
-                        <button type="submit" class="btn btn-primary btn-sm flex-fill">
-                            <i class="bi bi-search me-1"></i>Filter
-                        </button>
-                        <a href="{{ route('tickets.index') }}" class="btn btn-outline-secondary btn-sm">
-                            <i class="bi bi-x-lg"></i>
-                        </a>
-                    </div>
-                </div>
-            </form>
-        </div>
+    <x-ticket.list :tickets="$tickets->getCollection()" agent :selectable="$canDelete ? 'ticket-bulk' : null" />
 
-        <div class="card-body p-0">
-            @if(session('success'))
-                <div class="alert alert-success alert-dismissible fade show m-3 mb-0" role="alert">
-                    <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            @endif
-            @if(session('error'))
-                <div class="alert alert-danger alert-dismissible fade show m-3 mb-0" role="alert">
-                    <i class="bi bi-exclamation-circle me-2"></i>{{ session('error') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            @endif
-
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            @can('deleteAny', App\Models\Ticket::class)
-                            <th class="ps-3" style="width:40px">
-                                <input type="checkbox" id="selectAll" class="form-check-input">
-                            </th>
-                            @endcan
-                            <th class="{{ auth()->user()->isAdmin() ? '' : 'ps-3' }}" style="width:130px">No. Tiket</th>
-                            <th>Judul / Pemohon</th>
-                            <th style="width:120px">Kategori</th>
-                            <th style="width:90px">Prioritas</th>
-                            <th style="width:100px">Status</th>
-                            <th style="width:120px">Handler</th>
-                            <th style="width:100px">SLA</th>
-                            <th style="width:100px">Tanggal</th>
-                            <th style="width:80px" class="text-center">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($tickets as $ticket)
-                        <tr>
-                            @can('deleteAny', App\Models\Ticket::class)
-                            <td class="ps-3">
-                                <input type="checkbox" class="form-check-input row-check"
-                                    value="{{ $ticket->id }}">
-                            </td>
-                            @endcan
-                            <td class="{{ auth()->user()->isAdmin() ? '' : 'ps-3' }}">
-                                <span class="fw-semibold text-primary small">{{ $ticket->ticket_number }}</span>
-                            </td>
-                            <td>
-                                <div class="fw-semibold small">{{ $ticket->title }}</div>
-                                <div class="text-muted" style="font-size: 0.75rem">
-                                    <i class="bi bi-person me-1"></i>{{ $ticket->requester_name }}
-                                    &bull; {{ $ticket->requester_department }}
-                                    @if($ticket->requester_phone)
-                                        &bull; {{ $ticket->requester_phone }}
-                                    @endif
-                                </div>
-                            </td>
-                            <td><span class="badge bg-light text-dark border small">{{ $ticket->category->name ?? '-' }}</span></td>
-                            <td><span class="badge {{ $ticket->priority_badge_class }} small">{{ $ticket->priority_label }}</span></td>
-                            <td><span class="badge {{ $ticket->status_badge_class }} small">{{ $ticket->status_label }}</span>
-                                @if($ticket->awaitingApproval())
-                                    <div><span class="badge {{ $ticket->approval_badge_class }} mt-1" style="white-space:normal">{{ $ticket->approval_label }}</span></div>
-                                @endif</td>
-                            <td class="small">
-                                @if($ticket->assignedUser)
-                                    <i class="bi bi-person-check text-success me-1"></i>{{ $ticket->assignedUser->name }}
-                                @else
-                                    <span class="text-muted">—</span>
-                                @endif
-                            </td>
-                            <td>@include('tickets.partials.sla-badge')</td>
-                            <td class="small text-muted">{{ $ticket->created_at->format('d M Y') }}</td>
-                            <td class="text-center">
-                                <a href="{{ route('tickets.show', $ticket) }}" class="btn btn-sm btn-outline-primary">
-                                    <i class="bi bi-eye"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="{{ auth()->user()->isAdmin() ? 10 : 9 }}" class="text-center py-5 text-muted">
-                                <i class="bi bi-ticket-perforated fs-3 mb-2 d-block opacity-25"></i>
-                                Tidak ada tiket yang ditemukan.
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-
-            @if($tickets->hasPages())
-            <div class="card-footer bg-white py-3">
-                {{ $tickets->links() }}
-            </div>
-            @endif
-        </div>
-    </div>
-
-@can('deleteAny', App\Models\Ticket::class)
-<script>
-    const selectAll   = document.getElementById('selectAll');
-    const batchForm   = document.getElementById('batchDeleteForm');
-    const batchActions = document.getElementById('batchActions');
-    const countLabel  = document.getElementById('selectedCount');
-
-    function getChecked() {
-        return document.querySelectorAll('.row-check:checked');
-    }
-
-    function updateBatchBar() {
-        const checked = getChecked();
-        countLabel.textContent = checked.length;
-        batchActions.classList.toggle('d-none', checked.length === 0);
-    }
-
-    selectAll.addEventListener('change', function () {
-        document.querySelectorAll('.row-check').forEach(cb => cb.checked = this.checked);
-        updateBatchBar();
-    });
-
-    document.querySelectorAll('.row-check').forEach(cb => {
-        cb.addEventListener('change', function () {
-            selectAll.checked = document.querySelectorAll('.row-check').length === getChecked().length;
-            updateBatchBar();
-        });
-    });
-
-    function confirmBatchDelete() {
-        const checked = getChecked();
-        if (checked.length === 0) return;
-
-        if (!confirm('Hapus ' + checked.length + ' tiket yang dipilih? Tindakan ini tidak dapat dibatalkan.')) return;
-
-        // Remove previous hidden inputs
-        batchForm.querySelectorAll('input[name="ids[]"]').forEach(el => el.remove());
-
-        checked.forEach(cb => {
-            const input = document.createElement('input');
-            input.type  = 'hidden';
-            input.name  = 'ids[]';
-            input.value = cb.value;
-            batchForm.appendChild(input);
-        });
-
-        batchForm.submit();
-    }
-</script>
-@endcan
+    <div class="mt-3">{{ $tickets->withQueryString()->links() }}</div>
 </x-app-layout>

@@ -1,26 +1,18 @@
 {{-- Daftar komentar tiket. $comments sudah difilter oleh controller (internal hanya untuk tim IT). --}}
 @forelse($comments as $comment)
-    <div class="d-flex gap-2 mb-3">
-        <div class="flex-shrink-0">
-            <div class="d-inline-flex align-items-center justify-content-center rounded-circle text-white {{ $comment->user_id ? 'bg-primary' : 'bg-success' }}"
-                style="width:36px;height:36px;font-size:.8rem;font-weight:600">
-                {{ strtoupper(substr($comment->author_display_name, 0, 1)) }}
+    <article class="sg-comment">
+        <span class="sg-avatar" style="width:36px;height:36px;font-size:13px" aria-hidden="true">{{ mb_strtoupper(mb_substr($comment->author_display_name, 0, 1)) }}</span>
+        <div class="min-w-0 flex-grow-1">
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <strong>{{ $comment->author_display_name }}</strong>
+                @if ($comment->is_internal)
+                    <span class="sg-level" style="background:var(--sg-accent);color:#111"><i class="bi bi-lock-fill me-1" aria-hidden="true"></i>Internal</span>
+                @endif
+                <span class="small text-muted">{{ $comment->created_at->diffForHumans() }}</span>
             </div>
+            <p @class(['sg-comment__body sg-prewrap mb-0', 'sg-internal-note' => $comment->is_internal])>{{ $comment->comment }}</p>
         </div>
-        <div class="flex-grow-1">
-            <div class="rounded p-2 {{ $comment->is_internal ? 'border border-warning' : 'bg-light' }}"
-                style="{{ $comment->is_internal ? 'background:#fff8e1' : '' }}">
-                <div class="fw-semibold small">
-                    {{ $comment->author_display_name }}
-                    @if($comment->is_internal)
-                        <span class="badge bg-warning text-dark ms-1"><i class="bi bi-lock me-1"></i>Internal</span>
-                    @endif
-                    <span class="text-muted fw-normal">&middot; {{ $comment->created_at->diffForHumans() }}</span>
-                </div>
-                <div class="small mt-1" style="white-space:pre-wrap">{{ $comment->comment }}</div>
-            </div>
-        </div>
-    </div>
+    </article>
 @empty
-    <p class="text-muted small text-center py-3 mb-0">Belum ada komentar.</p>
+    <x-sg.empty icon="bi-chat-left-text" title="Belum ada komentar" class="py-3" />
 @endforelse

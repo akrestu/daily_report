@@ -1,28 +1,59 @@
-<x-app-layout>
-    <x-slot name="header">Detail Tiket</x-slot>
+{{-- Detail Tiket — mockup: TicketDetailMobile, TicketActionSheet, TicketDetailTablet, TicketDetailDesktop --}}
+@php
+    $isStaff = $canViewInternal;
+    $canAssign = auth()->user()->can('assign', App\Models\Ticket::class) && \App\Services\TicketWorkflow::canBeAssigned($ticket);
+    $hasActions = $canAssign || count($transitions) > 0;
+    $backUrl = auth()->user()->can('viewAny', App\Models\Ticket::class) ? route('tickets.index') : route('tickets.mine');
+@endphp
 
-    @php
-        $isStaff = $canViewInternal;
-        $canAssign = auth()->user()->can('assign', App\Models\Ticket::class) && \App\Services\TicketWorkflow::canBeAssigned($ticket);
-    @endphp
-
-    <div class="row g-3">
-        {{-- Info Tiket --}}
+<x-app-layout title="Detail Tiket" :back="$backUrl">
+    <div class="row g-3 g-lg-4">
         <div class="col-lg-8">
-            @if(session('success'))
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            {{-- Ringkasan --}}
+            <section class="card p-3 p-lg-4 mb-3" aria-labelledby="ticket-title">
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                    <span class="fw-bold sg-num">{{ $ticket->ticket_number }}</span>
+                    <x-sg.badge-status type="ticket_status" :value="$ticket->status" />
+                    <x-sg.badge-priority :value="$ticket->priority" code />
+                    @if ($ticket->reopen_count > 0)
+                        <span class="sg-badge sg-badge--rejected" title="Jumlah dibuka kembali oleh pemohon">Dibuka ulang {{ $ticket->reopen_count }}×</span>
+                    @endif
+                    @if ($isStaff)<span class="ms-lg-auto">@include('tickets.partials.sla-badge')</span>@endif
                 </div>
-            @endif
-            @if(session('error'))
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="bi bi-exclamation-circle me-2"></i>{{ session('error') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            @endif
+                <h1 id="ticket-title" class="h4 fw-bold mb-1">{{ $ticket->title }}</h1>
+                <p class="small text-muted mb-3">
+                    {{ $ticket->type_label }} · {{ $ticket->category->name ?? '-' }} · {{ \App\Support\Format::datetime($ticket->created_at) }}{{ $ticket->jobSite ? ' · '.$ticket->jobSite->name : '' }}
+                </p>
+                <p class="sg-prewrap p-3 rounded mb-3" style="background:var(--sg-surface-2)">{{ $ticket->description }}</p>
 
-            @if($ticket->approval_status)
+                @if ($ticket->resolution_note && $ticket->status !== App\Models\Ticket::STATUS_RESOLVED)
+                    <div class="sg-status-card sg-status-card--approved mb-3">
+                        <div class="sg-status-card__label">Catatan penyelesaian</div>
+                        <div class="sg-prewrap">{{ $ticket->resolution_note }}</div>
+                    </div>
+                @endif
+
+                <div class="d-flex flex-wrap gap-2">
+                    @if ($ticket->attachment_path)
+                        <a href="{{ route('tickets.attachment', $ticket) }}" target="_blank" rel="noopener" class="btn btn-outline-secondary">
+                            <i class="bi bi-paperclip" aria-hidden="true"></i> {{ $ticket->attachment_original_name ?? 'Lihat lampiran' }}
+                        </a>
+                    @endif
+                    @if ($isStaff && $ticket->jobPlan)
+                        <a href="{{ route('job-plans.show', $ticket->job_plan_id) }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-link-45deg" aria-hidden="true"></i> Job Plan · {{ $ticket->jobPlan->assignee->name ?? '-' }}
+                            ({{ $ticket->jobPlan->status === 'converted' ? 'dikonversi' : 'aktif' }})
+                        </a>
+                    @endif
+                    @can('delete', $ticket)
+                        <button type="button" class="btn btn-reject-outline ms-auto" data-bs-toggle="modal" data-bs-target="#delete-ticket">
+                            <i class="bi bi-trash3" aria-hidden="true"></i> Hapus
+                        </button>
+                    @endcan
+                </div>
+            </section>
+
+            @if ($ticket->approval_status)
                 @include('tickets.partials.approval-card', [
                     'printUrl' => route('tickets.approval.form', $ticket),
                     'proofUrl' => route('tickets.approval.proof', $ticket),
@@ -35,301 +66,106 @@
                 @include('tickets.partials.requester-actions', ['action' => route('tickets.respond', $ticket), 'csatAction' => route('tickets.csat', $ticket)])
             @endcan
 
-            <div class="card shadow-sm border-0 mb-3">
-                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
-                    <div>
-                        <span class="fw-bold text-primary me-2">{{ $ticket->ticket_number }}</span>
-                        <span class="badge {{ $ticket->status_badge_class }}">{{ $ticket->status_label }}</span>
-                        <span class="badge {{ $ticket->priority_badge_class }} ms-1">{{ $ticket->priority_label }}</span>
-                        @if($ticket->reopen_count > 0)
-                            <span class="badge bg-danger ms-1" title="Jumlah dibuka kembali oleh pemohon">Reopen {{ $ticket->reopen_count }}x</span>
-                        @endif
-                    </div>
-                    <div class="d-flex gap-1">
-                        <a href="{{ auth()->user()->can('viewAny', App\Models\Ticket::class) ? route('tickets.index') : route('tickets.mine') }}"
-                            class="btn btn-sm btn-outline-secondary">
-                            <i class="bi bi-arrow-left me-1"></i>Kembali
-                        </a>
-                        @can('delete', $ticket)
-                        <form action="{{ route('tickets.destroy', $ticket) }}" method="POST"
-                            onsubmit="return confirm('Hapus tiket ini?')">
-                            @csrf @method('DELETE')
-                            <button type="submit" class="btn btn-sm btn-outline-danger">
-                                <i class="bi bi-trash3"></i>
-                            </button>
-                        </form>
-                        @endcan
-                    </div>
-                </div>
-                <div class="card-body">
-                    <h5 class="fw-bold mb-1">{{ $ticket->title }}</h5>
-                    <div class="text-muted small mb-3">
-                        <span class="badge bg-light text-dark border">{{ $ticket->type_label }}</span>
-                        <span class="badge bg-light text-dark border">{{ $ticket->category->name ?? '-' }}</span>
-                        &bull; {{ $ticket->created_at->diffForHumans() }}
-                        @if($ticket->jobSite)
-                            &bull; {{ $ticket->jobSite->name }}
-                        @endif
-                    </div>
-
-                    <div class="mb-4">
-                        <p class="fw-semibold small text-uppercase text-muted mb-1">Deskripsi</p>
-                        <div class="bg-light rounded p-3" style="white-space: pre-wrap; font-size: 0.9rem">{{ $ticket->description }}</div>
-                    </div>
-
-                    @if($ticket->resolution_note && $ticket->status !== App\Models\Ticket::STATUS_RESOLVED)
-                    <div class="mb-4">
-                        <p class="fw-semibold small text-uppercase text-muted mb-1">Catatan Penyelesaian</p>
-                        <div class="border border-success rounded p-3 small" style="white-space: pre-wrap">{{ $ticket->resolution_note }}</div>
-                    </div>
-                    @endif
-
-                    @if($ticket->attachment_path)
-                    <div class="mb-4">
-                        <p class="fw-semibold small text-uppercase text-muted mb-1">Lampiran</p>
-                        <a href="{{ route('tickets.attachment', $ticket) }}" target="_blank"
-                            class="btn btn-sm btn-outline-primary">
-                            <i class="bi bi-paperclip me-1"></i>{{ $ticket->attachment_original_name ?? 'Lihat Lampiran' }}
-                        </a>
-                    </div>
-                    @endif
-
-                    @if($isStaff && $ticket->jobPlan)
-                    <div class="alert alert-success d-flex align-items-start gap-2 mb-0">
-                        <i class="bi bi-link-45deg mt-1"></i>
-                        <div>
-                            <div class="fw-semibold">Job Plan Terhubung</div>
-                            <div class="small">
-                                Tiket ini diteruskan sebagai job plan untuk
-                                <strong>{{ $ticket->jobPlan->assignee->name ?? '-' }}</strong>.
-                                Status: <span class="badge bg-{{ $ticket->jobPlan->status === 'converted' ? 'success' : 'warning text-dark' }}">
-                                    {{ $ticket->jobPlan->status === 'converted' ? 'Dikonversi' : 'Aktif' }}
-                                </span>
-                            </div>
-                            <a href="{{ route('job-plans.show', $ticket->job_plan_id) }}"
-                                class="btn btn-sm btn-success mt-1">
-                                <i class="bi bi-box-arrow-up-right me-1"></i>Lihat Job Plan
-                            </a>
-                        </div>
-                    </div>
-                    @endif
-                </div>
-            </div>
-
             {{-- Komentar --}}
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-white py-3">
-                    <h6 class="mb-0 fw-bold"><i class="bi bi-chat-left-text text-primary me-2"></i>Komentar</h6>
-                    @if($isStaff)
-                        <div class="text-muted small">Balasan biasa terlihat oleh pemohon. Centang "catatan internal" untuk catatan tim IT saja.</div>
-                    @endif
-                </div>
-                <div class="card-body">
-                    @include('tickets.partials.comments', ['comments' => $ticket->comments])
+            <section class="card p-3 p-lg-4 mb-3" aria-labelledby="comments-title">
+                <h2 id="comments-title" class="h6 fw-bold mb-1">Komentar</h2>
+                @if ($isStaff)
+                    <p class="small text-muted">Balasan biasa terlihat oleh pemohon. Centang "Catatan internal" untuk tim IT saja.</p>
+                @endif
+                @include('tickets.partials.comments', ['comments' => $ticket->comments])
 
-                    @can('addComment', $ticket)
-                    @if($ticket->isActive())
-                    <form action="{{ route('tickets.comment', $ticket) }}" method="POST" class="mt-3">
-                        @csrf
-                        <div class="mb-2">
-                            <textarea name="comment" rows="3" class="form-control @error('comment') is-invalid @enderror"
-                                placeholder="{{ $isStaff ? 'Tulis balasan ke pemohon atau catatan internal...' : 'Tulis komentar untuk tim IT...' }}" required>{{ old('comment') }}</textarea>
-                            @error('comment')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            @if($isStaff)
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="is_internal" value="1" id="is_internal">
-                                    <label class="form-check-label small" for="is_internal"><i class="bi bi-lock me-1"></i>Catatan internal</label>
-                                </div>
-                            @else
-                                <span></span>
-                            @endif
-                            <button type="submit" class="btn btn-primary btn-sm">
-                                <i class="bi bi-send me-1"></i>Kirim
-                            </button>
-                        </div>
-                    </form>
+                @can('addComment', $ticket)
+                    @if ($ticket->isActive())
+                        <form action="{{ route('tickets.comment', $ticket) }}" method="POST" class="mt-3" x-data="{ internal: false }">
+                            @csrf
+                            <label for="ticket-comment" class="visually-hidden">Tulis komentar</label>
+                            <textarea id="ticket-comment" name="comment" rows="3" required class="form-control @error('comment') is-invalid @enderror"
+                                      :class="{ 'sg-internal-note': internal }"
+                                      placeholder="{{ $isStaff ? 'Balas pemohon atau tulis catatan internal…' : 'Tulis komentar untuk tim IT…' }}">{{ old('comment') }}</textarea>
+                            @error('comment')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                @if ($isStaff)
+                                    <div class="form-check form-switch m-0">
+                                        <input class="form-check-input" type="checkbox" role="switch" name="is_internal" value="1" id="is_internal" x-model="internal">
+                                        <label class="form-check-label" for="is_internal"><i class="bi bi-lock" aria-hidden="true"></i> Catatan internal</label>
+                                    </div>
+                                @else
+                                    <span></span>
+                                @endif
+                                <button type="submit" class="btn btn-primary"><i class="bi bi-send" aria-hidden="true"></i> Kirim</button>
+                            </div>
+                        </form>
                     @endif
-                    @endcan
-                </div>
-            </div>
+                @endcan
+            </section>
         </div>
 
-        {{-- Panel Kanan --}}
-        <div class="col-lg-4">
-            @if($isStaff)
+        <aside class="col-lg-4">
+            @if ($isStaff)
                 @include('tickets.partials.sla-card')
             @endif
 
-            {{-- Info Pemohon --}}
-            <div class="card shadow-sm border-0 mb-3">
-                <div class="card-header bg-white py-3">
-                    <h6 class="mb-0 fw-bold"><i class="bi bi-person text-primary me-2"></i>Informasi Pemohon</h6>
-                </div>
-                <div class="card-body">
-                    <dl class="row mb-0 small">
-                        <dt class="col-5 text-muted fw-normal">Nama</dt>
-                        <dd class="col-7 fw-semibold">{{ $ticket->requester_name }}</dd>
+            {{-- Pemohon --}}
+            <section class="card p-3 mb-3" aria-labelledby="requester-title">
+                <h2 id="requester-title" class="h6 fw-bold mb-3">Pemohon</h2>
+                <dl class="sg-meta-grid border-0 pt-0 mb-0" style="grid-template-columns:1fr 1fr">
+                    <div><dt>Nama</dt><dd>{{ $ticket->requester_name }}</dd></div>
+                    <div><dt>Departemen</dt><dd>{{ $ticket->requester_department ?: '-' }}</dd></div>
+                    @if ($ticket->requester_employee_id)<div><dt>NIK / ID</dt><dd>{{ $ticket->requester_employee_id }}</dd></div>@endif
+                    <div><dt>Sumber</dt><dd>{{ $ticket->requester_user_id ? 'Akun SiGAP' : 'Form publik' }}</dd></div>
+                    @if ($isStaff && ! $ticket->requester_user_id)<div><dt>Kode akses</dt><dd class="font-monospace">{{ $ticket->tracking_token }}</dd></div>@endif
+                </dl>
+                @if ($ticket->requester_phone)
+                    <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $ticket->requester_phone) }}" target="_blank" rel="noopener" class="btn btn-outline-secondary w-100 mt-3">
+                        <i class="bi bi-whatsapp" aria-hidden="true"></i> {{ $ticket->requester_phone }}
+                    </a>
+                @endif
+            </section>
 
-                        @if($ticket->requester_employee_id)
-                        <dt class="col-5 text-muted fw-normal">NIK / ID</dt>
-                        <dd class="col-7">{{ $ticket->requester_employee_id }}</dd>
-                        @endif
-
-                        <dt class="col-5 text-muted fw-normal">Departemen</dt>
-                        <dd class="col-7">{{ $ticket->requester_department }}</dd>
-
-                        @if($ticket->requester_phone)
-                        <dt class="col-5 text-muted fw-normal">No. HP</dt>
-                        <dd class="col-7">
-                            <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $ticket->requester_phone) }}"
-                                target="_blank" class="text-success">
-                                <i class="bi bi-whatsapp me-1"></i>{{ $ticket->requester_phone }}
-                            </a>
-                        </dd>
-                        @endif
-
-                        <dt class="col-5 text-muted fw-normal">Sumber</dt>
-                        <dd class="col-7">{{ $ticket->requester_user_id ? 'Akun SiGAP' : 'Form publik' }}</dd>
-
-                        @if($isStaff && ! $ticket->requester_user_id)
-                        <dt class="col-5 text-muted fw-normal">Kode Akses</dt>
-                        <dd class="col-7 font-monospace">{{ $ticket->tracking_token }}</dd>
-                        @endif
-                    </dl>
-                </div>
-            </div>
-
-            {{-- Assign / Alihkan --}}
-            @if($canAssign)
-            <div class="card shadow-sm border-0 mb-3">
-                <div class="card-header bg-white py-3">
-                    <h6 class="mb-0 fw-bold">
-                        <i class="bi bi-person-plus text-success me-2"></i>{{ $ticket->assigned_to ? 'Alihkan Penanganan' : 'Assign & Buat Job Plan' }}
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <form action="{{ route('tickets.assign', $ticket) }}" method="POST">
-                        @csrf
-                        @if ($errors->hasAny(['assigned_to', 'due_date']))
-                        <div class="alert alert-danger small p-2">
-                            @foreach($errors->only(['assigned_to', 'due_date']) as $e) <div>{{ $e }}</div> @endforeach
-                        </div>
-                        @endif
-
-                        <div class="mb-2">
-                            <label class="form-label small fw-semibold">Anggota Tim IT <span class="text-danger">*</span></label>
-                            <select name="assigned_to" class="form-select form-select-sm" required>
-                                <option value="">— Pilih Anggota Tim —</option>
-                                @foreach($eligibleHandlers as $handler)
-                                    <option value="{{ $handler->id }}" {{ $ticket->assigned_to === $handler->id ? 'disabled' : '' }}>
-                                        {{ $handler->name }} ({{ $handler->role->name ?? '-' }}){{ $ticket->assigned_to === $handler->id ? ' — saat ini' : '' }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label small fw-semibold">Target Selesai <span class="text-danger">*</span></label>
-                            <input type="date" name="due_date" class="form-control form-control-sm"
-                                min="{{ today()->format('Y-m-d') }}"
-                                value="{{ optional($ticket->jobPlan?->due_date)->format('Y-m-d') ?? today()->addDays(3)->format('Y-m-d') }}" required>
-                        </div>
-
-                        <div class="alert alert-light border small py-2 mb-3">
-                            <i class="bi bi-info-circle text-primary me-1"></i>
-                            @if($ticket->assigned_to)
-                                Job Plan yang masih aktif akan dipindahkan ke anggota yang dipilih.
-                            @else
-                                Tiket diteruskan sebagai <strong>Job Plan</strong> dan masuk ke <em>Tugas Masuk</em> anggota yang dipilih.
-                            @endif
-                        </div>
-
-                        <button type="submit" class="btn btn-success btn-sm w-100">
-                            <i class="bi bi-check-lg me-1"></i>{{ $ticket->assigned_to ? 'Alihkan' : 'Assign & Buat Job Plan' }}
-                        </button>
-                    </form>
-                </div>
-            </div>
+            @if ($hasActions)
+                <section class="card p-3 mb-3 d-none d-lg-block" aria-label="Tindakan tim IT">
+                    @include('tickets.partials.staff-actions', ['sfx' => 'd'])
+                </section>
             @endif
 
-            {{-- Ubah Status --}}
-            @if(count($transitions) > 0)
-            <div class="card shadow-sm border-0 mb-3">
-                <div class="card-header bg-white py-3">
-                    <h6 class="mb-0 fw-bold"><i class="bi bi-arrow-repeat text-warning me-2"></i>Ubah Status</h6>
-                </div>
-                <div class="card-body">
-                    <form action="{{ route('tickets.update-status', $ticket) }}" method="POST">
-                        @csrf
-                        <select name="status" class="form-select form-select-sm mb-2" id="statusSelect" required>
-                            <option value="">— Pilih status baru —</option>
-                            @foreach($transitions as $status)
-                                <option value="{{ $status }}" {{ old('status') === $status ? 'selected' : '' }}>
-                                    {{ App\Models\Ticket::STATUSES[$status]['label'] }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <textarea name="note" rows="3" class="form-control form-control-sm mb-1" id="statusNote" maxlength="2000"
-                            placeholder="Catatan (opsional)">{{ old('note') }}</textarea>
-                        <div class="form-text mb-2" id="statusNoteHelp"></div>
-                        <button type="submit" class="btn btn-warning btn-sm text-dark w-100">
-                            <i class="bi bi-floppy me-1"></i>Simpan Status
-                        </button>
-                    </form>
-                </div>
-            </div>
+            @if ($isStaff && $ticket->csat_rating)
+                <section class="card p-3 mb-3" aria-labelledby="csat-title">
+                    <h2 id="csat-title" class="h6 fw-bold mb-1">Penilaian pemohon</h2>
+                    <div class="fs-5" style="color:var(--sg-accent)" aria-label="{{ $ticket->csat_rating }} dari 5 bintang">
+                        @for ($i = 1; $i <= 5; $i++)<i class="bi {{ $i <= $ticket->csat_rating ? 'bi-star-fill' : 'bi-star' }}" aria-hidden="true"></i>@endfor
+                    </div>
+                    @if ($ticket->csat_comment)<p class="sg-prewrap small mt-2 mb-1">{{ $ticket->csat_comment }}</p>@endif
+                    <div class="small text-muted">{{ \App\Support\Format::datetime($ticket->csat_submitted_at) }}</div>
+                </section>
             @endif
 
-            @if($isStaff && $ticket->csat_rating)
-            <div class="card shadow-sm border-0 mb-3">
-                <div class="card-body small">
-                    <div class="fw-bold mb-1"><i class="bi bi-star-fill text-warning me-1"></i>Penilaian Pemohon</div>
-                    <div class="fs-5 text-warning">{!! str_repeat('&#9733;', $ticket->csat_rating) !!}<span class="text-muted">{!! str_repeat('&#9733;', 5 - $ticket->csat_rating) !!}</span></div>
-                    @if($ticket->csat_comment)
-                        <div class="bg-light rounded p-2 mt-1" style="white-space:pre-wrap">{{ $ticket->csat_comment }}</div>
-                    @endif
-                    <div class="text-muted mt-1">{{ $ticket->csat_submitted_at->format('d M Y H:i') }}</div>
-                </div>
-            </div>
-            @endif
-
-            {{-- Riwayat --}}
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-white py-3">
-                    <h6 class="mb-0 fw-bold"><i class="bi bi-clock-history text-primary me-2"></i>Riwayat</h6>
-                    <div class="small text-muted">Ditangani: <strong>{{ $ticket->assignedUser->name ?? '—' }}</strong></div>
-                </div>
-                <div class="card-body">
-                    @include('tickets.partials.timeline')
-                </div>
-            </div>
-        </div>
+            <section class="card p-3 mb-3" aria-labelledby="history-title">
+                <h2 id="history-title" class="h6 fw-bold mb-1">Riwayat</h2>
+                <p class="small text-muted">Ditangani: <strong>{{ $ticket->assignedUser->name ?? '—' }}</strong></p>
+                @include('tickets.partials.timeline')
+            </section>
+        </aside>
     </div>
 
-    @if(count($transitions) > 0)
-    <script>
-        (function () {
-            const hints = {
-                pending: 'Wajib: jelaskan informasi apa yang ditunggu dari pemohon. Catatan ini terlihat oleh pemohon.',
-                resolved: 'Wajib: tuliskan solusi / tindakan yang dilakukan. Pemohon akan diminta konfirmasi.',
-                cancelled: 'Wajib: alasan pembatalan. Terlihat oleh pemohon.',
-            };
-            const select = document.getElementById('statusSelect');
-            const note = document.getElementById('statusNote');
-            const help = document.getElementById('statusNoteHelp');
-            function update() {
-                const hint = hints[select.value];
-                note.required = !!hint;
-                note.placeholder = hint ? 'Catatan (wajib)' : 'Catatan (opsional)';
-                help.textContent = hint || '';
-            }
-            select.addEventListener('change', update);
-            update();
-        })();
-    </script>
+    {{-- Mobile: aksi tim IT lewat bottom sheet --}}
+    @if ($hasActions)
+        <x-sg.sticky-actions>
+            <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#ticket-actions">
+                <i class="bi bi-lightning-charge" aria-hidden="true"></i> Tindakan
+            </button>
+        </x-sg.sticky-actions>
+        <x-sg.sheet id="ticket-actions" title="Tindakan tiket">
+            @include('tickets.partials.staff-actions', ['sfx' => 'm'])
+        </x-sg.sheet>
+        @if ($errors->hasAny(['assigned_to', 'due_date', 'status', 'note']))
+            @push('scripts')
+                <script>if (matchMedia('(max-width: 991.98px)').matches) bootstrap.Modal.getOrCreateInstance(document.getElementById('ticket-actions')).show();</script>
+            @endpush
+        @endif
     @endif
+
+    @can('delete', $ticket)
+        <x-sg.confirm-danger id="delete-ticket" title="Hapus tiket ini?" :action="route('tickets.destroy', $ticket)"
+                             text="Tiket {{ $ticket->ticket_number }} akan dihapus." button="Hapus tiket" />
+    @endcan
 </x-app-layout>
