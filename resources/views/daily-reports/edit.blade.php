@@ -28,9 +28,18 @@
         <x-sg.page-header title="Edit Laporan" class="d-none d-lg-flex" :subtitle="'#'.$report->id.' · '.$report->job_name">
             <x-slot:actions>
                 <a href="{{ route('daily-reports.show', $report) }}" class="btn btn-outline-secondary">Batal</a>
-                <button type="submit" class="btn btn-primary" :disabled="busy" x-text="busy ? 'Menyimpan…' : 'Simpan Perubahan'">Simpan Perubahan</button>
+                <button type="submit" class="btn btn-primary" :disabled="busy" x-text="busy ? 'Menyimpan…' : @js($report->approval_status === 'rejected' ? 'Kirim Ulang' : 'Simpan Perubahan')">{{ $report->approval_status === 'rejected' ? 'Kirim Ulang' : 'Simpan Perubahan' }}</button>
             </x-slot:actions>
         </x-sg.page-header>
+
+        @if ($report->approval_status === 'rejected')
+            <div class="alert alert-warning d-flex gap-2 mb-3" role="note">
+                <i class="bi bi-arrow-repeat fs-5" aria-hidden="true"></i>
+                <div><strong>Laporan ini ditolak{{ $report->approver ? ' oleh '.$report->approver->name : '' }}.</strong>
+                    @if ($report->rejection_reason)<div class="sg-prewrap">{{ $report->rejection_reason }}</div>@endif
+                    <div class="small mt-1">Perbaiki sesuai catatan, lalu tekan <strong>Kirim Ulang</strong>. Laporan kembali menunggu persetujuan PIC.</div></div>
+            </div>
+        @endif
 
         @if ($errors->any())
             <div class="alert alert-danger d-flex gap-2 mb-3" role="alert">
@@ -190,7 +199,7 @@
 
         <x-sg.sticky-actions>
             <a href="{{ route('daily-reports.show', $report) }}" class="btn btn-outline-secondary flex-fill">Batal</a>
-            <button type="submit" class="btn btn-primary flex-fill" :disabled="busy" x-text="busy ? 'Menyimpan…' : 'Simpan'">Simpan</button>
+            <button type="submit" class="btn btn-primary flex-fill" :disabled="busy" x-text="busy ? 'Menyimpan…' : @js($report->approval_status === 'rejected' ? 'Kirim Ulang' : 'Simpan')">{{ $report->approval_status === 'rejected' ? 'Kirim Ulang' : 'Simpan' }}</button>
         </x-sg.sticky-actions>
 
         <x-sg.sheet id="pic-sheet" title="Pilih PIC (Atasan)">

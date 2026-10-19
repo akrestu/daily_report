@@ -5,6 +5,7 @@
     $isPending = $report->approval_status === 'pending';
     $canApprove = $isPending && ($viewer->can('approve-reports') || $viewer->id === $report->job_pic);
     $isOwner = $viewer->id === $report->user_id && ! $report->approved_by;
+    $canResubmit = $viewer->id === $report->user_id && $report->approval_status === 'rejected';
 
     $attachments = collect([
         [$report->attachment_path, $report->attachment_original_name],
@@ -95,6 +96,9 @@
                     <a href="https://wa.me/?text={{ rawurlencode($shareText) }}" target="_blank" rel="noopener" class="btn btn-outline-secondary">
                         <i class="bi bi-whatsapp" aria-hidden="true"></i> Bagikan via WhatsApp
                     </a>
+                    @if ($canResubmit)
+                        <a href="{{ route('daily-reports.edit', $report) }}" class="btn btn-primary"><i class="bi bi-arrow-repeat" aria-hidden="true"></i> Perbaiki &amp; kirim ulang</a>
+                    @endif
                     @if ($isOwner)
                         <a href="{{ route('daily-reports.edit', $report) }}" class="btn btn-outline-secondary"><i class="bi bi-pencil" aria-hidden="true"></i> Edit</a>
                         <button type="button" class="btn btn-reject-outline" data-bs-toggle="modal" data-bs-target="#delete-report"><i class="bi bi-trash3" aria-hidden="true"></i> Hapus</button>

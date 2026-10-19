@@ -117,7 +117,8 @@ class DailyReportPolicy
 
     public function update(User $user, DailyReport $dailyReport): bool
     {
-        return $user->id === $dailyReport->user_id && $dailyReport->approval_status === 'pending';
+        // Menunggu: boleh diedit; ditolak: boleh diperbaiki & dikirim ulang
+        return $user->id === $dailyReport->user_id && in_array($dailyReport->approval_status, ['pending', 'rejected'], true);
     }
 
     public function delete(User $user, DailyReport $dailyReport): bool

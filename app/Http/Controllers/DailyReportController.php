@@ -258,8 +258,8 @@ class DailyReportController extends Controller
                 return false;
 
             case 'edit':
-                // Creator can edit their own reports if not yet approved
-                if ($user->id === $report->user_id && $report->approval_status === 'pending') {
+                // Pembuat bisa mengedit laporan yang menunggu, atau memperbaiki & mengirim ulang laporan yang ditolak
+                if ($user->id === $report->user_id && in_array($report->approval_status, ['pending', 'rejected'], true)) {
                     return true;
                 }
 
@@ -832,7 +832,7 @@ class DailyReportController extends Controller
         if (!$this->userCanAccessReport($user, $dailyReport, 'edit')) {
             if ($dailyReport->approved_by) {
                 return redirect()->route('daily-reports.show', $dailyReport)
-                    ->with('error', 'Laporan yang sudah disetujui atau ditolak tidak bisa diedit.');
+                    ->with('error', 'Laporan yang sudah disetujui tidak bisa diedit.');
             }
 
             abort(403, 'Anda tidak punya akses untuk tindakan ini.');
@@ -915,7 +915,22 @@ class DailyReportController extends Controller
 
             // Departemen tidak boleh dipindah lewat edit: rantai persetujuan berdasarkan departemen
             unset($validated['department_id']);
+
+            // Laporan ditolak yang diperbaiki → dikirim ulang ke PIC (alasan penolakan lama disimpan sebagai komentar)
+            $previousRejection = $dailyReport->approval_status === 'rejected' ? (string) $dailyReport->rejection_reason : null;
+            if ($previousRejection !== null) {
+                $validated += ['approval_status' => 'pending', 'approved_by' => null, 'rejection_reason' => null];
+            }
+
             $dailyReport->update($validated);
+
+            if ($previousRejection !== null) {
+                \App\Models\JobComment::create([
+                    'daily_report_id' => $dailyReport->id,
+                    'user_id' => $user->id,
+                    'comment' => 'Diperbaiki dan dikirim ulang.'.($previousRejection !== '' ? ' Alasan penolakan sebelumnya: '.$previousRejection : ''),
+                ]);
+            }
 
             DB::commit();
 

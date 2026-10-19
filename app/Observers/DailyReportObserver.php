@@ -30,7 +30,10 @@ class DailyReportObserver
             $oldStatus = $dailyReport->getOriginal('approval_status');
             
             // If status changed to approved or rejected
-            if ($newStatus === 'approved' && $oldStatus !== 'approved') {
+            if ($newStatus === 'pending' && $oldStatus === 'rejected') {
+                // Laporan ditolak diperbaiki & dikirim ulang → PIC diberi tahu lagi
+                $this->notifyApprovers($dailyReport);
+            } elseif ($newStatus === 'approved' && $oldStatus !== 'approved') {
                 // Create notification for the report owner
                 $this->createApprovalNotification($dailyReport);
             } elseif ($newStatus === 'rejected' && $oldStatus !== 'rejected') {

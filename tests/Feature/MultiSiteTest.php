@@ -219,4 +219,39 @@ class MultiSiteTest extends TestCase
         $this->assertSame('pending', $report->approval_status);
         $this->assertNull($report->approved_by);
     }
+    public function test_rejected_report_can_be_fixed_and_resubmitted_to_pic(): void
+    {
+        $staff = $this->user('level3', $this->siteA);
+        $lead = $this->user('level4', $this->siteA);
+        $report = DailyReport::create([
+            'user_id' => $staff->id, 'department_id' => $this->ops->id, 'job_site_id' => $this->siteA->id,
+            'job_name' => 'Ganti toner', 'report_date' => now()->toDateString(), 'due_date' => now()->toDateString(),
+            'description' => 'x', 'status' => 'completed', 'approval_status' => 'rejected', 'job_pic' => $lead->id,
+            'approved_by' => $lead->id, 'rejection_reason' => 'Lampirkan foto',
+        ]);
+
+        $this->actingAs($staff)->get(route('daily-reports.edit', $report))->assertOk()->assertSee('Lampirkan foto')->assertSee('Kirim Ulang');
+
+        $this->actingAs($staff)->patch(route('daily-reports.update', $report), [
+            'job_name' => 'Ganti toner', 'job_site_id' => $this->siteA->id, 'report_date' => now()->toDateString(),
+            'due_date' => now()->toDateString(), 'job_pic' => $lead->id, 'description' => 'Sudah diganti, foto terlampir',
+            'status' => 'completed',
+        ])->assertSessionHasNoErrors();
+
+        $report->refresh();
+        $this->assertSame('pending', $report->approval_status);
+        $this->assertNull($report->approved_by);
+        $this->assertNull($report->rejection_reason);
+        $this->assertTrue($report->comments()->where('comment', 'like', '%Lampirkan foto%')->exists());
+        $this->assertTrue(\App\Models\Notification::where('user_id', $lead->id)->where('type', 'pending_approval')->exists());
+    }
+
+    public function test_approved_report_still_cannot_be_edited(): void
+    {
+        $staff = $this->user('level3', $this->siteA);
+        $report = $this->report($staff, $this->siteA);
+        $report->update(['approval_status' => 'approved', 'approved_by' => $staff->id]);
+
+        $this->assertFalse($staff->can('update', $report->fresh()));
+    }
 }
