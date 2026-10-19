@@ -117,9 +117,16 @@
                     @if ($isStaff && ! $ticket->requester_user_id)<div><dt>Kode akses</dt><dd class="font-monospace">{{ $ticket->tracking_token }}</dd></div>@endif
                 </dl>
                 @if ($ticket->requester_phone)
-                    <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $ticket->requester_phone) }}" target="_blank" rel="noopener" class="btn btn-outline-secondary w-100 mt-3">
-                        <i class="bi bi-whatsapp" aria-hidden="true"></i> {{ $ticket->requester_phone }}
-                    </a>
+                    @if ($isStaff)
+                        <p class="small text-muted mt-3 mb-0"><i class="bi bi-whatsapp" aria-hidden="true"></i> {{ $ticket->requester_phone }}</p>
+                        @include('tickets.partials.contact-requester')
+                    @elseif ($wa = \App\Support\TicketMessage::whatsappNumber($ticket->requester_phone))
+                        <a href="https://wa.me/{{ $wa }}" target="_blank" rel="noopener" class="btn btn-outline-secondary w-100 mt-3">
+                            <i class="bi bi-whatsapp" aria-hidden="true"></i> {{ $ticket->requester_phone }}
+                        </a>
+                    @endif
+                @elseif ($isStaff)
+                    <p class="small text-muted mt-3 mb-0">Pemohon tidak mengisi No. HP / WhatsApp. Gunakan komentar tiket untuk berkomunikasi.</p>
                 @endif
             </section>
 

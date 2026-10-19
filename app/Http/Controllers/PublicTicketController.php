@@ -94,6 +94,21 @@ class PublicTicketController extends Controller
         return redirect()->route('tickets.public.track.show', $ticket);
     }
 
+    /** Link langsung dari pesan petugas: kode diverifikasi, disimpan di session, lalu dialihkan agar kode tidak tertinggal di URL */
+    public function access(Request $request, Ticket $ticket, string $token)
+    {
+        if (! Ticket::findForTracking($ticket->ticket_number, $token)) {
+            return redirect()->route('tickets.public.track')
+                ->withErrors(['ticket_number' => 'Tautan tidak valid. Masukkan nomor tiket dan kode akses secara manual.']);
+        }
+
+        $request->session()->put(self::SESSION_KEY, array_unique([
+            ...$request->session()->get(self::SESSION_KEY, []), $ticket->id,
+        ]));
+
+        return redirect()->route('tickets.public.track.show', $ticket);
+    }
+
     public function showTracked(Request $request, Ticket $ticket)
     {
         $this->authorizeTracked($request, $ticket);

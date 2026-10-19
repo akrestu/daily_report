@@ -28,6 +28,10 @@ Route::post('/request/status', [PublicTicketController::class, 'track'])
     ->middleware('throttle:10,1')
     ->name('tickets.public.track.lookup');
 Route::get('/request/status/{ticket:ticket_number}', [PublicTicketController::class, 'showTracked'])->name('tickets.public.track.show');
+// Link langsung dari pesan WhatsApp petugas (nomor + kode akses) → simpan akses di session, lalu buka detail
+Route::get('/request/status/{ticket:ticket_number}/akses/{token}', [PublicTicketController::class, 'access'])
+    ->middleware('throttle:20,1')
+    ->name('tickets.public.track.access');
 Route::post('/request/status/{ticket:ticket_number}/comment', [PublicTicketController::class, 'comment'])
     ->middleware('throttle:10,1')
     ->name('tickets.public.comment');
