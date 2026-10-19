@@ -273,10 +273,17 @@ class Ticket extends Model
         return $this->hasMany(TicketComment::class)->orderBy('created_at', 'asc');
     }
 
-    public static function generateTicketNumber(): string
+    /** Prefix nomor per jenis (ITIL): INC = gangguan/incident, SR = permintaan layanan */
+    const NUMBER_PREFIXES = [
+        'incident' => 'INC',
+        'service_request' => 'SR',
+    ];
+
+    /** Nomor lama (sebelum prefix per jenis) tetap TKT-…; pencarian/lacak tidak bergantung prefix */
+    public static function generateTicketNumber(?string $type = null): string
     {
         $date = now()->format('Ymd');
-        $prefix = 'TKT-'.$date.'-';
+        $prefix = (self::NUMBER_PREFIXES[$type] ?? 'TKT').'-'.$date.'-';
 
         // withTrashed: nomor tiket yang sudah dihapus tetap terpakai (unique constraint)
         $last = static::withTrashed()
@@ -297,7 +304,7 @@ class Ticket extends Model
     {
         for ($attempt = 1; ; $attempt++) {
             try {
-                return static::create($attributes + ['ticket_number' => static::generateTicketNumber()]);
+                return static::create($attributes + ['ticket_number' => static::generateTicketNumber($attributes['type'] ?? null)]);
             } catch (UniqueConstraintViolationException $e) {
                 if ($attempt >= $maxAttempts) {
                     throw $e;

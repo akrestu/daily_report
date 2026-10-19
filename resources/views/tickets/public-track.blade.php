@@ -21,7 +21,7 @@
     <div class="row g-2">
         <div class="col-sm-7">
             <label for="f-ticket_number" class="form-label small fw-semibold">Nomor Tiket</label>
-            <input id="f-ticket_number" type="text" name="ticket_number" class="form-control text-uppercase" placeholder="TKT-20261012-0001"
+            <input id="f-ticket_number" type="text" name="ticket_number" class="form-control text-uppercase" placeholder="INC-20261012-0001"
                 value="{{ old('ticket_number') }}" required maxlength="30">
         </div>
         <div class="col-sm-5">
