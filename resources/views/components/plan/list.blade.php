@@ -12,7 +12,7 @@
 @else
     <div class="sg-list d-lg-none">
         @foreach ($plans as $plan)
-            @php($late = $plan->due_date && $plan->due_date->isPast() && ! $plan->isConverted())
+            @php($late = $plan->due_date && $plan->due_date->isBefore(today()) && ! $plan->isConverted())
             <div class="sg-list-card flex-column align-items-stretch">
                 <div class="sg-list-card__top">
                     <span @class(['sg-badge', 'sg-badge--approved' => $plan->isConverted(), 'sg-badge--rejected' => $late, 'sg-badge--progress' => ! $plan->isConverted() && ! $late])>
@@ -44,7 +44,7 @@
             </tr>
         </x-slot:head>
         @foreach ($plans as $plan)
-            @php($late = $plan->due_date && $plan->due_date->isPast() && ! $plan->isConverted())
+            @php($late = $plan->due_date && $plan->due_date->isBefore(today()) && ! $plan->isConverted())
             <tr>
                 <td style="max-width:340px"><a href="{{ route('job-plans.show', $plan) }}" class="d-block fw-semibold text-reset text-decoration-none sg-clamp-1">{{ $plan->job_name }}</a></td>
                 <td class="text-nowrap">{{ $mine ? ($plan->creator->name ?? '-') : ($plan->assignee->name ?? '-') }}</td>

@@ -149,4 +149,20 @@ class MultiSiteTest extends TestCase
         $this->actingAs($admin)->get(route('admin.users.edit', $lead))
             ->assertSee('Bisa memilah &amp; menugaskan tiket', false);
     }
+    public function test_job_plan_due_today_is_not_overdue_yet(): void
+    {
+        $lead = $this->user('level4', $this->siteA);
+        $plan = fn (string $due) => \App\Models\JobPlan::create([
+            'creator_id' => $lead->id, 'assignee_id' => $lead->id, 'department_id' => $this->ops->id,
+            'job_site_id' => $this->siteA->id, 'job_name' => 'Perbaikan radio', 'description' => 'x',
+            'planned_date' => now()->toDateString(), 'due_date' => $due, 'status' => 'assigned',
+        ]);
+
+        $this->travelTo(now()->setTime(23, 30));
+        $this->actingAs($lead)->get(route('job-plans.show', $plan(now()->toDateString())))
+            ->assertOk()->assertSee('Aktif')->assertDontSee('Lewat due');
+
+        $this->actingAs($lead)->get(route('job-plans.show', $plan(now()->subDay()->toDateString())))
+            ->assertSee('Lewat due');
+    }
 }

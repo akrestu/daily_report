@@ -1,7 +1,7 @@
 {{-- Detail Rencana Kerja --}}
 @use('App\Support\Format')
 @php
-    $late = ! $plan->isConverted() && $plan->due_date?->isPast();
+    $late = ! $plan->isConverted() && $plan->due_date?->isBefore(today());
     $tone = $plan->isConverted() ? 'approved' : ($late ? 'rejected' : 'progress');
 @endphp
 

@@ -60,7 +60,7 @@
                             <div class="sg-status-card__label">Progres Pekerjaan</div>
                             <x-sg.badge-progress :value="$report->status" />
                             @if ($report->due_date)
-                                @php($late = $report->due_date->isPast() && $report->status !== 'completed')
+                                @php($late = $report->due_date->isBefore(today()) && $report->status !== 'completed')
                                 <div @class(['small mt-1', 'text-danger fw-semibold' => $late, 'text-muted' => ! $late])>
                                     Due {{ Format::dayMonth($report->due_date) }}{{ $late ? ' · terlambat' : '' }}
                                 </div>
