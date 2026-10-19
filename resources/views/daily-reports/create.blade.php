@@ -57,7 +57,7 @@
                 <div class="sg-outbox__item">
                     <div class="min-w-0 flex-grow-1">
                         <div class="small fw-semibold sg-clamp-1" x-text="item.summary"></div>
-                        <div class="small text-danger" x-show="item.error" x-text="'Gagal: ' + item.error"></div>
+                        <div class="small text-danger" x-show="item.error" x-cloak x-text="'Gagal: ' + item.error"></div>
                     </div>
                     <button type="button" class="btn btn-sm btn-quiet text-danger" @click="$store.outbox.discard(item.id)" :aria-label="'Buang ' + item.summary">Buang</button>
                 </div>

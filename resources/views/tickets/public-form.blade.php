@@ -36,7 +36,7 @@
         @foreach ([1 => 'Identitas', 2 => 'Permintaan', 3 => 'Detail'] as $n => $label)
             <li :class="{ 'is-done': step > {{ $n }}, 'is-current': step === {{ $n }} }" :aria-current="step === {{ $n }} ? 'step' : null">
                 <span class="sg-stepper__dot">
-                    <i class="bi bi-check-lg" x-show="step > {{ $n }}" aria-hidden="true"></i><span x-show="step <= {{ $n }}">{{ $n }}</span>
+                    <i class="bi bi-check-lg" x-show="step > {{ $n }}" x-cloak aria-hidden="true"></i><span x-show="step <= {{ $n }}">{{ $n }}</span>
                 </span>
                 <span class="sg-stepper__label">{{ $label }}</span>
             </li>
@@ -56,13 +56,14 @@
             <label for="nik" class="form-label fw-semibold">NIK karyawan <span class="text-danger">*</span></label>
             <div class="d-flex gap-2">
                 <input type="text" id="nik" name="nik" inputmode="numeric" autocomplete="off" maxlength="30" required
-                       class="form-control @error('nik') is-invalid @enderror" x-model="nik" @blur="check()" @input="employee = null; message = ''"
+                       class="form-control" @error('nik') :class="{ 'is-invalid': !employee }" @enderror x-model="nik" @blur="check()" @input="employee = null; message = ''"
                        aria-describedby="nik-help">
                 <button type="button" class="btn btn-outline-secondary flex-none" @click="check()" :disabled="checking">
-                    <span x-show="!checking">Cek</span><span x-show="checking" class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                    <span x-show="!checking">Cek</span><span x-show="checking" x-cloak class="spinner-border spinner-border-sm" aria-hidden="true"></span>
                 </button>
             </div>
-            @error('nik')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+            {{-- Pesan server disembunyikan setelah NIK lolos cek ulang agar tidak bertentangan dengan "NIK terverifikasi" --}}
+            @error('nik')<div class="invalid-feedback d-block" x-show="!employee">{{ $message }}</div>@enderror
             <div id="nik-help" class="form-text" :class="{ 'text-danger': message && !employee }" x-text="message || 'NIK dipakai untuk memastikan Anda karyawan aktif.'"></div>
 
             <template x-if="employee">
@@ -112,7 +113,7 @@
                     <label class="sg-option" :class="{ active: category === c.id }">
                         <input type="radio" name="category_id" class="visually-hidden" :value="c.id" x-model="category">
                         <span class="fw-semibold" x-text="c.name"></span>
-                        <span class="small text-muted" x-show="c.approval">Perlu persetujuan atasan</span>
+                        <span class="small text-muted" x-show="c.approval" x-cloak>Perlu persetujuan atasan</span>
                     </label>
                 </template>
             </div>
@@ -142,7 +143,7 @@
                 </div>
             </div>
 
-            <div class="mt-3" x-show="needsApproval">
+            <div class="mt-3" x-show="needsApproval" x-cloak>
                 <div class="alert alert-warning small mb-2">Kategori ini perlu <strong>persetujuan atasan</strong>. Setelah tiket dibuat, cetak formulir, minta tanda tangan, lalu unggah fotonya.</div>
                 <label for="supervisor" class="form-label fw-semibold">Atasan yang menyetujui <span class="text-danger">*</span></label>
                 <select id="supervisor" name="supervisor_id" class="form-select @error('supervisor_id') is-invalid @enderror" x-model="supervisor" :required="needsApproval">
@@ -172,15 +173,15 @@
             <div class="sg-status-card mt-3 small">
                 <div class="sg-status-card__label">Ringkasan</div>
                 <div><span x-text="employee ? employee.name : nik"></span> · <span x-text="(categories.find(c => c.id === category) || {}).name || '-'"></span></div>
-                <div x-show="priority">Prioritas: <strong x-text="priority && (priorities[priority].code + ' ' + priorities[priority].label)"></strong></div>
+                <div x-show="priority" x-cloak>Prioritas: <strong x-text="priority && (priorities[priority].code + ' ' + priorities[priority].label)"></strong></div>
             </div>
         </section>
 
         {{-- Navigasi langkah (menempel di bawah pada mobile) --}}
         <div class="sg-public-actions">
-            <button type="button" class="btn btn-outline-secondary" x-show="step > 1" @click="step--">Kembali</button>
+            <button type="button" class="btn btn-outline-secondary" x-show="step > 1" x-cloak @click="step--">Kembali</button>
             <button type="button" class="btn btn-primary flex-fill" x-show="step < 3" @click="next()" :disabled="!canNext">Lanjut</button>
-            <button type="submit" class="btn btn-primary flex-fill" x-show="step === 3" :disabled="busy">
+            <button type="submit" class="btn btn-primary flex-fill" x-show="step === 3" x-cloak :disabled="busy">
                 <span x-text="busy ? 'Mengirim…' : 'Kirim Tiket'">Kirim Tiket</span>
             </button>
         </div>

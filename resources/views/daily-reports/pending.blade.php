@@ -111,7 +111,7 @@
                             </article>
                             </div>
                         </template>
-                        <p class="text-muted small p-3 mb-0" x-show="!visible.length">Tidak ada laporan untuk saringan ini.</p>
+                        <p class="text-muted small p-3 mb-0" x-show="!visible.length" x-cloak>Tidak ada laporan untuk saringan ini.</p>
                     </div>
                     <div class="mt-3">{{ $reports->links() }}</div>
                 </div>

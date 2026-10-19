@@ -133,7 +133,7 @@
                         <strong class="me-auto">Notifikasi</strong>
                         <button type="button" class="btn btn-sm btn-quiet" @click="$store.notif.markAll()" :disabled="!$store.notif.unread">Tandai semua dibaca</button>
                         <button type="button" class="sg-icon-btn" style="width:36px;height:36px;font-size:16px" data-bs-toggle="modal" data-bs-target="#sg-notif-clear"
-                                aria-label="Hapus semua notifikasi" x-show="$store.notif.items.length">
+                                aria-label="Hapus semua notifikasi" x-show="$store.notif.items.length" x-cloak>
                             <i class="bi bi-trash3" aria-hidden="true"></i>
                         </button>
                     </div>

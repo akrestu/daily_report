@@ -37,7 +37,7 @@
                 <label class="sg-chip" for="st-{{ $status }}-{{ $sfx }}" :class="{ active: status === '{{ $status }}' }">{{ config('sigap-ui.ticket_status.'.$status.'.label', $status) }}</label>
             @endforeach
         </div>
-        <label for="note-{{ $sfx }}" class="form-label fw-semibold">Catatan <span class="text-danger" x-show="hints[status]">*</span></label>
+        <label for="note-{{ $sfx }}" class="form-label fw-semibold">Catatan <span class="text-danger" x-show="hints[status]" x-cloak>*</span></label>
         <textarea id="note-{{ $sfx }}" name="note" rows="3" maxlength="2000" class="form-control" :required="!!hints[status]"
                   :placeholder="hints[status] ? 'Catatan (wajib)' : 'Catatan (opsional)'">{{ old('note') }}</textarea>
         <div class="form-text mb-2" x-text="hints[status] || ''"></div>

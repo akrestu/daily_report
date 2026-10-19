@@ -19,11 +19,11 @@
         @endif
 
         <div class="d-flex flex-wrap gap-2 mb-2">
-            <a href="{{ $printUrl }}" target="_blank" class="btn btn-outline-secondary btn-sm">
+            <a href="{{ $printUrl }}" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-printer me-1"></i>Cetak Formulir Persetujuan
             </a>
             @if($ticket->approval_proof_path)
-                <a href="{{ $proofUrl }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                <a href="{{ $proofUrl }}" target="_blank" rel="noopener" class="btn btn-outline-primary btn-sm">
                     <i class="bi bi-file-earmark-text me-1"></i>Lihat Bukti
                 </a>
             @endif
