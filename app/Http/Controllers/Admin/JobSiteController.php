@@ -66,7 +66,7 @@ class JobSiteController extends Controller
             'location' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $validated['is_active'] = $request->has('is_active') ? true : false;
+        $validated['is_active'] = $request->boolean('is_active');
 
         $jobSite = JobSite::create($validated);
 
@@ -114,7 +114,7 @@ class JobSiteController extends Controller
             'location' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $validated['is_active'] = $request->has('is_active') ? true : false;
+        $validated['is_active'] = $request->boolean('is_active');
 
         $jobSite->update($validated);
 

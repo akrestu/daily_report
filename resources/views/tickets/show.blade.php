@@ -86,7 +86,8 @@
                             <div class="d-flex justify-content-between align-items-center mt-2">
                                 @if ($isStaff)
                                     <div class="form-check form-switch m-0">
-                                        <input class="form-check-input" type="checkbox" role="switch" name="is_internal" value="1" id="is_internal" x-model="internal">
+                                        <input type="hidden" name="is_internal" :value="internal ? 1 : 0">
+                                        <input class="form-check-input" type="checkbox" role="switch" id="is_internal" x-model="internal">
                                         <label class="form-check-label" for="is_internal"><i class="bi bi-lock" aria-hidden="true"></i> Catatan internal</label>
                                     </div>
                                 @else

@@ -165,4 +165,19 @@ class MultiSiteTest extends TestCase
         $this->actingAs($lead)->get(route('job-plans.show', $plan(now()->subDay()->toDateString())))
             ->assertSee('Lewat due');
     }
+    /** Switch di modal admin selalu mengirim 1/0 (hidden); "0" harus berarti nonaktif */
+    public function test_modal_switches_save_off_and_on(): void
+    {
+        $admin = User::factory()->create(['role_id' => Role::where('slug', 'admin')->value('id')]);
+        $this->actingAs($admin);
+
+        $this->put(route('admin.job-sites.update', $this->siteA), ['name' => 'Site A', 'code' => 'A', 'is_active' => '0']);
+        $this->assertFalse($this->siteA->fresh()->is_active);
+
+        $this->put(route('admin.departments.update', $this->ops), ['name' => 'Operations', 'code' => 'OPS', 'handles_tickets' => '1']);
+        $this->assertTrue($this->ops->fresh()->handles_tickets);
+
+        $this->put(route('admin.departments.update', $this->ops), ['name' => 'Operations', 'code' => 'OPS', 'handles_tickets' => '0']);
+        $this->assertFalse($this->ops->fresh()->handles_tickets);
+    }
 }

@@ -103,8 +103,9 @@
                     @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="form-check form-switch mb-3">
-                    <input type="hidden" name="handles_tickets" value="0">
-                    <input id="d-tickets" type="checkbox" role="switch" name="handles_tickets" value="1" class="form-check-input" x-model="item.handles_tickets">
+                    {{-- Nilai dikirim lewat hidden (1/0) dari state Alpine; checkbox tanpa name karena x-model menimpa atribut value-nya --}}
+                    <input type="hidden" name="handles_tickets" :value="item.handles_tickets ? 1 : 0">
+                    <input id="d-tickets" type="checkbox" role="switch" class="form-check-input" x-model="item.handles_tickets">
                     <label for="d-tickets" class="form-check-label fw-semibold">Tim layanan tiket</label>
                     <div class="form-text">Anggota departemen ini memproses tiket masuk (level 4 ke atas memilah &amp; menugaskan).</div>
                 </div>

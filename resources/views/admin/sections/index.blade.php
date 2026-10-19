@@ -122,7 +122,8 @@
                     @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="form-check form-switch mb-3">
-                    <input class="form-check-input" type="checkbox" role="switch" id="c-active" name="is_active" value="1" x-model="item.is_active">
+                    <input type="hidden" name="is_active" :value="item.is_active ? 1 : 0">
+                    <input class="form-check-input" type="checkbox" role="switch" id="c-active" x-model="item.is_active">
                     <label class="form-check-label" for="c-active">Aktif (bisa dipilih di laporan)</label>
                 </div>
                 <div class="d-flex gap-2">

@@ -58,11 +58,13 @@
                     @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="form-check form-switch mb-2">
-                    <input class="form-check-input" type="checkbox" role="switch" id="k-approval" name="requires_approval" value="1" x-model="item.requires_approval">
+                    <input type="hidden" name="requires_approval" :value="item.requires_approval ? 1 : 0">
+                    <input class="form-check-input" type="checkbox" role="switch" id="k-approval" x-model="item.requires_approval">
                     <label class="form-check-label" for="k-approval">Perlu persetujuan atasan</label>
                 </div>
                 <div class="form-check form-switch mb-3">
-                    <input class="form-check-input" type="checkbox" role="switch" id="k-active" name="is_active" value="1" x-model="item.is_active">
+                    <input type="hidden" name="is_active" :value="item.is_active ? 1 : 0">
+                    <input class="form-check-input" type="checkbox" role="switch" id="k-active" x-model="item.is_active">
                     <label class="form-check-label" for="k-active">Aktif (muncul di form tiket)</label>
                 </div>
                 <div class="d-flex gap-2">

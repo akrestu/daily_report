@@ -75,7 +75,7 @@ class SectionController extends Controller
             'description' => ['nullable', 'string'],
         ]);
 
-        $validated['is_active'] = $request->has('is_active') ? true : false;
+        $validated['is_active'] = $request->boolean('is_active');
 
         $section = Section::create($validated);
 
@@ -124,7 +124,7 @@ class SectionController extends Controller
             'description' => ['nullable', 'string'],
         ]);
 
-        $validated['is_active'] = $request->has('is_active') ? true : false;
+        $validated['is_active'] = $request->boolean('is_active');
 
         $section->update($validated);
 
