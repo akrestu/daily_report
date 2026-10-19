@@ -45,7 +45,7 @@ class DailyReportPolicy
         // Level 8 can view all reports in the same job site (cross-department)
         if ($user->isLevel8()) {
             // Must be in the same job site
-            if ($user->job_site_id && $user->job_site_id === $dailyReport->job_site_id) {
+            if ($user->coversJobSite($dailyReport->job_site_id)) {
                 return true;
             }
         }
@@ -133,7 +133,7 @@ class DailyReportPolicy
         }
 
         // Level 8 can delete reports from same job site
-        if ($user->isLevel8() && $user->job_site_id === $dailyReport->job_site_id) {
+        if ($user->isLevel8() && $user->coversJobSite($dailyReport->job_site_id)) {
             return true;
         }
 
@@ -165,7 +165,7 @@ class DailyReportPolicy
         // Level 8 can approve cross-department within same job site
         if ($user->isLevel8()) {
             // Must be in the same job site
-            if ($user->job_site_id && $user->job_site_id === $dailyReport->job_site_id) {
+            if ($user->coversJobSite($dailyReport->job_site_id)) {
                 // Can approve Level 6 and Level 7 reports
                 return $dailyReport->user?->isLevel7() || $dailyReport->user?->isLevel6();
             }

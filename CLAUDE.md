@@ -116,6 +116,8 @@ Role hierarchy (operational): Level 1 → Level 2 → Level 3 → Level 4 → Le
 Role level is determined by `User::getRoleLevel()` which returns 1-8 for level roles, 0 for admin.
 Approval rule: Level N can approve Level N-1 and N-2 (via `User::canApprove()`), within the same department. Level 8 exception: approves Level 6 AND Level 7 within the same job_site.
 
+Multi-site: `users.job_site_id` = site utama; site tambahan di pivot `user_job_sites`. Semua filter/cek site memakai `User::jobSiteIds()` / `coversJobSite()` / scope `coveringJobSites()` — jangan bandingkan `job_site_id` langsung.
+
 > Note: legacy slugs `department_head`, `leader`, `staff` exist only for backward-compatibility and are NOT seeded.
 > Full documentation: `docs/architecture.md`
 

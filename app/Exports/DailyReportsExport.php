@@ -47,7 +47,7 @@ class DailyReportsExport implements FromCollection, WithHeadings, WithMapping, S
         } else {
             // Pre-filter by scope; per-report visibility is enforced by the policy below
             if ($user->isLevel8()) {
-                $query->where('job_site_id', $user->job_site_id);
+                $query->whereIn('job_site_id', $user->jobSiteIds());
             } elseif (!$user->isAdmin()) {
                 $query->where('department_id', $user->department_id);
             }

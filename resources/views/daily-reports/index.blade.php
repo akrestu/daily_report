@@ -5,8 +5,8 @@
     $canBatchDelete = $user->isAdmin() || $user->isLevel5();
 
     // Pilihan section (aturan sama dengan view lama; admin melihat semua section aktif)
-    if ($user->isLevel8() && $user->job_site_id) {
-        $deptIds = \App\Models\User::where('job_site_id', $user->job_site_id)->whereNotNull('department_id')->distinct()->pluck('department_id');
+    if ($user->isLevel8() && $user->hasJobSites()) {
+        $deptIds = \App\Models\User::coveringJobSites($user->jobSiteIds())->whereNotNull('department_id')->distinct()->pluck('department_id');
         $sections = \App\Models\Section::whereIn('department_id', $deptIds)->where('is_active', true)->orderBy('name')->get();
     } elseif ($user->isAdmin() || $user->isLevel8()) {
         $sections = \App\Models\Section::where('is_active', true)->orderBy('name')->get();

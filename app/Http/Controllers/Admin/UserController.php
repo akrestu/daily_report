@@ -77,6 +77,8 @@ class UserController extends Controller
                 'role_id' => ['required', 'exists:roles,id'],
                 'department_id' => ['nullable', 'exists:departments,id'],
                 'job_site_id' => ['nullable', 'exists:job_sites,id'],
+                'extra_job_site_ids' => ['nullable', 'array'],
+                'extra_job_site_ids.*' => ['integer', 'exists:job_sites,id'],
                 'user_id' => ['nullable', 'string', 'max:255', 'unique:users'],
             ]);
 
@@ -96,6 +98,7 @@ class UserController extends Controller
 
             try {
                 $user = User::create($userData);
+                $user->syncExtraJobSites($request->input('extra_job_site_ids', []));
                 
                 // Create welcome notification for the new user
                 Notification::create([
@@ -153,6 +156,7 @@ class UserController extends Controller
         $roles = Role::all();
         $departments = Department::all();
         $jobSites = JobSite::where('is_active', true)->orderBy('name')->get();
+        $user->load('extraJobSites');
         return view('admin.users.edit', compact('user', 'roles', 'departments', 'jobSites'));
     }
 
@@ -169,6 +173,8 @@ class UserController extends Controller
             'role_id' => ['required', 'exists:roles,id'],
             'department_id' => ['nullable', 'exists:departments,id'],
             'job_site_id' => ['nullable', 'exists:job_sites,id'],
+            'extra_job_site_ids' => ['nullable', 'array'],
+            'extra_job_site_ids.*' => ['integer', 'exists:job_sites,id'],
             'user_id' => ['nullable', 'string', 'max:255', 'unique:users,user_id,' . $id],
         ];
         
@@ -199,6 +205,7 @@ class UserController extends Controller
         }
         
         $user->update($data);
+        $user->syncExtraJobSites($request->input('extra_job_site_ids', []));
         
         return redirect()->route('admin.users.index')
             ->with('success', 'Data pengguna berhasil diperbarui.');

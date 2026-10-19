@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -67,9 +68,73 @@ class User extends Authenticatable
         return $this->belongsTo(Department::class);
     }
 
+    /** Site utama (default saat membuat laporan) */
     public function jobSite(): BelongsTo
     {
         return $this->belongsTo(JobSite::class);
+    }
+
+    /** Site tambahan (multi-site), di luar site utama */
+    public function extraJobSites(): BelongsToMany
+    {
+        return $this->belongsToMany(JobSite::class, 'user_job_sites')->withTimestamps();
+    }
+
+    private ?array $jobSiteIdsCache = null;
+
+    /**
+     * Semua site yang dicakup user: site utama + site tambahan. Kosong = user tanpa site
+     * (perilaku lama: tidak dibatasi site). Pakai ini untuk semua filter/cek site.
+     *
+     * @return list<int>
+     */
+    public function jobSiteIds(): array
+    {
+        if ($this->jobSiteIdsCache !== null) {
+            return $this->jobSiteIdsCache;
+        }
+
+        $extra = $this->relationLoaded('extraJobSites')
+            ? $this->extraJobSites->pluck('id')
+            : ($this->exists ? $this->extraJobSites()->pluck('job_sites.id') : collect());
+
+        return $this->jobSiteIdsCache = collect([$this->job_site_id])
+            ->merge($extra)
+            ->filter()
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    /** Punya site (utama atau tambahan) yang membatasi cakupan */
+    public function hasJobSites(): bool
+    {
+        return $this->jobSiteIds() !== [];
+    }
+
+    /** User mencakup site ini (site utama atau tambahan) */
+    public function coversJobSite($jobSiteId): bool
+    {
+        return $jobSiteId !== null && in_array((int) $jobSiteId, $this->jobSiteIds(), true);
+    }
+
+    /** Sinkronkan site tambahan (site utama otomatis dikeluarkan) */
+    public function syncExtraJobSites(array $ids): void
+    {
+        $ids = collect($ids)->filter()->map(fn ($id) => (int) $id)->reject(fn ($id) => $id === (int) $this->job_site_id)->unique()->values()->all();
+        $this->extraJobSites()->sync($ids);
+        $this->jobSiteIdsCache = null;
+        $this->unsetRelation('extraJobSites');
+    }
+
+    /** User yang mencakup salah satu site (site utama atau tambahan) */
+    public function scopeCoveringJobSites($query, array $jobSiteIds)
+    {
+        return $query->where(function ($q) use ($jobSiteIds) {
+            $q->whereIn('job_site_id', $jobSiteIds)
+                ->orWhereHas('extraJobSites', fn ($s) => $s->whereIn('job_sites.id', $jobSiteIds));
+        });
     }
 
     public function dailyReports(): HasMany

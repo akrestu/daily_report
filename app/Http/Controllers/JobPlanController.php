@@ -364,8 +364,8 @@ class JobPlanController extends Controller
         $query = User::whereIn('role_id', $roleIds)->orderBy('name');
 
         if (!$creator->isAdmin()) {
-            if ($creator->isLevel8() && $creator->job_site_id) {
-                $query->where('job_site_id', $creator->job_site_id);
+            if ($creator->isLevel8() && $creator->hasJobSites()) {
+                $query->coveringJobSites($creator->jobSiteIds());
             } else {
                 $query->where('department_id', $creator->department_id);
             }

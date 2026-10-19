@@ -108,6 +108,10 @@
 
 /* Chip sebagai link */
 a.sg-chip { text-decoration: none; }
+/* Chip sebagai checkbox (pilih banyak): <input class="btn-check"> + <label class="sg-chip"> */
+label.sg-chip { cursor: pointer; margin: 0; }
+.btn-check:checked + .sg-chip { background: var(--sg-primary); border-color: var(--sg-primary); color: var(--sg-on-primary); }
+.btn-check:focus-visible + .sg-chip { box-shadow: var(--sg-focus-ring); }
 a.sg-chip:hover:not(.active) { border-color: var(--sg-border-strong); color: var(--sg-text); }
 .sg-chip__count { font-size: 12px; font-weight: 700; opacity: .7; }
 

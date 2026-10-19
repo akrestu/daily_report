@@ -185,7 +185,7 @@ class DashboardController extends Controller
                 // Level 8 can approve Level 6 and Level 7 reports from same job site (cross-department)
                 $data['needsApproval'] = DailyReport::with(['department', 'pic', 'user'])
                     ->where('approval_status', 'pending')
-                    ->where('job_site_id', $user->job_site_id)
+                    ->whereIn('job_site_id', $user->jobSiteIds())
                     ->whereHas('user', function($query) {
                         $query->whereHas('role', function($q) {
                             $q->whereIn('slug', ['level6', 'level7']);

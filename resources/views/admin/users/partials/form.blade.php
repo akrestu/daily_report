@@ -88,8 +88,23 @@
                                     <option value="{{ $site->id }}" @selected(old('job_site_id', $user?->job_site_id) == $site->id)>{{ $site->name }}</option>
                                 @endforeach
                             </select>
-                            <div class="form-text">Wajib untuk Level 8 (persetujuan lintas departemen per site).</div>
+                            <div class="form-text">Site utama: default saat membuat laporan. Wajib untuk Level 8.</div>
                             @error('job_site_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        {{-- Multi-site: site tambahan yang juga dicakup (laporan, persetujuan, daftar PIC) --}}
+                        @php($extraSites = collect(old('extra_job_site_ids', $user?->extraJobSites?->pluck('id')->all() ?? []))->map(fn ($id) => (int) $id))
+                        <div class="col-12">
+                            <fieldset>
+                                <legend class="form-label fw-semibold fs-6 mb-1">Site tambahan <span class="text-muted fw-normal small">(opsional)</span></legend>
+                                <div class="form-text mt-0 mb-2">Untuk pengguna yang membawahi lebih dari satu site. Laporan, persetujuan, dan daftar PIC mencakup site utama + site tambahan.</div>
+                                <div class="sg-chip-row">
+                                    @foreach ($jobSites as $site)
+                                        <input type="checkbox" class="btn-check" name="extra_job_site_ids[]" id="u-xsite-{{ $site->id }}" value="{{ $site->id }}" autocomplete="off" @checked($extraSites->contains($site->id))>
+                                        <label class="sg-chip" for="u-xsite-{{ $site->id }}">{{ $site->name }}</label>
+                                    @endforeach
+                                </div>
+                                @error('extra_job_site_ids.*')<div class="small text-danger mt-1">{{ $message }}</div>@enderror
+                            </fieldset>
                         </div>
                     </div>
                 </div>
