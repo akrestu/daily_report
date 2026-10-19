@@ -228,8 +228,8 @@ class DailyReportController extends Controller
             return true;
         }
 
-        // Level 5 can view all reports from their jobsite (monitoring role)
-        if ($user->isLevel5() && $action === 'view') {
+        // Level 5 memantau semua laporan di departemennya (site sudah dibatasi di atas) — sama dengan DailyReportPolicy::view
+        if ($user->isLevel5() && $action === 'view' && $user->department_id === $report->department_id) {
             return true;
         }
 
@@ -1049,8 +1049,7 @@ class DailyReportController extends Controller
                 // When rejected, keep job status as is (could be pending, in_progress, etc.)
             } else {
                 $dailyReport->rejection_reason = null;
-                // When approved, update job status to completed
-                $dailyReport->status = 'completed';
+                // Progres pekerjaan tetap sesuai isian pelapor (persetujuan ≠ pekerjaan selesai)
             }
 
             $dailyReport->approved_by = Auth::id();
@@ -1361,7 +1360,7 @@ class DailyReportController extends Controller
                         'approval_status' => 'approved',
                         'approved_by' => $user->id,
                         'rejection_reason' => null, // Clear any rejection reason
-                        'status' => 'completed' // Update job status to completed when approved
+                        // Progres pekerjaan tetap sesuai isian pelapor (persetujuan ≠ pekerjaan selesai)
                     ]);
                     // Notification is handled automatically by DailyReportObserver
 

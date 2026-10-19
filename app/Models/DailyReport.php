@@ -45,11 +45,10 @@ class DailyReport extends Model
     protected static function booted(): void
     {
         // Tanpa PIC (hanya diizinkan untuk pelapor Level 4+, lihat User::picOptional): catatan kerja mandiri,
-        // langsung disetujui & selesai karena tidak ada penyetuju yang menerima antriannya.
+        // langsung disetujui karena tidak ada penyetuju yang menerima antriannya (progres tetap sesuai isian).
         static::saving(function (DailyReport $report) {
             if (! $report->job_pic && $report->approval_status !== 'rejected' && ! $report->approved_by) {
                 $report->approval_status = 'approved';
-                $report->status = 'completed';
                 $report->approved_by = $report->user_id;
             }
         });

@@ -254,4 +254,19 @@ class MultiSiteTest extends TestCase
 
         $this->assertFalse($staff->can('update', $report->fresh()));
     }
+    public function test_level5_cannot_open_other_department_report_in_same_site(): void
+    {
+        $hr = Department::create(['name' => 'HR', 'code' => 'HRX']);
+        $monitor = $this->user('level5', $this->siteA);
+        $other = User::factory()->create(['role_id' => Role::where('slug', 'level3')->value('id'), 'department_id' => $hr->id, 'job_site_id' => $this->siteA->id]);
+        $report = DailyReport::create([
+            'user_id' => $other->id, 'department_id' => $hr->id, 'job_site_id' => $this->siteA->id, 'job_name' => 'Rekap HR',
+            'report_date' => now()->toDateString(), 'due_date' => now()->toDateString(), 'description' => 'x',
+            'status' => 'pending', 'approval_status' => 'pending', 'job_pic' => $other->id,
+        ]);
+
+        $this->assertFalse($monitor->can('view', $report));
+        $this->actingAs($monitor)->get(route('daily-reports.show', $report))->assertRedirect()->assertSessionHas('error');
+        $this->assertTrue($monitor->can('view', $this->report($this->user('level3', $this->siteA), $this->siteA)));
+    }
 }

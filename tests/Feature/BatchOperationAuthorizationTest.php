@@ -101,9 +101,11 @@ class BatchOperationAuthorizationTest extends TestCase
 
         $response->assertSessionHas('success');
 
+        $progressBefore = $report1->status;
         $report1->refresh();
         $this->assertEquals('approved', $report1->approval_status);
-        $this->assertEquals('completed', $report1->status);
+        // Persetujuan tidak mengubah progres pekerjaan yang diisi pelapor
+        $this->assertEquals($progressBefore, $report1->status);
         $this->assertEquals($this->level2User->id, $report1->approved_by);
 
         // Different department is untouched

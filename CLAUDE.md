@@ -124,7 +124,7 @@ Multi-site: `users.job_site_id` = site utama; site tambahan di pivot `user_job_s
 ### Approval Workflow
 Daily reports follow a level-based approval workflow:
 1. Level 1 creates report (`approval_status: pending`)
-2. Level 2 approves Level 1 reports (`approval_status: approved`, `status: completed`)
+2. Level 2 approves Level 1 reports (`approval_status: approved`; `status`/progres tetap sesuai isian pelapor)
 3. Each level approves the one or two levels below (Level N approves Level N-1 and N-2)
 4. Level 8 is a special case: approves both Level 6 and Level 7
 5. Rejection sets `approval_status: rejected` and records `rejection_reason`
@@ -133,7 +133,7 @@ Daily reports follow a level-based approval workflow:
 - `approval_status`: tracks approval chain — `pending` | `approved` | `rejected`
 - `status`: tracks work progress — `pending` | `in_progress` | `completed`
 
-When approved: both `approval_status = 'approved'` AND `status = 'completed'` are set simultaneously.
+When approved: only `approval_status = 'approved'` (+ `approved_by`); `status` (progres) is NOT changed. Rejected reports can be edited & resubmitted by the owner (back to `pending`, same PIC). Level 4+ may omit the PIC: such reports are self-approved on save (`DailyReport::booted`).
 
 ### Model Relationships
 Core models and their relationships:
