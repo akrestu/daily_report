@@ -109,34 +109,6 @@ body,
     margin: 3rem auto;
 }
 
-/* Modal fixes */
-.modal {
-    z-index: 1050;
-}
-
-.modal-backdrop {
-    z-index: 1040;
-}
-
-/* Fix modal fade transition */
-.modal.fade .modal-dialog {
-    transition: transform 0.3s ease-out;
-    transform: translate(0, -50px);
-}
-
-.modal.show .modal-dialog {
-    transform: none;
-}
-
-/* Make sure modal content is visible */
-.modal-content {
-    position: relative;
-    background-color: #fff;
-    border: 1px solid rgba(0, 0, 0, 0.2);
-    border-radius: 0.5rem;
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-}
-
 /* Approval Option Styles */
 .approval-option {
     transition: all 0.3s ease;
