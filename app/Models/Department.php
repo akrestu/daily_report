@@ -14,7 +14,30 @@ class Department extends Model
         'name',
         'code',
         'description',
+        'handles_tickets',
     ];
+
+    protected function casts(): array
+    {
+        return ['handles_tickets' => 'boolean'];
+    }
+
+    protected static function booted(): void
+    {
+        // Departemen dengan kode bawaan (IT) otomatis menjadi tim layanan tiket bila tidak diatur
+        static::creating(function (Department $department) {
+            if ($department->handles_tickets === null
+                && strtoupper(trim((string) $department->code)) === strtoupper(config('tickets.department_code'))) {
+                $department->handles_tickets = true;
+            }
+        });
+    }
+
+    /** Departemen yang anggotanya memproses tiket (diatur admin) */
+    public function scopeHandlesTickets($query)
+    {
+        return $query->where('handles_tickets', true);
+    }
 
     /**
      * Get the users in this department

@@ -29,6 +29,12 @@
                 <textarea id="dp-desc" name="description" rows="3" class="form-control @error('description') is-invalid @enderror">{{ old('description', $department?->description) }}</textarea>
                 @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
+            <div class="form-check form-switch">
+                <input type="hidden" name="handles_tickets" value="0">
+                <input id="dp-tickets" type="checkbox" role="switch" name="handles_tickets" value="1" class="form-check-input" @checked(old('handles_tickets', $department?->handles_tickets))>
+                <label for="dp-tickets" class="form-check-label fw-semibold">Tim layanan tiket</label>
+                <div class="form-text">Anggota departemen ini memproses tiket masuk (level 4 ke atas memilah &amp; menugaskan).</div>
+            </div>
         </div>
     </section>
 

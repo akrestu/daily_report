@@ -65,6 +65,7 @@ class DepartmentController extends Controller
             'code' => ['required', 'string', 'max:50', 'unique:departments'],
             'description' => ['nullable', 'string'],
         ]);
+        $validated['handles_tickets'] = $request->boolean('handles_tickets');
 
         $department = Department::create($validated);
 
@@ -110,6 +111,7 @@ class DepartmentController extends Controller
             'code' => ['required', 'string', 'max:50', 'unique:departments,code,' . $department->id],
             'description' => ['nullable', 'string'],
         ]);
+        $validated['handles_tickets'] = $request->boolean('handles_tickets');
 
         $department->update($validated);
 

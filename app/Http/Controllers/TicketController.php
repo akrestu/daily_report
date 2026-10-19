@@ -305,9 +305,9 @@ class TicketController extends Controller
 
     private function eligibleHandlers()
     {
-        // Handler tiket: anggota departemen layanan (IT)
+        // Handler tiket: anggota departemen layanan tiket
         return User::with('role')
-            ->whereHas('department', fn ($q) => $q->where('code', config('tickets.department_code')))
+            ->whereHas('department', fn ($q) => $q->handlesTickets())
             ->orderBy('name');
     }
 

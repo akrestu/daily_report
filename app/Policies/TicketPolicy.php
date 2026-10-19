@@ -8,7 +8,7 @@ use App\Models\User;
 class TicketPolicy
 {
     /**
-     * Triager: admin, atau anggota departemen layanan (IT) dengan level >= triage_min_level.
+     * Triager: admin, atau anggota departemen layanan tiket (Admin → Departemen) dengan level >= triage_min_level.
      */
     public static function isTriager(User $user): bool
     {
@@ -16,7 +16,7 @@ class TicketPolicy
             return true;
         }
 
-        return $user->department?->code === config('tickets.department_code')
+        return (bool) $user->department?->handles_tickets
             && $user->getRoleLevel() >= config('tickets.triage_min_level');
     }
 

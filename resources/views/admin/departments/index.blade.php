@@ -1,10 +1,10 @@
 {{-- Admin · Departemen — pola daftar master data (sgAdminList): cari, tabel/kartu, sheet tambah/edit, hapus & hapus massal --}}
 @php
     $rows = $departments->getCollection();
-    $toItem = fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'description' => (string) $d->description, 'users' => $d->users_count];
+    $toItem = fn ($d) => ['id' => $d->id, 'name' => $d->name, 'code' => $d->code, 'description' => (string) $d->description, 'handles_tickets' => (bool) $d->handles_tickets, 'users' => $d->users_count];
     // Gagal validasi di sheet → buka lagi dengan isian lama
     $reopen = $errors->any() && old('_sheet') !== null
-        ? ['mode' => old('_sheet') ? 'edit' : 'create', 'item' => ['id' => old('_sheet'), 'name' => old('name'), 'code' => old('code'), 'description' => old('description')]]
+        ? ['mode' => old('_sheet') ? 'edit' : 'create', 'item' => ['id' => old('_sheet'), 'name' => old('name'), 'code' => old('code'), 'description' => old('description'), 'handles_tickets' => (bool) old('handles_tickets')]]
         : null;
 @endphp
 
@@ -58,7 +58,7 @@
                     <tr :class="{ 'table-active': isSelected({{ $d->id }}) }">
                         <td><input type="checkbox" class="form-check-input" :checked="isSelected({{ $d->id }})" @change="toggle({{ $d->id }})" aria-label="Pilih {{ $d->name }}"></td>
                         <td><a href="{{ route('admin.departments.show', $d) }}" class="fw-semibold text-reset">{{ $d->name }}</a></td>
-                        <td class="text-nowrap">{{ $d->code }}</td>
+                        <td class="text-nowrap">{{ $d->code }}@if ($d->handles_tickets) <span class="badge text-bg-light ms-1" title="Tim layanan tiket"><i class="bi bi-inbox" aria-hidden="true"></i> Tiket</span>@endif</td>
                         <td class="text-muted"><span class="sg-clamp-1">{{ $d->description ?: '-' }}</span></td>
                         <td class="text-end sg-num">{{ $d->users_count }}</td>
                         <td class="text-end text-nowrap">
@@ -101,6 +101,12 @@
                     <label for="d-desc" class="form-label fw-semibold">Deskripsi</label>
                     <textarea id="d-desc" name="description" rows="3" class="form-control @error('description') is-invalid @enderror" x-model="item.description"></textarea>
                     @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+                <div class="form-check form-switch mb-3">
+                    <input type="hidden" name="handles_tickets" value="0">
+                    <input id="d-tickets" type="checkbox" role="switch" name="handles_tickets" value="1" class="form-check-input" x-model="item.handles_tickets">
+                    <label for="d-tickets" class="form-check-label fw-semibold">Tim layanan tiket</label>
+                    <div class="form-text">Anggota departemen ini memproses tiket masuk (level 4 ke atas memilah &amp; menugaskan).</div>
                 </div>
                 <div class="d-flex gap-2">
                     <button type="button" class="btn btn-outline-secondary flex-fill" data-bs-dismiss="modal">Batal</button>
