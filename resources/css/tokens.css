@@ -116,7 +116,11 @@ h1, h2, h3, h4, .sg-heading { font-family: var(--sg-font-heading); letter-spacin
 .sg-num { font-variant-numeric: tabular-nums; }
 
 /* Tombol */
-.btn { min-height: var(--sg-touch); border-radius: var(--sg-radius-input); font-weight: 600; }
+/* inline-flex: teks/ikon selalu di tengah vertikal & horizontal walau min-height > tinggi teks */
+.btn { min-height: var(--sg-touch); border-radius: var(--sg-radius-input); font-weight: 600;
+  display: inline-flex; align-items: center; justify-content: center; gap: .375rem; text-align: center; vertical-align: middle; }
+/* Jarak ikon–teks diatur gap; margin utilitas lama (me-1/me-2) di ikon tidak dobel */
+.btn > .bi { margin-inline: 0 !important; flex: none; }
 .btn-primary { --bs-btn-bg: var(--sg-primary); --bs-btn-border-color: var(--sg-primary); --bs-btn-color: var(--sg-on-primary);
   --bs-btn-hover-bg: #000; --bs-btn-hover-border-color: #000; --bs-btn-hover-color: var(--sg-on-primary);
   --bs-btn-active-bg: #000; --bs-btn-active-color: var(--sg-on-primary); }

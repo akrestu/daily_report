@@ -144,7 +144,7 @@
   .sg-chip::after { content: ""; position: absolute; inset: -2px 0; }
   /* !important: beberapa view admin lama mengunci tinggi tombol lewat style/CSS lama */
   .btn, .btn-sm, .page-link { min-height: 44px !important; min-width: 44px !important; }
-  .btn-sm, .page-link { display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
+  .page-link { display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
   .btn-link.btn-sm, .btn.btn-link { min-width: 0 !important; }
   .form-control-sm, .form-select-sm { min-height: 44px; font-size: 16px; }
 }
