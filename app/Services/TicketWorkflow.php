@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Exceptions\TicketWorkflowException;
+use App\Models\DailyReport;
 use App\Models\JobPlan;
 use App\Models\Notification;
 use App\Models\Ticket;
@@ -148,23 +149,44 @@ class TicketWorkflow
     }
 
     /**
-     * Job Plan tiket sudah dikonversi menjadi laporan harian → tiket dianggap selesai dikerjakan.
+     * Teknisi mengirim laporan dari Job Plan tiket (belum disetujui): tiket "Ditugaskan" → "Dikerjakan".
+     * Tiket baru "Selesai" setelah laporannya DISETUJUI (resolveFromReport).
      */
-    public function resolveFromJobPlan(Ticket $ticket, JobPlan $jobPlan): void
+    public function markWorkReported(Ticket $ticket, JobPlan $jobPlan): void
+    {
+        if ($ticket->status !== Ticket::STATUS_ASSIGNED) {
+            return;
+        }
+
+        $actor = $jobPlan->assignee;
+        $this->transition($ticket, ['status' => Ticket::STATUS_IN_PROGRESS], $actor, $actor?->name ?? 'Sistem',
+            'Laporan pekerjaan dikirim, menunggu persetujuan atasan.');
+    }
+
+    /**
+     * Laporan harian dari Job Plan tiket disetujui → tiket "Selesai" dengan catatan penyelesaian dari isi laporan.
+     */
+    public function resolveFromReport(Ticket $ticket, DailyReport $report): void
     {
         if (! in_array(Ticket::STATUS_RESOLVED, self::staffTransitions($ticket), true)) {
             return;
         }
 
-        $actor = $jobPlan->assignee;
-        $note = 'Diselesaikan melalui laporan harian dari Job Plan "'.$jobPlan->job_name.'".';
+        // Laporan tanpa PIC disetujui saat dibuat, sebelum controller menandai Job Plan → tandai di sini
+        $jobPlan = $ticket->jobPlan;
+        if ($jobPlan?->isActive()) {
+            $jobPlan->forceFill(['status' => 'converted', 'converted_at' => now()])->saveQuietly();
+        }
+
+        $actor = $report->user;
+        $note = trim($report->description.($report->remark ? "\n\nCatatan: ".$report->remark : ''));
         $this->sla->markResponded($ticket);
 
         $this->transition($ticket, [
             'status' => Ticket::STATUS_RESOLVED,
             'resolved_at' => now(),
             'resolution_note' => $note,
-        ], $actor, $actor?->name ?? 'Sistem', $note);
+        ], $actor, $actor?->name ?? 'Sistem', 'Diselesaikan melalui laporan harian "'.$report->job_name.'" (disetujui).');
 
         $this->notify($ticket->requesterUser, $ticket,
             'Tiket ['.$ticket->ticket_number.'] telah diselesaikan. Mohon konfirmasi apakah masalah sudah teratasi.', $actor);
@@ -193,6 +215,8 @@ class TicketWorkflow
             'resolved_at' => null,
             'reopen_count' => $ticket->reopen_count + 1,
         ], $actor, $actorName, $reason);
+
+        $this->createFollowUpPlan($ticket, $reason);
 
         $this->notify($ticket->assignedUser, $ticket,
             'Tiket ['.$ticket->ticket_number.'] dibuka kembali oleh pemohon: '.$reason, $actor);
@@ -429,7 +453,45 @@ class TicketWorkflow
             $this->sla->onStatusChange($ticket, $from, $ticket->status);
             $ticket->save();
             $this->record($ticket, $from, $ticket->status, $actor, $actorName, $note);
+            $this->closeOpenJobPlan($ticket);
         });
+    }
+
+    /** Tiket berakhir tanpa lewat laporan (diselesaikan manual/dibatalkan/ditutup) → Job Plan aktifnya ikut ditutup */
+    private function closeOpenJobPlan(Ticket $ticket): void
+    {
+        if (! in_array($ticket->status, [Ticket::STATUS_RESOLVED, Ticket::STATUS_CANCELLED, Ticket::STATUS_CLOSED], true)) {
+            return;
+        }
+
+        $jobPlan = $ticket->jobPlan()->first();
+        if ($jobPlan?->isActive()) {
+            $jobPlan->forceFill(['status' => 'closed'])->saveQuietly();
+        }
+    }
+
+    /** Tiket dibuka kembali: buat Job Plan lanjutan untuk teknisi yang sama (rencana lama sudah dikonversi/ditutup) */
+    private function createFollowUpPlan(Ticket $ticket, ?string $reason): void
+    {
+        $handler = $ticket->assignedUser;
+        if (! $handler || $ticket->jobPlan()->first()?->isActive()) {
+            return;
+        }
+
+        $previous = $ticket->jobPlan()->first();
+        $plan = JobPlan::create([
+            'creator_id' => $previous?->creator_id ?? $handler->id,
+            'assignee_id' => $handler->id,
+            'department_id' => $handler->department_id,
+            'job_site_id' => $ticket->job_site_id,
+            'job_name' => '['.$ticket->ticket_number.'] (dibuka kembali) '.$ticket->title,
+            'description' => $ticket->description,
+            'remark' => 'Dibuka kembali oleh pemohon: '.$reason,
+            'planned_date' => today(),
+            'due_date' => today()->addDay(),
+            'status' => 'assigned',
+        ]);
+        $ticket->forceFill(['job_plan_id' => $plan->id])->saveQuietly();
     }
 
     private function record(Ticket $ticket, ?string $from, string $to, ?User $actor, string $actorName, ?string $note = null): void

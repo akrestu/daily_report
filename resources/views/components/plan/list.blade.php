@@ -12,12 +12,11 @@
 @else
     <div class="sg-list d-lg-none">
         @foreach ($plans as $plan)
-            @php($late = $plan->due_date && $plan->due_date->isBefore(today()) && ! $plan->isConverted())
+            @php($late = $plan->isLate())
+            @php($badge = $plan->badge())
             <div class="sg-list-card flex-column align-items-stretch">
                 <div class="sg-list-card__top">
-                    <span @class(['sg-badge', 'sg-badge--approved' => $plan->isConverted(), 'sg-badge--rejected' => $late, 'sg-badge--progress' => ! $plan->isConverted() && ! $late])>
-                        {{ $plan->isConverted() ? 'Dikonversi' : ($late ? 'Lewat due' : 'Aktif') }}
-                    </span>
+                    <span class="sg-badge sg-badge--{{ $badge['tone'] }}">{{ $badge['label'] }}</span>
                     <span @class(['sg-list-card__time', 'text-danger fw-semibold' => $late])>Due {{ $plan->due_date ? Format::dayMonth($plan->due_date) : '-' }}</span>
                 </div>
                 <a href="{{ route('job-plans.show', $plan) }}" class="sg-list-card__title sg-clamp-2 text-reset text-decoration-none stretched-link">{{ $plan->job_name }}</a>
@@ -44,14 +43,15 @@
             </tr>
         </x-slot:head>
         @foreach ($plans as $plan)
-            @php($late = $plan->due_date && $plan->due_date->isBefore(today()) && ! $plan->isConverted())
+            @php($late = $plan->isLate())
+            @php($badge = $plan->badge())
             <tr>
                 <td style="max-width:340px"><a href="{{ route('job-plans.show', $plan) }}" class="d-block fw-semibold text-reset text-decoration-none sg-clamp-1">{{ $plan->job_name }}</a></td>
                 <td class="text-nowrap">{{ $mine ? ($plan->creator->name ?? '-') : ($plan->assignee->name ?? '-') }}</td>
                 <td class="text-nowrap">{{ $plan->section->name ?? '-' }}</td>
                 <td class="sg-num text-nowrap">{{ Format::date($plan->planned_date) }}</td>
                 <td @class(['sg-num text-nowrap', 'text-danger fw-semibold' => $late])>{{ Format::date($plan->due_date) }}</td>
-                <td><span @class(['sg-badge', 'sg-badge--approved' => $plan->isConverted(), 'sg-badge--rejected' => $late, 'sg-badge--progress' => ! $plan->isConverted() && ! $late])>{{ $plan->isConverted() ? 'Dikonversi' : ($late ? 'Lewat due' : 'Aktif') }}</span></td>
+                <td><span class="sg-badge sg-badge--{{ $badge['tone'] }}">{{ $badge['label'] }}</span></td>
                 <td class="text-end text-nowrap">
                     @if ($mine)
                         @can('convert', $plan)<a href="{{ route('job-plans.convert', $plan) }}" class="btn btn-sm btn-primary">Konversi</a>@endcan

@@ -65,6 +65,11 @@ return [
     |
     */
 
+    /*
+    | Pengganti cron via lalu lintas web (App\Support\WebScheduler). Set false bila cron server aktif.
+    */
+    'web_scheduler' => (bool) env('WEB_SCHEDULER', true),
+
     'timezone' => 'Asia/Jakarta',
 
     /*

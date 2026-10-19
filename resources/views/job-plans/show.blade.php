@@ -1,8 +1,8 @@
 {{-- Detail Rencana Kerja --}}
 @use('App\Support\Format')
 @php
-    $late = ! $plan->isConverted() && $plan->due_date?->isBefore(today());
-    $tone = $plan->isConverted() ? 'approved' : ($late ? 'rejected' : 'progress');
+    $badge = $plan->badge();
+    $late = $plan->isLate();
 @endphp
 
 <x-app-layout title="Rencana Kerja" :back="url()->previous() !== url()->current() ? url()->previous() : route('job-plans.index')">
@@ -10,7 +10,7 @@
         <div class="col-lg-8">
             <section class="card p-3 p-lg-4 mb-3" aria-labelledby="plan-title">
                 <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-                    <span class="sg-badge sg-badge--{{ $tone }}">{{ $plan->isConverted() ? 'Dikonversi' : ($late ? 'Lewat due' : 'Aktif') }}</span>
+                    <span class="sg-badge sg-badge--{{ $badge['tone'] }}">{{ $badge['label'] }}</span>
                     @if ($plan->section)<span class="sg-progress-label"><i class="bi bi-layers" aria-hidden="true"></i>{{ $plan->section->name }}</span>@endif
                 </div>
                 <h1 id="plan-title" class="h4 fw-bold mb-3">{{ $plan->job_name }}</h1>

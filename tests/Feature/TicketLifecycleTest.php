@@ -214,15 +214,65 @@ class TicketLifecycleTest extends TestCase
         $this->assertSame(Ticket::STATUS_CLOSED, $ticket->fresh()->status);
     }
 
-    public function test_converting_job_plan_resolves_ticket(): void
+    private function reportFromPlan(Ticket $ticket, array $overrides = []): \App\Models\DailyReport
+    {
+        $report = \App\Models\DailyReport::create($overrides + [
+            'user_id' => $this->tech->id, 'department_id' => $this->tech->department_id, 'job_plan_id' => $ticket->job_plan_id,
+            'job_name' => $ticket->jobPlan->job_name, 'report_date' => today(), 'due_date' => today(),
+            'description' => 'Kabel LAN diganti, koneksi normal.', 'status' => 'completed',
+            'approval_status' => 'pending', 'job_pic' => $this->lead->id,
+        ]);
+        $ticket->jobPlan->update(['status' => 'converted', 'converted_at' => now()]);
+
+        return $report;
+    }
+
+    public function test_converting_job_plan_marks_ticket_in_progress_until_report_is_approved(): void
     {
         $ticket = $this->assignedTicket();
+        $report = $this->reportFromPlan($ticket);
 
-        $ticket->jobPlan->update(['status' => 'converted', 'converted_at' => now()]);
+        $this->assertSame(Ticket::STATUS_IN_PROGRESS, $ticket->fresh()->status);
+
+        $report->update(['approval_status' => 'approved', 'status' => 'completed', 'approved_by' => $this->lead->id]);
 
         $ticket->refresh();
         $this->assertSame(Ticket::STATUS_RESOLVED, $ticket->status);
-        $this->assertStringContainsString('laporan harian', $ticket->resolution_note);
+        $this->assertStringContainsString('Kabel LAN diganti', $ticket->resolution_note);
+    }
+
+    public function test_rejected_report_keeps_ticket_open(): void
+    {
+        $ticket = $this->assignedTicket();
+        $report = $this->reportFromPlan($ticket);
+
+        $report->update(['approval_status' => 'rejected', 'approved_by' => $this->lead->id, 'rejection_reason' => 'Lengkapi foto']);
+
+        $this->assertSame(Ticket::STATUS_IN_PROGRESS, $ticket->fresh()->status);
+    }
+
+    public function test_manual_resolve_or_cancel_closes_active_job_plan(): void
+    {
+        $ticket = $this->assignedTicket();
+        $this->workflow->changeStatus($ticket, Ticket::STATUS_RESOLVED, $this->tech, 'Sudah diperbaiki di lokasi');
+
+        $this->assertSame('closed', $ticket->jobPlan->fresh()->status);
+        $this->assertSame('Ditutup', $ticket->jobPlan->fresh()->badge()['label']);
+    }
+
+    public function test_reopen_creates_follow_up_job_plan_for_handler(): void
+    {
+        $ticket = $this->assignedTicket();
+        $oldPlanId = $ticket->job_plan_id;
+        $this->workflow->changeStatus($ticket, Ticket::STATUS_RESOLVED, $this->tech, 'Selesai');
+
+        $this->workflow->reopen($ticket->fresh(), $this->requester, $this->requester->name, 'Masih putus-putus');
+
+        $ticket->refresh();
+        $this->assertNotSame($oldPlanId, $ticket->job_plan_id);
+        $this->assertSame('assigned', $ticket->jobPlan->status);
+        $this->assertSame($this->tech->id, $ticket->jobPlan->assignee_id);
+        $this->assertStringContainsString('Masih putus-putus', $ticket->jobPlan->remark);
     }
 
     public function test_auto_close_after_three_working_days_skipping_sunday(): void
@@ -243,5 +293,23 @@ class TicketLifecycleTest extends TestCase
         $this->assertSame(Ticket::STATUS_CLOSED, $ticket->status);
         $this->assertSame('auto', $ticket->close_method);
         $this->assertSame('Sistem', $ticket->histories()->get()->last()->actor_name);
+    }
+    public function test_web_scheduler_auto_closes_without_cron_and_respects_interval(): void
+    {
+        $this->travelTo(Carbon::parse('2026-10-09 10:00'));
+        $ticket = $this->assignedTicket();
+        $this->workflow->changeStatus($ticket, Ticket::STATUS_RESOLVED, $this->tech, 'Selesai');
+        $second = $this->assignedTicket();
+
+        $this->travelTo(Carbon::parse('2026-10-13 10:00'));
+        app(\App\Support\WebScheduler::class)->runDue();
+        $this->assertSame(Ticket::STATUS_CLOSED, $ticket->fresh()->status);
+
+        // Dalam interval yang sama tidak dijalankan ulang
+        $this->workflow->changeStatus($second, Ticket::STATUS_RESOLVED, $this->tech, 'Selesai');
+        $this->travelTo(Carbon::parse('2026-10-16 10:30'));
+        \Illuminate\Support\Facades\Cache::put('web-scheduler:tickets:auto-close', 1, 3600);
+        app(\App\Support\WebScheduler::class)->runDue();
+        $this->assertSame(Ticket::STATUS_RESOLVED, $second->fresh()->status);
     }
 }

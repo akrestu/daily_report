@@ -14,6 +14,11 @@ class DailyReportObserver
      */
     public function updated(DailyReport $dailyReport): void
     {
+        // Laporan dari Job Plan tiket disetujui → tiket "Selesai" (termasuk laporan tanpa PIC yang disetujui otomatis)
+        if ($dailyReport->wasChanged('approval_status') && $dailyReport->approval_status === 'approved') {
+            $this->resolveLinkedTicket($dailyReport);
+        }
+
         // Catatan kerja mandiri (tanpa PIC) disetujui otomatis: tidak perlu notifikasi ke pembuatnya sendiri
         if ($dailyReport->isSelfApproved()) {
             return;
@@ -43,6 +48,20 @@ class DailyReportObserver
         // Notify approvers when a new job report needs approval (laporan tanpa PIC sudah disetujui otomatis)
         if ($dailyReport->approval_status === 'pending') {
             $this->notifyApprovers($dailyReport);
+        } elseif ($dailyReport->approval_status === 'approved') {
+            $this->resolveLinkedTicket($dailyReport);
+        }
+    }
+
+    private function resolveLinkedTicket(DailyReport $dailyReport): void
+    {
+        if (! $dailyReport->job_plan_id) {
+            return;
+        }
+
+        $ticket = \App\Models\Ticket::where('job_plan_id', $dailyReport->job_plan_id)->first();
+        if ($ticket) {
+            app(\App\Services\TicketWorkflow::class)->resolveFromReport($ticket, $dailyReport);
         }
     }
     

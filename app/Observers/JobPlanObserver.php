@@ -38,12 +38,12 @@ class JobPlanObserver
      */
     public function updated(JobPlan $jobPlan): void
     {
-        // Job plan dari tiket dikonversi ke laporan harian → tiket otomatis "resolved".
-        // Harus dicek sebelum guard content fields di bawah, karena di sini hanya status yang berubah.
+        // Job plan dari tiket dikonversi ke laporan harian → tiket "Dikerjakan" (menunggu laporan disetujui).
+        // Tiket baru "Selesai" saat laporan disetujui (DailyReportObserver). Dicek sebelum guard content fields.
         if ($jobPlan->wasChanged('status') && $jobPlan->status === 'converted') {
             $ticket = Ticket::where('job_plan_id', $jobPlan->id)->first();
             if ($ticket) {
-                app(TicketWorkflow::class)->resolveFromJobPlan($ticket, $jobPlan);
+                app(TicketWorkflow::class)->markWorkReported($ticket, $jobPlan);
             }
 
             return;

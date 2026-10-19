@@ -14,7 +14,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        // Pengganti cron (Plesk tanpa scheduler): tugas berkala jalan setelah respons web terkirim
+        $middleware->web(append: [\App\Http\Middleware\RunWebScheduler::class]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

@@ -77,6 +77,34 @@ class JobPlan extends Model
         return $this->status === 'converted';
     }
 
+    /** Ditutup tanpa laporan (tiket asalnya selesai/dibatalkan lewat jalur lain) */
+    public function isClosed(): bool
+    {
+        return $this->status === 'closed';
+    }
+
+    /** Masih perlu dikerjakan (belum dikonversi ke laporan & tidak ditutup) */
+    public function isActive(): bool
+    {
+        return $this->status === 'assigned';
+    }
+
+    public function isLate(): bool
+    {
+        return $this->isActive() && $this->due_date && $this->due_date->isBefore(today());
+    }
+
+    /** Label & tone badge status (satu sumber untuk daftar & detail) */
+    public function badge(): array
+    {
+        return match (true) {
+            $this->isConverted() => ['label' => 'Dikonversi', 'tone' => 'approved'],
+            $this->isClosed() => ['label' => 'Ditutup', 'tone' => 'closed'],
+            $this->isLate() => ['label' => 'Lewat due', 'tone' => 'rejected'],
+            default => ['label' => 'Aktif', 'tone' => 'progress'],
+        };
+    }
+
     public function canBeConvertedBy(User $user): bool
     {
         return $this->assignee_id === $user->id && $this->status === 'assigned';
