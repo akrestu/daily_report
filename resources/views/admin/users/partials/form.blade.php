@@ -111,13 +111,34 @@
             </section>
         </div>
 
-        @if ($editing && $user->id !== auth()->id())
-            <aside class="col-lg-4">
-                <section class="card p-3" aria-labelledby="u-danger">
-                    <h2 id="u-danger" class="h6 fw-bold text-danger mb-1">Hapus pengguna</h2>
-                    <p class="small text-muted">Akun dihapus permanen. Laporan yang sudah dibuat tetap tersimpan.</p>
-                    <button type="button" class="btn btn-reject-outline w-100" data-bs-toggle="modal" data-bs-target="#user-delete">Hapus pengguna ini</button>
+        @if ($editing)
+            <aside class="col-lg-4 d-flex flex-column gap-3">
+                {{-- Diagnosis akses tiket (data tersimpan, bukan isian form yang belum disimpan) --}}
+                @php($triage = \App\Policies\TicketPolicy::triageDiagnosis($user))
+                <section class="card p-3" aria-labelledby="u-ticket-access">
+                    <h2 id="u-ticket-access" class="h6 fw-bold mb-1">Akses tiket masuk</h2>
+                    <p class="small mb-2 {{ $triage['ok'] ? 'text-success' : 'text-danger' }} fw-semibold">
+                        <i class="bi {{ $triage['ok'] ? 'bi-check-circle-fill' : 'bi-x-circle-fill' }}" aria-hidden="true"></i>
+                        {{ $triage['ok'] ? 'Bisa memilah & menugaskan tiket' : 'Tidak bisa memilah tiket' }}
+                    </p>
+                    <ul class="list-unstyled small mb-2">
+                        @foreach ($triage['checks'] as $check)
+                            <li class="d-flex gap-2 py-1">
+                                <i class="bi {{ $check['ok'] ? 'bi-check-lg text-success' : 'bi-x-lg text-danger' }} flex-none" aria-hidden="true"></i>
+                                <span><span class="text-muted">{{ $check['label'] }}:</span> {{ $check['value'] }}<span class="visually-hidden">{{ $check['ok'] ? ' (memenuhi)' : ' (tidak memenuhi)' }}</span></span>
+                            </li>
+                        @endforeach
+                    </ul>
+                    <p class="small text-muted mb-0">Syarat: level {{ config('tickets.triage_min_level') }} ke atas di departemen dengan "Tim layanan tiket" aktif (Admin &rarr; Departemen).</p>
                 </section>
+
+                @if ($user->id !== auth()->id())
+                    <section class="card p-3" aria-labelledby="u-danger">
+                        <h2 id="u-danger" class="h6 fw-bold text-danger mb-1">Hapus pengguna</h2>
+                        <p class="small text-muted">Akun dihapus permanen. Laporan yang sudah dibuat tetap tersimpan.</p>
+                        <button type="button" class="btn btn-reject-outline w-100" data-bs-toggle="modal" data-bs-target="#user-delete">Hapus pengguna ini</button>
+                    </section>
+                @endif
             </aside>
         @endif
     </div>

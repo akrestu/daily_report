@@ -20,6 +20,31 @@ class TicketPolicy
             && $user->getRoleLevel() >= config('tickets.triage_min_level');
     }
 
+    /**
+     * Rincian syarat triager untuk layar admin (diagnosis "kenapa menu Tiket Masuk tidak muncul").
+     * Mengikuti aturan isTriager() di atas.
+     *
+     * @return array{ok: bool, checks: list<array{label: string, value: string, ok: bool}>}
+     */
+    public static function triageDiagnosis(User $user): array
+    {
+        $level = $user->getRoleLevel();
+        $min = (int) config('tickets.triage_min_level');
+        $department = $user->department;
+
+        if ($user->isAdmin()) {
+            return ['ok' => true, 'checks' => [['label' => 'Role', 'value' => 'Admin (akses penuh)', 'ok' => true]]];
+        }
+
+        $checks = [
+            ['label' => 'Role terbaca', 'value' => ($user->role?->name ?? '-').' · slug "'.($user->role?->slug ?? '-').'" · level '.$level, 'ok' => $level >= $min],
+            ['label' => 'Departemen', 'value' => $department ? $department->name.' (kode '.$department->code.', id '.$department->id.')' : 'Belum diisi', 'ok' => (bool) $department],
+            ['label' => 'Tim layanan tiket', 'value' => $department?->handles_tickets ? 'Aktif' : 'Tidak aktif di departemen ini', 'ok' => (bool) $department?->handles_tickets],
+        ];
+
+        return ['ok' => self::isTriager($user), 'checks' => $checks];
+    }
+
     public function viewAny(User $user): bool
     {
         return self::isTriager($user);

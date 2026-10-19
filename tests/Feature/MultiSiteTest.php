@@ -133,4 +133,20 @@ class MultiSiteTest extends TestCase
 
         $this->assertSame([$this->siteA->id], $lead->fresh()->jobSiteIds());
     }
+    public function test_user_edit_page_explains_ticket_access(): void
+    {
+        $admin = User::factory()->create(['role_id' => Role::where('slug', 'admin')->value('id')]);
+        $lead = $this->user('level4', $this->siteA, [$this->siteB]);
+
+        // Departemen OPS belum jadi tim layanan tiket
+        $this->actingAs($admin)->get(route('admin.users.edit', $lead))->assertOk()
+            ->assertSee('Akses tiket masuk')
+            ->assertSee('Tidak bisa memilah tiket')
+            ->assertSee('Tidak aktif di departemen ini');
+
+        $this->ops->update(['handles_tickets' => true]);
+
+        $this->actingAs($admin)->get(route('admin.users.edit', $lead))
+            ->assertSee('Bisa memilah &amp; menugaskan tiket', false);
+    }
 }
