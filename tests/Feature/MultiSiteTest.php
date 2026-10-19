@@ -180,4 +180,43 @@ class MultiSiteTest extends TestCase
         $this->put(route('admin.departments.update', $this->ops), ['name' => 'Operations', 'code' => 'OPS', 'handles_tickets' => '0']);
         $this->assertFalse($this->ops->fresh()->handles_tickets);
     }
+    private function submitReport(User $user, ?int $pic): \Illuminate\Testing\TestResponse
+    {
+        return $this->actingAs($user)->post(route('daily-reports.store-multiple'), ['reports' => [[
+            'job_name' => 'Cek server', 'job_site_id' => $this->siteA->id, 'report_date' => now()->toDateString(),
+            'due_date' => now()->toDateString(), 'job_pic' => $pic, 'description' => 'Rutin', 'status' => 'completed',
+        ]]]);
+    }
+
+    public function test_level4_without_pic_is_self_approved_without_notifications(): void
+    {
+        $lead = $this->user('level4', $this->siteA);
+
+        $this->submitReport($lead, null)->assertSessionHasNoErrors();
+
+        $report = DailyReport::where('user_id', $lead->id)->firstOrFail();
+        $this->assertNull($report->job_pic);
+        $this->assertSame('approved', $report->approval_status);
+        $this->assertSame('completed', $report->status);
+        $this->assertSame($lead->id, (int) $report->approved_by);
+        $this->assertSame(0, \App\Models\Notification::where('daily_report_id', $report->id)->count());
+    }
+
+    public function test_level3_still_requires_pic(): void
+    {
+        $this->submitReport($this->user('level3', $this->siteA), null)->assertSessionHasErrors('reports.0.job_pic');
+        $this->assertSame(0, DailyReport::count());
+    }
+
+    public function test_level4_with_pic_still_goes_through_approval(): void
+    {
+        $lead = $this->user('level4', $this->siteA);
+        $boss = $this->user('level5', $this->siteA);
+
+        $this->submitReport($lead, $boss->id)->assertSessionHasNoErrors();
+
+        $report = DailyReport::where('user_id', $lead->id)->firstOrFail();
+        $this->assertSame('pending', $report->approval_status);
+        $this->assertNull($report->approved_by);
+    }
 }

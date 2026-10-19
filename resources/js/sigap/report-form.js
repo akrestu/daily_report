@@ -18,7 +18,7 @@ const BLANK = {
 
 const TEXT_FIELDS = Object.keys(BLANK);
 
-export default function sgReportForm({ entries = [], errors = {}, pics = [], today = '', defaultPic = '', idempotencyKey = '' } = {}) {
+export default function sgReportForm({ entries = [], errors = {}, pics = [], today = '', defaultPic = '', idempotencyKey = '', picOptional = false } = {}) {
     let nextKey = 0;
     const make = (data = {}, key = null) => {
         const k = key ?? nextKey;
@@ -43,6 +43,7 @@ export default function sgReportForm({ entries = [], errors = {}, pics = [], tod
         saveTimer: null,
         errors,
         pics,
+        picOptional, // Level 4+: PIC boleh kosong (laporan langsung disetujui)
         open: errorKey ?? initial[0].key,
         picFor: null,
         picQuery: '',
@@ -142,13 +143,13 @@ export default function sgReportForm({ entries = [], errors = {}, pics = [], tod
             return (this.pics.find((p) => String(p.id) === String(id)) || {}).name || '';
         },
         complete(entry) {
-            return entry.job_name && entry.report_date && entry.due_date && entry.job_pic && entry.description;
+            return entry.job_name && entry.report_date && entry.due_date && (entry.job_pic || this.picOptional) && entry.description;
         },
         summary(entry) {
             if (this.hasErrors(entry)) return 'Perlu diperbaiki';
             if (!entry.job_name) return 'Nama pekerjaan belum diisi';
             if (!entry.description) return 'Deskripsi belum diisi';
-            if (!entry.job_pic) return 'PIC belum dipilih';
+            if (!entry.job_pic && !this.picOptional) return 'PIC belum dipilih';
             return 'Lengkap';
         },
         get filteredPics() {

@@ -42,6 +42,25 @@ class DailyReport extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        // Tanpa PIC (hanya diizinkan untuk pelapor Level 4+, lihat User::picOptional): catatan kerja mandiri,
+        // langsung disetujui & selesai karena tidak ada penyetuju yang menerima antriannya.
+        static::saving(function (DailyReport $report) {
+            if (! $report->job_pic && $report->approval_status !== 'rejected' && ! $report->approved_by) {
+                $report->approval_status = 'approved';
+                $report->status = 'completed';
+                $report->approved_by = $report->user_id;
+            }
+        });
+    }
+
+    /** Laporan tanpa PIC yang disetujui otomatis (catatan kerja mandiri) */
+    public function isSelfApproved(): bool
+    {
+        return ! $this->job_pic && $this->approved_by && (int) $this->approved_by === (int) $this->user_id;
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

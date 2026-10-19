@@ -89,7 +89,7 @@
                         </div>
 
                         <div class="mb-3">
-                            <span class="form-label fw-semibold d-block" id="pic-label">PIC (Atasan) <span class="text-danger">*</span></span>
+                            <span class="form-label fw-semibold d-block" id="pic-label">PIC (Atasan) @if (auth()->user()->picOptional())<span class="text-muted fw-normal small">(opsional)</span>@else<span class="text-danger">*</span>@endif</span>
                             <input type="hidden" name="job_pic" :value="pic">
                             <button type="button" id="pic-btn" class="sg-pic-field @error('job_pic') is-invalid @enderror" @click="q = ''; sheet().show()"
                                     aria-labelledby="pic-label pic-btn">
@@ -97,7 +97,7 @@
                                     <span class="sg-avatar" style="width:36px;height:36px;font-size:13px" x-text="picName.split(' ').map(w => w[0]).slice(0, 2).join('')"></span>
                                     <span class="fw-semibold sg-clamp-1" x-text="picName"></span>
                                 </span>
-                                <span x-show="!pic" class="text-muted">Pilih atasan yang menyetujui</span>
+                                <span x-show="!pic" class="text-muted">{{ auth()->user()->picOptional() ? 'Tanpa PIC · langsung disetujui saat disimpan' : 'Pilih atasan yang menyetujui' }}</span>
                                 <i class="bi bi-chevron-right ms-auto text-muted" aria-hidden="true"></i>
                             </button>
                             @error('job_pic')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
@@ -201,6 +201,15 @@
                 <input type="search" id="pic-search" class="form-control" placeholder="Cari nama atasan" x-model="q" autocomplete="off">
             </div>
             <div class="list-group">
+                {{-- Level 4+: boleh tanpa PIC → laporan langsung disetujui sebagai catatan kerja mandiri --}}
+                @if (auth()->user()->picOptional())
+                    <button type="button" class="list-group-item list-group-item-action d-flex align-items-center gap-2 py-2"
+                            :class="{ active: !pic }" @click="choose('')">
+                        <span class="sg-avatar" style="width:36px;height:36px;font-size:13px" aria-hidden="true"><i class="bi bi-person-check"></i></span>
+                        <span><span class="fw-semibold d-block">Tanpa PIC</span><span class="small opacity-75">Langsung disetujui sebagai catatan kerja</span></span>
+                        <i class="bi bi-check2 ms-auto" x-show="!pic" aria-hidden="true"></i>
+                    </button>
+                @endif
                 <template x-for="p in filtered" :key="p.id">
                     <button type="button" class="list-group-item list-group-item-action d-flex align-items-center gap-2 py-2"
                             :class="{ active: pic === p.id }" @click="choose(p.id)">

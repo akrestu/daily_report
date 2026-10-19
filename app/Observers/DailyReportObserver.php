@@ -14,6 +14,11 @@ class DailyReportObserver
      */
     public function updated(DailyReport $dailyReport): void
     {
+        // Catatan kerja mandiri (tanpa PIC) disetujui otomatis: tidak perlu notifikasi ke pembuatnya sendiri
+        if ($dailyReport->isSelfApproved()) {
+            return;
+        }
+
         // Check if approval_status field has been changed
         if ($dailyReport->isDirty('approval_status')) {
             $newStatus = $dailyReport->approval_status;
@@ -35,8 +40,10 @@ class DailyReportObserver
      */
     public function created(DailyReport $dailyReport): void
     {
-        // Notify approvers when a new job report needs approval
-        $this->notifyApprovers($dailyReport);
+        // Notify approvers when a new job report needs approval (laporan tanpa PIC sudah disetujui otomatis)
+        if ($dailyReport->approval_status === 'pending') {
+            $this->notifyApprovers($dailyReport);
+        }
     }
     
     /**

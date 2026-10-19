@@ -260,6 +260,12 @@ class User extends Authenticatable
         return 0;
     }
 
+    /** Level 4 ke atas boleh membuat laporan tanpa PIC (langsung disetujui sebagai catatan kerja mandiri) */
+    public function picOptional(): bool
+    {
+        return $this->getRoleLevel() >= 4;
+    }
+
     /**
      * Check if user can approve reports for the given user
      */

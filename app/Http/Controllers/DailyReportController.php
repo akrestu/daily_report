@@ -43,7 +43,8 @@ class DailyReportController extends Controller
             'section_id' => 'nullable|exists:sections,id',
             'report_date' => 'required|date',
             'due_date' => 'required|date|after_or_equal:report_date',
-            'job_pic' => 'required|exists:users,id',
+            // PIC opsional untuk Level 4+ (tanpa PIC = langsung disetujui, lihat DailyReport::booted)
+            'job_pic' => (Auth::user()?->picOptional() ? 'nullable' : 'required').'|exists:users,id',
             'description' => 'required|string|max:2000',
             'remark' => 'nullable|string|max:1000',
             'status' => ['required', Rule::in(['pending', 'in_progress', 'completed'])],
@@ -444,8 +445,8 @@ class DailyReportController extends Controller
         // Get eligible PICs
         $eligiblePics = $this->getEligiblePics($user);
 
-        // Validate PIC belongs to eligible PICs
-        if (!in_array($validated['job_pic'], $eligiblePics)) {
+        // Validate PIC belongs to eligible PICs (PIC kosong hanya lolos rules untuk Level 4+)
+        if (! empty($validated['job_pic']) && !in_array($validated['job_pic'], $eligiblePics)) {
             return redirect()->back()
                 ->with('error', 'PIC ini tidak sesuai dengan level Anda.')
                 ->withInput();
@@ -497,7 +498,7 @@ class DailyReportController extends Controller
                 'department_id' => $user->department_id,
                 'job_site_id' => $validated['job_site_id'] ?? null,
                 'section_id' => $validated['section_id'] ?? null,
-                'job_pic' => $validated['job_pic'],
+                'job_pic' => $validated['job_pic'] ?? null,
                 'report_date' => $validated['report_date'],
                 'due_date' => $validated['due_date'],
                 'description' => $validated['description'],
@@ -566,6 +567,9 @@ class DailyReportController extends Controller
         $picErrors = [];
         foreach ($request->input('reports', []) as $key => $entry) {
             $pic = $entry['job_pic'] ?? null;
+            if (! $pic && $user->picOptional()) {
+                continue; // tanpa PIC: catatan kerja mandiri Level 4+
+            }
             // Laporan dari Rencana Kerja boleh dikirim ke pembuat rencana (penugasan dari atasan)
             $plan = ! empty($entry['job_plan_id']) ? \App\Models\JobPlan::find($entry['job_plan_id']) : null;
             $planCreator = $plan && $plan->assignee_id === $user->id ? $plan->creator_id : null;
@@ -697,7 +701,7 @@ class DailyReportController extends Controller
                     'job_site_id' => $reportData['job_site_id'] ?? null,
                     'section_id' => $reportData['section_id'] ?? null,
                     'job_plan_id' => $reportData['job_plan_id'] ?? null,
-                    'job_pic' => $reportData['job_pic'],
+                    'job_pic' => $reportData['job_pic'] ?? null,
                     'report_date' => $reportData['report_date'],
                     'due_date' => $reportData['due_date'],
                     'description' => $reportData['description'],
@@ -840,8 +844,8 @@ class DailyReportController extends Controller
         // Get eligible PICs
         $eligiblePics = $this->getEligiblePics($user, $dailyReport->job_pic);
 
-        // Check if PIC is in eligible list
-        if (!in_array($validated['job_pic'], $eligiblePics)) {
+        // Check if PIC is in eligible list (PIC kosong hanya lolos rules untuk Level 4+)
+        if (! empty($validated['job_pic']) && !in_array($validated['job_pic'], $eligiblePics)) {
             return redirect()->back()
                 ->with('error', 'PIC ini tidak sesuai dengan level Anda.')
                 ->withInput();

@@ -24,6 +24,7 @@
         'pics' => $pics,
         'today' => now()->format('Y-m-d'),
         'defaultPic' => $defaultPic,
+        'picOptional' => auth()->user()->picOptional(),
         'idempotencyKey' => (string) old('idempotency_key', ''),
     ];
 @endphp
@@ -165,7 +166,7 @@
 
                             {{-- PIC: tombol pembuka sheet; nilai dikirim lewat input tersembunyi --}}
                             <div class="mb-3">
-                                <span class="form-label fw-semibold d-block" :id="id(entry, 'pic-label')">PIC (Atasan) <span class="text-danger">*</span></span>
+                                <span class="form-label fw-semibold d-block" :id="id(entry, 'pic-label')">PIC (Atasan) @if (auth()->user()->picOptional())<span class="text-muted fw-normal small">(opsional)</span>@else<span class="text-danger">*</span>@endif</span>
                                 <input type="hidden" :name="name(entry, 'job_pic')" :value="entry.job_pic">
                                 <button type="button" class="sg-pic-field" @click="choosePic(entry)" :id="id(entry, 'pic-btn')" :aria-labelledby="id(entry, 'pic-label') + ' ' + id(entry, 'pic-btn')"
                                         :class="{ 'is-invalid': error(entry, 'job_pic') }">
@@ -175,11 +176,11 @@
                                             <span class="fw-semibold sg-clamp-1" x-text="picName(entry.job_pic)"></span>
                                         </span>
                                     </template>
-                                    <span x-show="!entry.job_pic" class="text-muted">Pilih atasan yang menyetujui</span>
+                                    <span x-show="!entry.job_pic" class="text-muted" x-text="picOptional ? 'Tanpa PIC · langsung disetujui' : 'Pilih atasan yang menyetujui'"></span>
                                     <i class="bi bi-chevron-right ms-auto text-muted" aria-hidden="true"></i>
                                 </button>
                                 <div class="invalid-feedback d-block" x-text="error(entry, 'job_pic')"></div>
-                                @if ($pics->isEmpty())
+                                @if ($pics->isEmpty() && ! auth()->user()->picOptional())
                                     <div class="small text-danger mt-1">Belum ada atasan yang berhak menyetujui laporan Anda. Hubungi admin.</div>
                                 @endif
                             </div>
@@ -296,6 +297,15 @@
                 <input type="search" id="pic-search" class="form-control" placeholder="Cari nama atasan" x-model="picQuery" autocomplete="off">
             </div>
             <div class="list-group">
+                {{-- Level 4+: boleh tanpa PIC → laporan langsung disetujui sebagai catatan kerja mandiri --}}
+                @if (auth()->user()->picOptional())
+                    <button type="button" class="list-group-item list-group-item-action d-flex align-items-center gap-2 py-2"
+                            :class="{ active: picFor && !picFor.job_pic }" @click="selectPic('')">
+                        <span class="sg-avatar" style="width:36px;height:36px;font-size:13px" aria-hidden="true"><i class="bi bi-person-check"></i></span>
+                        <span><span class="fw-semibold d-block">Tanpa PIC</span><span class="small opacity-75">Langsung disetujui sebagai catatan kerja</span></span>
+                        <i class="bi bi-check2 ms-auto" x-show="picFor && !picFor.job_pic" aria-hidden="true"></i>
+                    </button>
+                @endif
                 <template x-for="pic in filteredPics" :key="pic.id">
                     <button type="button" class="list-group-item list-group-item-action d-flex align-items-center gap-2 py-2"
                             :class="{ active: picFor && picFor.job_pic === pic.id }" @click="selectPic(pic.id)">
