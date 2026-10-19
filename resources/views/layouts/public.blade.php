@@ -12,7 +12,16 @@
     {{-- Ikon PWA di /images/pwa (bukan /icons: alias bawaan Apache/LiteSpeed → 404 di server) --}}
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/pwa/apple-touch-icon.png?v=6') }}">
     <link rel="manifest" href="{{ asset('site.webmanifest?v=6') }}">
-    <meta name="theme-color" content="#111111">
+    <meta name="theme-color" content="#F8FAFC">
+    {{-- Warna bilah browser = --sg-bg tema aktif (diterapkan theme-init), ikut berubah bila tema berganti --}}
+    <script>
+        (function () {
+            var root = document.documentElement, meta = document.querySelector('meta[name="theme-color"]');
+            var sync = function () { meta.content = root.getAttribute('data-bs-theme') === 'dark' ? '#0B1120' : '#F8FAFC'; };
+            sync();
+            new MutationObserver(sync).observe(root, { attributes: true, attributeFilter: ['data-bs-theme'] });
+        })();
+    </script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
 </head>
