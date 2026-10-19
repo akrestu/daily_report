@@ -40,6 +40,19 @@
   /* --- Aksi khusus --- */
   --sg-approve: #15803D;  /* tombol Setujui */
   --sg-reject:  #B91C1C;  /* tombol Tolak / destruktif */
+  --sg-approve-hover: #166534;
+  --sg-reject-hover:  #991B1B;
+  --sg-danger-border: #FCA5A5;   /* garis input/kartu error, tombol outline bahaya */
+
+  /* --- Pendukung --- */
+  --sg-ink: #111111;              /* bidang hitam tetap (FAB) di kedua tema */
+  --sg-on-dark: #FFFFFF;          /* teks di atas bidang gelap/jenuh (panel brand, tombol hijau/merah, toast) */
+  --sg-on-accent: #111111;        /* teks di atas kuning */
+  --sg-accent-hover: #E9C51F;
+  --sg-border-strong: #CBD5E1;    /* garis saat hover */
+  --sg-icon-subtle: #94A3B8;      /* chevron, tombol tutup toast */
+  --sg-logo-bg: #FFFFFF;          /* pelat logo selalu putih */
+  --sg-toast-bg: #0F172A; --sg-toast-success: #4ADE80; --sg-toast-danger: #F87171;
 
   /* --- Tipografi --- */
   --sg-font-heading: "Plus Jakarta Sans", Inter, system-ui, sans-serif;
@@ -94,6 +107,13 @@
   --sg-progress-bg:#10264D;  --sg-progress-fg:#93C5FD;  --sg-progress-dot:#3B82F6;
   --sg-open-bg:    #1E1B4B;  --sg-open-fg:    #A5B4FC;  --sg-open-dot:    #818CF8;
   --sg-closed-bg:  #1E293B;  --sg-closed-fg:  #CBD5E1;  --sg-closed-dot:  #94A3B8;
+
+  --sg-p1-bg: #3A1212; --sg-p1-fg: #FCA5A5;
+  --sg-p2-bg: #3B1D0A; --sg-p2-fg: #FDBA74;
+  --sg-p3-bg: #0C2A3F; --sg-p3-fg: #7DD3FC;
+  --sg-p4-bg: #1E293B; --sg-p4-fg: #CBD5E1;
+
+  --sg-border-strong: #3A4A68;
 
   --sg-focus-ring: 0 0 0 3px rgba(245, 211, 52, .6);
 

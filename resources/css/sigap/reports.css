@@ -4,7 +4,7 @@
 
 /* ---------- Buat laporan: kartu entri ---------- */
 .sg-entry { overflow: hidden; }
-.sg-entry.has-error { border-color: #FCA5A5; }
+.sg-entry.has-error { border-color: var(--sg-danger-border); }
 .sg-entry__head { display: flex; align-items: center; gap: 4px; padding: 4px 8px 4px 4px; }
 .sg-entry__toggle { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 8px 10px; border: 0; background: none;
   color: var(--sg-text); border-radius: 10px; }
@@ -26,7 +26,7 @@
 /* Field PIC (tombol pembuka sheet) */
 .sg-pic-field { width: 100%; display: flex; align-items: center; gap: 10px; min-height: 56px; padding: 8px 12px; border: 1px solid var(--sg-border);
   border-radius: var(--sg-radius-input); background: var(--sg-surface); color: var(--sg-text); text-align: left; }
-.sg-pic-field:hover { border-color: #CBD5E1; }
+.sg-pic-field:hover { border-color: var(--sg-border-strong); }
 .sg-pic-field:focus-visible { box-shadow: var(--sg-focus-ring); outline: 0; border-color: var(--sg-primary); }
 .sg-pic-field.is-invalid { border-color: var(--sg-reject); }
 

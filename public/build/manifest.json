@@ -64,12 +64,12 @@
     "src": "node_modules/bootstrap-icons/font/fonts/bootstrap-icons.woff2"
   },
   "resources/css/app.css": {
-    "file": "assets/app-DpO6CSID.css",
+    "file": "assets/app-D4XCMTmj.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-3HCPhPA0.js",
+    "file": "assets/app-D0NKUp-6.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true

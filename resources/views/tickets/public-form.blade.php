@@ -44,7 +44,7 @@
     </ol>
 
     @if ($errors->any())
-        <div class="alert alert-danger small" role="alert"><strong>Periksa kembali isian yang ditandai.</strong> Lampiran perlu dipilih ulang.</div>
+        <div class="alert alert-danger small" role="alert"><strong>Periksa kembali isian yang ditandai.</strong></div>
     @endif
 
     <form action="{{ route('tickets.public.store') }}" method="POST" enctype="multipart/form-data" @submit="busy = true" novalidate>
@@ -169,6 +169,7 @@
             <input type="file" id="attachment" name="attachment" accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx"
                    class="form-control @error('attachment') is-invalid @enderror">
             @error('attachment')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            @include('tickets.partials.held-attachment')
 
             <div class="sg-status-card mt-3 small">
                 <div class="sg-status-card__label">Ringkasan</div>

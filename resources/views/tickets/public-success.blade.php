@@ -7,7 +7,7 @@
 @php($copyText = "Tiket SiGAP {$ticket->ticket_number}\nKode akses: {$ticket->tracking_token}\nLacak: ".route('tickets.public.track'))
 <div x-data="{ copied: false, async copy() { await navigator.clipboard.writeText(@js($copyText)); this.copied = true; sgToast('Nomor tiket & kode akses disalin'); } }">
     <x-sg.brand-panel class="text-center mb-3">
-        <div class="mx-auto mb-2 d-flex align-items-center justify-content-center rounded-circle" style="width:56px;height:56px;background:var(--sg-accent);color:#111;font-size:28px">
+        <div class="mx-auto mb-2 d-flex align-items-center justify-content-center rounded-circle" style="width:56px;height:56px;background:var(--sg-accent);color:var(--sg-on-accent);font-size:28px">
             <i class="bi bi-check-lg" aria-hidden="true"></i>
         </div>
         <h1 class="h5 fw-bold mb-1">Tiket berhasil dikirim</h1>

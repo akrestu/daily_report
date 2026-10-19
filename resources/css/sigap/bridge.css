@@ -19,13 +19,13 @@
 .sg-app .form-text { color: var(--sg-muted); }
 
 /* Tombol semantik lama → Setujui / Tolak / sekunder */
-.btn-success { --bs-btn-bg: var(--sg-approve); --bs-btn-border-color: var(--sg-approve); --bs-btn-hover-bg: #166534; --bs-btn-hover-border-color: #166534; --bs-btn-color: #fff; --bs-btn-hover-color: #fff; }
-.btn-danger { --bs-btn-bg: var(--sg-reject); --bs-btn-border-color: var(--sg-reject); --bs-btn-hover-bg: #991B1B; --bs-btn-hover-border-color: #991B1B; }
+.btn-success { --bs-btn-bg: var(--sg-approve); --bs-btn-border-color: var(--sg-approve); --bs-btn-hover-bg: var(--sg-approve-hover); --bs-btn-hover-border-color: var(--sg-approve-hover); --bs-btn-color: var(--sg-on-dark); --bs-btn-hover-color: var(--sg-on-dark); }
+.btn-danger { --bs-btn-bg: var(--sg-reject); --bs-btn-border-color: var(--sg-reject); --bs-btn-hover-bg: var(--sg-reject-hover); --bs-btn-hover-border-color: var(--sg-reject-hover); }
 .btn-outline-primary, .btn-outline-info, .btn-outline-success, .btn-light, .btn-secondary {
   --bs-btn-color: var(--sg-text); --bs-btn-bg: var(--sg-surface); --bs-btn-border-color: var(--sg-border);
-  --bs-btn-hover-color: var(--sg-text); --bs-btn-hover-bg: var(--sg-surface-2); --bs-btn-hover-border-color: #CBD5E1;
+  --bs-btn-hover-color: var(--sg-text); --bs-btn-hover-bg: var(--sg-surface-2); --bs-btn-hover-border-color: var(--sg-border-strong);
   --bs-btn-active-color: var(--sg-text); --bs-btn-active-bg: var(--sg-surface-2); --bs-btn-active-border-color: var(--sg-border); }
-.btn-outline-danger { --bs-btn-color: var(--sg-reject); --bs-btn-border-color: #FCA5A5; --bs-btn-hover-bg: var(--sg-danger-bg); --bs-btn-hover-color: var(--sg-reject); --bs-btn-hover-border-color: #FCA5A5; }
+.btn-outline-danger { --bs-btn-color: var(--sg-reject); --bs-btn-border-color: var(--sg-danger-border); --bs-btn-hover-bg: var(--sg-danger-bg); --bs-btn-hover-color: var(--sg-reject); --bs-btn-hover-border-color: var(--sg-danger-border); }
 .btn.rounded-pill { border-radius: var(--sg-radius-input) !important; }
 .btn-sm { min-height: 36px; }
 
@@ -97,7 +97,7 @@
 .sg-public__header > * { position: relative; }
 .sg-public__brand { min-height: 44px; display: flex; align-items: center; gap: 10px; color: var(--sg-text); text-decoration: none; }
 .sg-public__brand:hover { color: var(--sg-text); }
-.sg-public__brand img { background: #fff; border: 1px solid var(--sg-border); border-radius: 10px; padding: 3px; }
+.sg-public__brand img { background: var(--sg-logo-bg); border: 1px solid var(--sg-border); border-radius: 10px; padding: 3px; }
 .sg-public__brand strong { display: block; font-family: var(--sg-font-heading); font-size: 18px; line-height: 1.1; }
 /* primary: hitam di terang, kuning di gelap — kuning tidak dipakai di latar terang (kontras rendah) */
 .sg-public__brand small { display: block; font-size: 12px; color: var(--sg-primary); font-weight: 600; }
@@ -127,7 +127,7 @@
 @media (min-width: 576px) { .sg-option-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .sg-option { display: flex; flex-direction: column; gap: 2px; min-height: 64px; padding: 10px 12px; border: 1px solid var(--sg-border); border-radius: 12px;
   background: var(--sg-surface); cursor: pointer; line-height: 1.3; }
-.sg-option:hover { border-color: #CBD5E1; }
+.sg-option:hover { border-color: var(--sg-border-strong); }
 .sg-option.active { border: 2px solid var(--sg-primary); background: var(--sg-accent-tint); padding: 9px 11px; }
 .sg-option:focus-within { box-shadow: var(--sg-focus-ring); }
 
@@ -156,8 +156,8 @@
 
 /* ---------- Instal Aplikasi ---------- */
 .sg-install-hero { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 32px 20px;
-  background: var(--sg-brand-panel); color: #fff; }
-.sg-install-hero img { border-radius: 22px; background: #fff; padding: 8px; }
+  background: var(--sg-brand-panel); color: var(--sg-on-dark); }
+.sg-install-hero img { border-radius: 22px; background: var(--sg-logo-bg); padding: 8px; }
 .sg-install-hero p { color: rgba(255, 255, 255, .8); }
 .sg-install-list { list-style: none; padding: 0; margin: 0 0 16px; display: grid; gap: 12px; }
 .sg-install-list li { display: flex; gap: 12px; }

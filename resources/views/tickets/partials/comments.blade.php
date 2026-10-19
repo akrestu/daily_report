@@ -6,7 +6,7 @@
             <div class="d-flex flex-wrap align-items-center gap-2">
                 <strong>{{ $comment->author_display_name }}</strong>
                 @if ($comment->is_internal)
-                    <span class="sg-level" style="background:var(--sg-accent);color:#111"><i class="bi bi-lock-fill me-1" aria-hidden="true"></i>Internal</span>
+                    <span class="sg-level" style="background:var(--sg-accent);color:var(--sg-on-accent)"><i class="bi bi-lock-fill me-1" aria-hidden="true"></i>Internal</span>
                 @endif
                 <span class="small text-muted">{{ $comment->created_at->diffForHumans() }}</span>
             </div>

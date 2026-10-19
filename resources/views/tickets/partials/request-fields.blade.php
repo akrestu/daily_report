@@ -127,4 +127,5 @@
             <button type="button" class="btn btn-quiet btn-icon" x-show="picked" x-cloak @click="undo()" aria-label="Hapus lampiran"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
         </div>
     </div>
+    @include('tickets.partials.held-attachment')
 </div>

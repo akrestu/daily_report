@@ -14,8 +14,7 @@
         @if ($errors->any())
             <div class="alert alert-danger d-flex gap-2 mb-3" role="alert">
                 <i class="bi bi-exclamation-octagon fs-5" aria-hidden="true"></i>
-                <div><strong>Periksa kembali isian yang ditandai.</strong>
-                    <div class="small">Lampiran perlu dipilih ulang setelah validasi gagal.</div></div>
+                <div><strong>Periksa kembali isian yang ditandai.</strong></div>
             </div>
         @endif
 

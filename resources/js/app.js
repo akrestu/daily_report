@@ -36,11 +36,5 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
-
-    // Konfirmasi sederhana: <button data-confirm="Teks?">
-    document.querySelectorAll('[data-confirm]').forEach((button) => {
-        button.addEventListener('click', (event) => {
-            if (!window.confirm(button.dataset.confirm || 'Lanjutkan?')) event.preventDefault();
-        });
-    });
+    // Konfirmasi [data-confirm] ditangani sheet design system (resources/js/sigap/confirm.js)
 });

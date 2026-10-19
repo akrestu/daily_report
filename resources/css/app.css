@@ -1,4 +1,4 @@
-/* SiGAP — entry CSS (urutan penting: Bootstrap → ikon/font → token → komponen → legacy) */
+/* SiGAP — entry CSS (urutan penting: Bootstrap → ikon/font → token → komponen) */
 @import 'bootstrap/dist/css/bootstrap.min.css';
 @import 'bootstrap-icons/font/bootstrap-icons.min.css';
 
@@ -16,4 +16,3 @@
 @import './sigap/login.css';
 @import './sigap/reports.css';
 @import './sigap/bridge.css';
-@import './legacy.css';

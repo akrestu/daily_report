@@ -6,7 +6,10 @@ use App\Models\Employee;
 use App\Models\Ticket;
 use App\Models\TicketCategory;
 use App\Models\User;
+use Illuminate\Contracts\Validation\Validator as ValidatorContract;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
@@ -46,7 +49,90 @@ class StoreTicketRequest extends FormRequest
             'impact' => ['required', Rule::in(array_keys(Ticket::IMPACTS))],
             'urgency' => ['required', Rule::in(array_keys(Ticket::URGENCIES))],
             'attachment' => 'nullable|file|max:5120|mimes:jpeg,jpg,png,gif,pdf,doc,docx,xls,xlsx',
+            'attachment_token' => 'nullable|string|size:40',
         ];
+    }
+
+    /** Lokasi & kunci sesi lampiran yang ditahan saat validasi gagal */
+    private const HOLD_DIR = 'tmp/ticket-attachments';
+
+    private const HOLD_SESSION = 'ticket_attachment_hold';
+
+    /**
+     * Validasi gagal tetapi lampiran valid: tahan file di server agar pemohon tidak perlu
+     * memilih ulang (browser tidak bisa mengisi ulang input file).
+     */
+    protected function failedValidation(ValidatorContract $validator)
+    {
+        $this->holdAttachment($validator);
+
+        parent::failedValidation($validator);
+    }
+
+    private function holdAttachment(ValidatorContract $validator): void
+    {
+        $file = $this->file('attachment');
+
+        if (! $file) {
+            // Lampiran yang sudah ditahan tetap dibawa ke percobaan berikutnya
+            if ($held = $this->heldAttachment()) {
+                session()->flash('held_attachment', ['token' => $this->input('attachment_token'), 'name' => $held['name']]);
+            }
+
+            return;
+        }
+
+        if ($validator->errors()->has('attachment') || ! $file->isValid()) {
+            return;
+        }
+
+        $this->pruneHeldAttachments();
+
+        $token = Str::random(40);
+        $path = $file->storeAs(self::HOLD_DIR, $token.'.'.($file->extension() ?: 'bin'), 'local');
+        session()->put(self::HOLD_SESSION.'.'.$token, ['path' => $path, 'name' => $file->getClientOriginalName()]);
+        session()->flash('held_attachment', ['token' => $token, 'name' => $file->getClientOriginalName()]);
+    }
+
+    /** Lampiran tertahan milik sesi ini (token dari form harus cocok dengan sesi) */
+    private function heldAttachment(): ?array
+    {
+        $token = $this->input('attachment_token');
+        if (! is_string($token) || strlen($token) !== 40 || ! ctype_alnum($token)) {
+            return null;
+        }
+
+        $held = session(self::HOLD_SESSION.'.'.$token);
+
+        return $held && Storage::disk('local')->exists($held['path']) ? $held : null;
+    }
+
+    /** Pindahkan lampiran tertahan ke penyimpanan lampiran tiket */
+    private function takeHeldAttachment(): array
+    {
+        $held = $this->heldAttachment();
+        if (! $held) {
+            return [null, null];
+        }
+
+        $extension = pathinfo($held['path'], PATHINFO_EXTENSION) ?: 'bin';
+        $path = 'attachments/ticket_'.uniqid().'_'.time().'.'.$extension;
+        Storage::disk('attachments')->writeStream($path, Storage::disk('local')->readStream($held['path']));
+        Storage::disk('local')->delete($held['path']);
+        session()->forget(self::HOLD_SESSION.'.'.$this->input('attachment_token'));
+
+        return [$path, $held['name']];
+    }
+
+    /** Scheduler tidak jalan di produksi, jadi file tertahan > 1 hari dibersihkan di sini */
+    private function pruneHeldAttachments(): void
+    {
+        $disk = Storage::disk('local');
+        foreach ($disk->files(self::HOLD_DIR) as $old) {
+            if ($disk->lastModified($old) < now()->subDay()->getTimestamp()) {
+                $disk->delete($old);
+            }
+        }
     }
 
     public function after(): array
@@ -94,7 +180,10 @@ class StoreTicketRequest extends FormRequest
     public function ticketAttributes(): array
     {
         $user = $this->accountUser();
-        [$path, $originalName] = Ticket::storeAttachment($this->file('attachment'));
+        // File baru menggantikan lampiran yang ditahan dari percobaan sebelumnya
+        [$path, $originalName] = $this->hasFile('attachment')
+            ? Ticket::storeAttachment($this->file('attachment'))
+            : $this->takeHeldAttachment();
 
         $requester = $user
             ? [

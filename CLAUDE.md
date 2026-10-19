@@ -181,7 +181,7 @@ Rencana & progres: `docs/ui-redesign-plan.md`. Sumber desain: `design/` (baca `d
 - **Mobile-first** (mayoritas pengguna di HP). Breakpoint: `<576` mobile, `576–991` tablet, `≥992` desktop. Tidak ada scroll horizontal di mobile.
 - Warna lewat token `resources/css/tokens.css` (`--sg-*`, kelas `.sg-*`), **jangan hardcode hex**. Primary hitam #111111 (dark: kuning #F5D334), kuning hanya aksen. Tidak ada gradien biru-ungu, tidak ada emoji.
 - Stack UI: Bootstrap 5.3 + Alpine.js + Bootstrap Icons, font Inter/Plus Jakarta Sans self-host (`@fontsource`). **Tailwind tidak dipakai.**
-- Entry CSS `resources/css/app.css` (Bootstrap → ikon/font → tokens → `legacy.css`). `legacy.css` = gaya lama, dihapus bertahap.
+- Entry CSS `resources/css/app.css` (Bootstrap → ikon/font → tokens → `sigap/*.css`). `legacy.css` sudah dihapus; semua warna lewat token `--sg-*` (login memakai palet lokal `--lg-*`).
 - Label/tone badge dari `config/sigap-ui.php`; format tampilan via `App\Support\Format` (`17 Okt 2026, 14:30`, `1.248`, `91,4%`).
 - Tema di `localStorage('sg-theme')`, diterapkan `resources/views/partials/theme-init.blade.php`.
 - Badge status = dot + label. Status Approval (pill) ≠ Progres Pekerjaan (kotak + ikon). Modal mobile = bottom sheet; aksi utama mobile = sticky bottom bar; target sentuh ≥ 44px; input mobile 16px.
