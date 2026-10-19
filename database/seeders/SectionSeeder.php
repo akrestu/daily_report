@@ -13,39 +13,10 @@ class SectionSeeder extends Seeder
      */
     public function run(): void
     {
-        // Get departments
-        $itDepartment = Department::where('name', 'IT')->first();
-        $hrDepartment = Department::where('name', 'HR')->first();
+        // Section IT: daftar lengkap di ItSectionSeeder (bisa dijalankan terpisah di produksi)
+        $this->call(ItSectionSeeder::class);
 
-        if ($itDepartment) {
-            $itSections = [
-                [
-                    'department_id' => $itDepartment->id,
-                    'name' => 'Jaringan',
-                    'code' => 'IT-NET',
-                    'description' => 'Network infrastructure and connectivity',
-                    'is_active' => true,
-                ],
-                [
-                    'department_id' => $itDepartment->id,
-                    'name' => 'Hardware',
-                    'code' => 'IT-HW',
-                    'description' => 'Computer hardware and equipment maintenance',
-                    'is_active' => true,
-                ],
-                [
-                    'department_id' => $itDepartment->id,
-                    'name' => 'System',
-                    'code' => 'IT-SYS',
-                    'description' => 'System administration and software',
-                    'is_active' => true,
-                ],
-            ];
-
-            foreach ($itSections as $section) {
-                Section::create($section);
-            }
-        }
+        $hrDepartment = Department::where('code', 'HR')->first();
 
         if ($hrDepartment) {
             $hrSections = [
@@ -73,7 +44,7 @@ class SectionSeeder extends Seeder
             ];
 
             foreach ($hrSections as $section) {
-                Section::create($section);
+                Section::updateOrCreate(['code' => $section['code']], $section);
             }
         }
     }
