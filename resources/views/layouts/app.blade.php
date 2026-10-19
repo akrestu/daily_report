@@ -20,10 +20,11 @@
 
     <title>{{ $pageTitle === 'SiGAP' ? 'SiGAP' : $pageTitle.' — SiGAP' }}</title>
 
-    <link rel="icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}">
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('icons/icon-180x180.png?v=5') }}">
-    <link rel="manifest" href="{{ asset('site.webmanifest?v=5') }}">
+    <link rel="icon" href="{{ asset('favicon.ico?v=6') }}" sizes="48x48">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png?v=6') }}">
+    {{-- Ikon PWA di /images/pwa (bukan /icons: alias bawaan Apache/LiteSpeed → 404 di server) --}}
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/pwa/apple-touch-icon.png?v=6') }}">
+    <link rel="manifest" href="{{ asset('site.webmanifest?v=6') }}">
     <meta name="theme-color" content="#111111">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">

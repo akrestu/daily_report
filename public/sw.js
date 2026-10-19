@@ -5,7 +5,7 @@
  */
 
 // Cache version for manual updates
-const CACHE_VERSION = 'v4.1.0';
+const CACHE_VERSION = 'v4.2.0';
 
 // Import Workbox from CDN
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.0.0/workbox-sw.js');
@@ -25,7 +25,7 @@ if (workbox) {
   // Precache important static assets
   // Only precache offline.html - icons will be cached on-demand via StaleWhileRevalidate
   workbox.precaching.precacheAndRoute([
-    { url: '/offline.html', revision: '2.0' },
+    { url: '/offline.html', revision: '2.1' },
   ]);
 
   // CACHING STRATEGIES
@@ -70,7 +70,7 @@ if (workbox) {
 
   // 3. Stale-While-Revalidate for PWA icons
   workbox.routing.registerRoute(
-    ({ url }) => url.pathname.startsWith('/icons/'),
+    ({ url }) => url.pathname.startsWith('/images/pwa/'),
     new workbox.strategies.StaleWhileRevalidate({
       cacheName: `pwa-icons-${CACHE_VERSION}`,
       plugins: [
@@ -178,7 +178,7 @@ if (workbox) {
 
     // Return a placeholder for images
     if (event.request.destination === 'image') {
-      return caches.match('/icons/icon-192x192.png');
+      return caches.match('/images/pwa/icon-192x192.png');
     }
 
     // Return a generic error for other requests

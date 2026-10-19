@@ -11,24 +11,8 @@ use App\Http\Controllers\TicketController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
-// ===== STATIC ASSET ROUTES (FALLBACK FOR SERVERS WHERE .htaccess DOESN'T WORK) =====
-// Serve PWA icons directly via Laravel routes
-// This ensures icons work even if .htaccess is disabled or server is Nginx
-Route::get('/icons/{filename}', function ($filename) {
-    // basename + pola tanpa '/' mencegah path traversal ke file lain di server (mis. lampiran laporan)
-    $path = public_path('icons/' . basename($filename));
-
-    if (!file_exists($path)) {
-        abort(404);
-    }
-
-    $mimeType = mime_content_type($path);
-
-    return response()->file($path, [
-        'Content-Type' => $mimeType,
-        'Cache-Control' => 'public, max-age=31536000', // Cache for 1 year
-    ]);
-})->where('filename', '[A-Za-z0-9._-]+\.(png|jpg|jpeg|svg|ico)');
+// Ikon PWA ada di public/images/pwa (file statis). Jangan pakai /icons/: path itu alias bawaan Apache/LiteSpeed
+// (ikon milik server), sehingga request tidak pernah sampai ke aplikasi dan ikon manifest 404.
 
 // ===== PUBLIC TICKET ROUTES (tanpa auth) =====
 Route::get('/request', [PublicTicketController::class, 'showForm'])->name('tickets.public.form');

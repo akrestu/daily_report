@@ -4,14 +4,14 @@
     "description": "Laporan kerja harian, rencana kerja, dan persetujuan berjenjang.",
     "lang": "id",
     "icons": [
-        { "src": "/icons/icon-48x48.png?v=5", "sizes": "48x48", "type": "image/png", "purpose": "any" },
-        { "src": "/icons/icon-72x72.png?v=5", "sizes": "72x72", "type": "image/png", "purpose": "any" },
-        { "src": "/icons/icon-96x96.png?v=5", "sizes": "96x96", "type": "image/png", "purpose": "any" },
-        { "src": "/icons/icon-144x144.png?v=5", "sizes": "144x144", "type": "image/png", "purpose": "any" },
-        { "src": "/icons/icon-192x192.png?v=5", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-        { "src": "/icons/icon-512x512.png?v=5", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-        { "src": "/icons/maskable-192x192.png?v=5", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
-        { "src": "/icons/maskable-512x512.png?v=5", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+        { "src": "/images/pwa/icon-48x48.png?v=6", "sizes": "48x48", "type": "image/png", "purpose": "any" },
+        { "src": "/images/pwa/icon-72x72.png?v=6", "sizes": "72x72", "type": "image/png", "purpose": "any" },
+        { "src": "/images/pwa/icon-96x96.png?v=6", "sizes": "96x96", "type": "image/png", "purpose": "any" },
+        { "src": "/images/pwa/icon-144x144.png?v=6", "sizes": "144x144", "type": "image/png", "purpose": "any" },
+        { "src": "/images/pwa/icon-192x192.png?v=6", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+        { "src": "/images/pwa/icon-512x512.png?v=6", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+        { "src": "/images/pwa/maskable-192x192.png?v=6", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+        { "src": "/images/pwa/maskable-512x512.png?v=6", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
     ],
     "theme_color": "#111111",
     "background_color": "#111111",

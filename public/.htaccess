@@ -17,7 +17,7 @@
     RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
 
     # Explicitly allow static asset directories
-    RewriteCond %{REQUEST_URI} ^/(icons|screenshots|css|js|build|storage)/
+    RewriteCond %{REQUEST_URI} ^/(images|vendor|build|storage)/
     RewriteRule ^ - [L]
 
     # Redirect Trailing Slashes If Not A Folder...
@@ -29,4 +29,9 @@
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
+</IfModule>
+
+# Manifest PWA dengan MIME yang benar (sebelumnya application/octet-stream)
+<IfModule mod_mime.c>
+    AddType application/manifest+json .webmanifest
 </IfModule>
