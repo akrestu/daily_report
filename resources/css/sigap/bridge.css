@@ -91,10 +91,10 @@
 @keyframes sg-rotate { to { transform: rotate(360deg); } }
 
 /* ---------- Layout publik (tiket tanpa login) ---------- */
-.sg-public { min-height: 100vh; background: var(--sg-bg); }
-.sg-public__header { position: relative; overflow: hidden; display: flex; align-items: center; gap: 12px; padding: calc(14px + env(safe-area-inset-top)) 16px 64px;
-  background: var(--sg-brand-panel); color: #fff; }
-.sg-public__header::before { content: ""; position: absolute; inset: 0; background: url('/images/brand/topo-yellow.png') right -120px top -80px / 820px auto no-repeat; opacity: .22; pointer-events: none; }
+/* Latar kontur memenuhi seluruh layar (fixed), bukan hanya header */
+.sg-public { position: relative; isolation: isolate; min-height: 100vh; min-height: 100dvh; background: var(--sg-brand-panel); }
+.sg-public::before { content: ""; position: fixed; inset: 0; z-index: -1; background: url('/images/brand/topo-yellow.png') center / cover no-repeat; opacity: .22; pointer-events: none; }
+.sg-public__header { position: relative; display: flex; align-items: center; gap: 12px; padding: calc(14px + env(safe-area-inset-top)) 16px 24px; color: #fff; }
 .sg-public__header > * { position: relative; }
 .sg-public__brand { min-height: 44px; display: flex; align-items: center; gap: 10px; color: #fff; text-decoration: none; }
 .sg-public__brand img { background: #fff; border-radius: 10px; padding: 3px; }
@@ -103,10 +103,10 @@
 .sg-public__nav { margin-left: auto; display: flex; gap: 4px; }
 .sg-public__nav a { min-height: 44px; padding: 0 12px; display: inline-flex; align-items: center; border-radius: 999px; color: #fff; font-size: 14px; font-weight: 600; text-decoration: none; opacity: .85; }
 .sg-public__nav a.active, .sg-public__nav a:hover { opacity: 1; background: rgba(255, 255, 255, .12); color: #fff; }
-.sg-public__main { max-width: 760px; margin: -48px auto 0; padding: 0 12px calc(24px + env(safe-area-inset-bottom)); position: relative; }
+.sg-public__main { max-width: 760px; margin: 0 auto; padding: 0 12px calc(24px + env(safe-area-inset-bottom)); position: relative; }
 .sg-public__card { background: var(--sg-surface); border: 1px solid var(--sg-border); border-radius: 16px; padding: 20px 16px; box-shadow: 0 10px 30px rgba(15, 23, 42, .08); }
 @media (min-width: 576px) { .sg-public__card { padding: 28px; } }
-.sg-public__foot { text-align: center; font-size: 12px; color: var(--sg-muted); margin: 16px 0 0; }
+.sg-public__foot { text-align: center; font-size: 12px; color: rgba(255, 255, 255, .7); margin: 16px 0 0; }
 .sg-public .section-title { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--sg-muted); margin: 8px 0 12px; }
 .sg-public h5 { font-family: var(--sg-font-heading); font-weight: 800; }
 

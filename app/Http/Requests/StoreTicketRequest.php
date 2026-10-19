@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Models\Employee;
 use App\Models\Ticket;
 use App\Models\TicketCategory;
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -22,10 +23,19 @@ class StoreTicketRequest extends FormRequest
         return true;
     }
 
+    /**
+     * User login yang menjadi pemohon. Form publik selalu memakai NIK walau
+     * pengirimnya sedang login, agar tidak tertolak "NIK tidak boleh diisi".
+     */
+    public function accountUser(): ?User
+    {
+        return $this->routeIs('tickets.public.store') ? null : $this->user();
+    }
+
     public function rules(): array
     {
         return [
-            'nik' => $this->user() ? 'prohibited' : 'required|string|max:30',
+            'nik' => $this->accountUser() ? 'prohibited' : 'required|string|max:30',
             'requester_phone' => 'nullable|string|max:30',
             'job_site_id' => 'nullable|exists:job_sites,id',
             'type' => ['required', Rule::in(array_keys(Ticket::TYPES))],
@@ -48,7 +58,7 @@ class StoreTicketRequest extends FormRequest
                     $validator->errors()->add('supervisor_id', 'Kategori "'.$category->name.'" memerlukan persetujuan atasan. Pilih atasan Anda.');
                 }
 
-                if ($this->user() || $validator->errors()->has('nik')) {
+                if ($this->accountUser() || $validator->errors()->has('nik')) {
                     return;
                 }
 
@@ -83,7 +93,7 @@ class StoreTicketRequest extends FormRequest
      */
     public function ticketAttributes(): array
     {
-        $user = $this->user();
+        $user = $this->accountUser();
         [$path, $originalName] = Ticket::storeAttachment($this->file('attachment'));
 
         $requester = $user
