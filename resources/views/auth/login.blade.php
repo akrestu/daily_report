@@ -1,8 +1,9 @@
-{{-- Login — mockup: design/mockups/dc-source/LoginMobile.dc.html & LoginDesktop.dc.html --}}
+{{-- Login — mobile: mockup LoginMobile.dc.html; desktop (≥992): kartu dua kolom di tengah, mengikuti gaya login MyWahana --}}
 <x-guest-layout>
     <main class="sg-login">
+      <div class="sg-login__card">
         <section class="sg-login__hero" aria-label="SiGAP">
-            <img src="{{ asset('images/brand/login-mining-photo.webp') }}" alt="" class="sg-login__photo" fetchpriority="high">
+            <img src="{{ asset('images/brand/login-crusher.webp') }}" alt="" class="sg-login__photo" fetchpriority="high">
             <span class="sg-login__brand">
                 <img src="{{ asset('images/brand/logo-sigap.png') }}" alt="" width="30" height="30">SIGAP
             </span>
@@ -82,5 +83,6 @@
                 </div>
             </div>
         </section>
+      </div>
     </main>
 </x-guest-layout>

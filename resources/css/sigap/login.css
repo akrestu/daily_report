@@ -1,12 +1,13 @@
-/* Login — gaya khusus (foto tambang, input krem r16, tombol pill). Plus Jakarta Sans saja.
-   Mockup: LoginMobile.dc.html (390) & LoginDesktop.dc.html (≥992) */
+/* Login — gaya khusus (foto crusher, input krem r16, tombol pill). Plus Jakarta Sans saja.
+   Mobile: mockup LoginMobile.dc.html. Desktop (≥992): kartu dua kolom di tengah, mengikuti gaya login MyWahana. */
 .sg-login { --lg-ink: #141414; --lg-muted: #5F5A51; --lg-field: #F5F3EE; --lg-line: #E7E3DA;
   min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; background: #fff; color: var(--lg-ink); font-family: var(--sg-font-heading); }
 [data-bs-theme="dark"] .sg-login { --lg-ink: #F1F5F9; --lg-muted: #9AA8BD; --lg-field: #1A2540; --lg-line: #26324A; background: var(--sg-bg); }
 
 .sg-login__hero { position: relative; isolation: isolate; height: 300px; flex: none; padding: calc(24px + env(safe-area-inset-top)) 20px 24px;
   display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; }
-.sg-login__photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 62% 55%; z-index: -2; }
+.sg-login__card { flex: 1; display: flex; flex-direction: column; background: inherit; }
+.sg-login__photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 52% 30%; z-index: -2; }
 .sg-login__hero::after { content: ""; position: absolute; inset: 0; z-index: -1;
   background: linear-gradient(180deg, rgba(10,10,10,.30) 0%, rgba(255,255,255,0) 40%, rgba(255,255,255,.85) 85%, #fff 100%); }
 [data-bs-theme="dark"] .sg-login__hero::after { background: linear-gradient(180deg, rgba(10,10,10,.30) 0%, rgba(11,17,32,0) 40%, rgba(11,17,32,.85) 85%, var(--sg-bg) 100%); }
@@ -45,17 +46,22 @@
 .sg-login__install-btn { height: 36px; padding: 0 14px; border: 0; border-radius: 999px; background: #fff; color: #141414; font-size: 13px; font-weight: 700; }
 
 @media (min-width: 992px) {
-  .sg-login { flex-direction: row; }
-  .sg-login__hero { flex: 1 1 560px; height: auto; min-height: 100vh; padding: 40px; }
-  .sg-login__hero::after { background: linear-gradient(180deg, rgba(10,10,10,.25) 0%, rgba(10,10,10,0) 40%, rgba(10,10,10,.65) 100%); }
-  .sg-login__brand { font-size: 13px; }
-  .sg-login__panel { flex: 1 1 480px; align-items: center; padding: 48px 24px; }
+  /* Halaman abu-abu, kartu putih r28 di tengah (MyWahana) */
+  .sg-login { align-items: center; justify-content: center; padding: 32px; background: var(--sg-bg); }
+  .sg-login__card { flex: none; width: 100%; max-width: 896px; min-height: 600px; flex-direction: row; overflow: hidden; border-radius: 28px;
+    background: #fff; box-shadow: 0 24px 60px rgba(15, 23, 42, .10); }
+  [data-bs-theme="dark"] .sg-login__card { background: var(--sg-surface); box-shadow: 0 24px 60px rgba(0, 0, 0, .45); border: 1px solid var(--sg-border); }
+  .sg-login__hero { width: 50%; height: auto; padding: 24px; }
+  .sg-login__photo { object-position: 50% 35%; }
+  .sg-login__hero::after, [data-bs-theme="dark"] .sg-login__hero::after { background: linear-gradient(180deg, rgba(0,0,0,.30) 0%, rgba(0,0,0,0) 45%, rgba(0,0,0,0) 70%, rgba(0,0,0,.45) 100%); }
+  .sg-login__tagline { font-size: 15px; font-weight: 600; line-height: 1.45; color: rgba(255,255,255,.92); max-width: 340px; }
+  .sg-login__panel { width: 50%; flex: none; align-items: center; padding: 40px; }
   .sg-login__form { gap: 16px; }
-  .sg-login__title { font-size: 32px; }
   .sg-login__lead { font-size: 15px; }
-  .sg-login__ghost { font-size: 14px; }
   .sg-login__install { margin-top: 8px; background: #F7F6F2; color: var(--lg-ink); border: 1px solid var(--lg-line); }
   .sg-login__install-text { color: var(--lg-muted); }
   .sg-login__install-btn { background: #141414; color: #fff; }
   [data-bs-theme="dark"] .sg-login__install { background: var(--sg-surface-2); }
+  [data-bs-theme="dark"] .sg-login { background: var(--sg-bg); }
+  [data-bs-theme="dark"] .sg-login__ghost { background: transparent; }
 }
