@@ -89,7 +89,8 @@
 
 /* Panel brand: hitam + pola topografi kuning */
 .sg-brand-panel { position: relative; overflow: hidden; background: var(--sg-brand-panel); color: var(--sg-on-dark); border-radius: 16px; padding: 20px; }
-.sg-brand-panel::before { content: ""; position: absolute; inset: 0; background: url('/images/brand/topo-yellow.png') right -80px top -60px / 900px auto no-repeat;
+/* cover: pola memenuhi panel di semua lebar (ukuran tetap 900px dulu berhenti di tengah panel lebar → tepi terpotong) */
+.sg-brand-panel::before { content: ""; position: absolute; inset: 0; background: url('/images/brand/topo-yellow.png') center / cover no-repeat;
   opacity: .22; pointer-events: none; }
 .sg-brand-panel > * { position: relative; }
 .sg-brand-panel .btn-accent { background: var(--sg-accent); border-color: var(--sg-accent); color: var(--sg-on-accent); }
